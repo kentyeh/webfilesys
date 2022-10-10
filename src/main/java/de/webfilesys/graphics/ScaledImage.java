@@ -2,11 +2,12 @@ package de.webfilesys.graphics;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ScaledImage
 {
+    private static final Logger logger = LogManager.getLogger(ScaledImage.class);
     public static final int IMG_TYPE_UNKNOWN = 0;
     public static final int IMG_TYPE_JPEG    = 1;
     public static final int IMG_TYPE_GIF     = 2;
@@ -151,7 +152,7 @@ public class ScaledImage
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error("failed to determined image dimesions", ioex);
+            logger.error("failed to determined image dimesions", ioex);
             throw ioex;
         }
         finally
@@ -170,13 +171,13 @@ public class ScaledImage
         
         if (ySize == 0)
         {
-            Logger.getLogger(getClass()).warn("could not determine height of image " + imgFileName);
+            logger.warn("could not determine height of image " + imgFileName);
             ySize = 100;
         }
 
         if (xSize == 0)
         {
-            Logger.getLogger(getClass()).warn("could not determine width of image " + imgFileName);
+            logger.warn("could not determine width of image " + imgFileName);
             xSize = 100;
         }
 

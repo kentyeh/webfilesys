@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.ClipBoard;
 import de.webfilesys.Constants;
@@ -18,12 +17,15 @@ import de.webfilesys.MetaInfManager;
 import de.webfilesys.gui.xsl.XslFileListHandler;
 import de.webfilesys.gui.xsl.XslThumbnailHandler;
 import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class PasteAsLinkRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(PasteAsLinkRequestHandler.class);
 	protected HttpServletRequest req = null;
 
 	protected HttpServletResponse resp = null;
@@ -47,6 +49,7 @@ public class PasteAsLinkRequestHandler extends UserRequestHandler
         this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -70,7 +73,7 @@ public class PasteAsLinkRequestHandler extends UserRequestHandler
 		
 		if (clipBoard == null)
 		{
-			Logger.getLogger(getClass()).warn("clipboard is empty in paste operation");
+			logger.warn("clipboard is empty in paste operation");
 
 		    return;
 		}
@@ -98,7 +101,7 @@ public class PasteAsLinkRequestHandler extends UserRequestHandler
                 }
                 catch (FileNotFoundException fnfex)
                 {
-                	Logger.getLogger(getClass()).warn(fnfex.toString());
+                	logger.warn(fnfex.toString());
                 }
 			}
 		}
@@ -109,7 +112,7 @@ public class PasteAsLinkRequestHandler extends UserRequestHandler
 	    
 	    if (sessionViewMode != null)
 	    {
-	    	viewMode = sessionViewMode.intValue();
+	    	viewMode = sessionViewMode;
 	    }
     	
         String mobile = (String) session.getAttribute("mobile");

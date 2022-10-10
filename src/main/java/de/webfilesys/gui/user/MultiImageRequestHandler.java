@@ -7,15 +7,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MultiImageRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(MultiImageRequestHandler.class);
 	private static final int prefixLength = Constants.CHECKBOX_LIST_PREFIX.length();
 	
 	protected String actPath = null;
@@ -33,7 +35,7 @@ public class MultiImageRequestHandler extends UserRequestHandler
 	{
         super(req, resp, session, output, uid);
 		
-		selectedFiles = new ArrayList<String>();
+		selectedFiles = new ArrayList<>();
 
 		Enumeration allKeys = req.getParameterNames();
 
@@ -60,6 +62,7 @@ public class MultiImageRequestHandler extends UserRequestHandler
 		session.setAttribute("selectedFiles", selectedFiles);
 	}
 
+        @Override
 	public void handleRequest()
 	{
 		if (actPath == null)
@@ -68,18 +71,18 @@ public class MultiImageRequestHandler extends UserRequestHandler
 			
 			if (actPath == null)
 			{
-				Logger.getLogger(getClass()).warn("current path cannot be determined");
+				logger.warn("current path cannot be determined");
 				return;
 			}
 		}
 		
 		if (!accessAllowed(actPath))
 		{
-			Logger.getLogger(getClass()).warn("user " + uid + " tried to access folder outside of it's document root: " + actPath);
+			logger.warn("user " + uid + " tried to access folder outside of it's document root: " + actPath);
 			return;
 		}
 		
-		if (selectedFiles.size()==0)
+		if (selectedFiles.isEmpty())
 		{
 			output.print("<HTML>");
 			output.print("<HEAD>");

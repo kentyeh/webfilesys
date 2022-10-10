@@ -6,19 +6,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
-import de.webfilesys.gui.xsl.XslFileListHandler;
 import de.webfilesys.gui.xsl.XslUserSettingsHandler;
 import de.webfilesys.mail.EmailUtils;
 import de.webfilesys.user.TransientUser;
 import de.webfilesys.user.UserMgmtException;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class SelfChangeUserRequestHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(SelfChangeUserRequestHandler.class);
 	public SelfChangeUserRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -28,6 +29,7 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -35,7 +37,7 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
 
 		String login = uid;
 
-		StringBuffer errorMsg = new StringBuffer();
+		StringBuilder errorMsg = new StringBuilder();
 
 		String temp = null;
 
@@ -46,15 +48,15 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
 			(pwconfirm != null) && (pwconfirm.trim().length() > 0)) {
 			if ((password == null) || (password.trim().length() < 5)) {
 				temp=getResource("error.passwordlength","the minimum password length is 5 characters");
-				errorMsg.append(temp + "<br/>");
+				errorMsg.append(temp).append("<br/>");
 			} else {
 				if (password.indexOf(' ')>0) {
 					temp = getResource("error.spacesinpw","the password must not contain spaces");
-					errorMsg.append(temp + "<br/>");
+					errorMsg.append(temp).append("<br/>");
 				} else {
 					if ((pwconfirm == null) || (!pwconfirm.equals(password))) {
 						temp = getResource("error.pwmissmatch","the password and the password confirmation are not equal");
-						errorMsg.append(temp + "<br/>");
+						errorMsg.append(temp).append("<br/>");
 					}
 				}
 			}
@@ -78,15 +80,15 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
 		if ((ropassword.length() > 0) || (ropwconfirm.length() > 0)) {
 			if (ropassword.length() < 5) {
 				temp=getResource("error.passwordlength", "the minimum password length is 5 characters");
-				errorMsg.append(temp + "<br/>");
+				errorMsg.append(temp).append("<br/>");
 			} else {
 				if (ropassword.indexOf(' ') >= 0) {
 					temp=getResource("error.spacesinpw", "the password must not contain spaces");
-					errorMsg.append(temp + "<br/>");
+					errorMsg.append(temp).append("<br/>");
 				} else {
 					if (!ropassword.equals(ropwconfirm)) {
 						temp=getResource("error.pwmissmatch", "password and password confirmation do not match");
-						errorMsg.append(temp + "<br/>");
+						errorMsg.append(temp).append("<br/>");
 					}
 				}
 			}
@@ -96,7 +98,7 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
 
 		if ((email == null) || (!EmailUtils.emailSyntaxOk(email))) {
 			temp = getResource("error.email", "a valid e-mail address is required");
-			errorMsg.append(temp + "<br/>");
+			errorMsg.append(temp).append("<br/>");
 		}
 
 		if (errorMsg.length()>0) {
@@ -108,8 +110,8 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
 		TransientUser changedUser = userMgr.getUser(login);
 		
 		if (changedUser == null) {
-            Logger.getLogger(getClass()).error("user for update not found: " + login);
-			errorMsg.append("user for update not found: " + login);
+            logger.error("user for update not found: " + login);
+			errorMsg.append("user for update not found: ").append(login);
 			(new XslUserSettingsHandler(req, resp, session, output, uid, errorMsg.toString())).handleRequest();
 			return;
 		}
@@ -157,7 +159,7 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
 		try {
 			userMgr.updateUser(changedUser);
 		} catch (UserMgmtException ex) {
-            Logger.getLogger(getClass()).error("failed to update user " + login, ex);
+            logger.error("failed to update user " + login, ex);
 			errorMsg.append("failed to update user " + login);
 			(new XslUserSettingsHandler(req, resp, session, output, uid, errorMsg.toString())).handleRequest();
 			return;

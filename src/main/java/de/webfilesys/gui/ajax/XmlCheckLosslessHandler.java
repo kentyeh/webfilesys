@@ -1,6 +1,5 @@
 package de.webfilesys.gui.ajax;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -8,18 +7,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
-import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlCheckLosslessHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlCheckLosslessHandler.class);
 	public XmlCheckLosslessHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -42,7 +42,7 @@ public class XmlCheckLosslessHandler extends XmlRequestHandlerBase
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error(ioex);
+            logger.error(ioex);
             return;
         }
 

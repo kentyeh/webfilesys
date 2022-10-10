@@ -1,14 +1,12 @@
 package de.webfilesys.gui.xsl;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -19,10 +17,8 @@ import de.webfilesys.FileLinkSelector;
 import de.webfilesys.FileSelectionStatus;
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
-import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.graphics.ImageDimensions;
 import de.webfilesys.graphics.ImageUtils;
-import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.SessionKey;
@@ -44,6 +40,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String actPath = getParameter("actpath");
@@ -108,7 +105,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
             {
                 int newScreenWidth = Integer.parseInt(screenWidthParm);
 
-                session.setAttribute("screenWidth", new Integer(newScreenWidth));
+                session.setAttribute("screenWidth", newScreenWidth);
             }
             catch (NumberFormatException nfex)
             {
@@ -121,7 +118,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
             {
                 int newScreenHeight = Integer.parseInt(screenHeightParm);
 
-                session.setAttribute("screenHeight", new Integer(newScreenHeight));
+                session.setAttribute("screenHeight", newScreenHeight);
             }
             catch (NumberFormatException nfex)
             {
@@ -135,14 +132,14 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
         
         if (widthScreen != null)
         {
-            screenWidth = widthScreen.intValue();
+            screenWidth = widthScreen;
         }
 
         Integer heightScreen = (Integer) session.getAttribute("screenHeight");
         
         if (heightScreen != null)
         {
-            screenHeight = heightScreen.intValue();
+            screenHeight = heightScreen;
         }
 
         int delay = WebFileSys.getInstance().getSlideShowDelay();
@@ -181,7 +178,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
             XmlUtil.setChildText(slideShowElement, "album", "true", false);
         }        
         
-        ArrayList imageFiles = null;
+        ArrayList<String> imageFiles = null;
         
         if (imageIdx < 0)
         {
@@ -199,7 +196,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
         }
         else
         {
-            imageFiles = (ArrayList) session.getAttribute(SessionKey.SLIDESHOW_BUFFER); 
+            imageFiles = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER); 
             if ((imageFiles == null) || (imageIdx>=imageFiles.size()))
             {
                 session.removeAttribute(SessionKey.SLIDESHOW_BUFFER);
@@ -208,11 +205,11 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
             }
         }
 
-        imageFiles = (ArrayList) session.getAttribute(SessionKey.SLIDESHOW_BUFFER); 
+        imageFiles = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER); 
         
         XmlUtil.setChildText(slideShowElement, "imageCount", Integer.toString(imageFiles.size()), false);
         
-        if (imageFiles.size() == 0) {
+        if (imageFiles.isEmpty()) {
             addMsgResource("alert.nopictures", getResource("alert.nopictures","No picture files (JPG,GIF,PNG) exist in this directory"));
             XmlUtil.setChildText(slideShowElement, "shortPath", getHeadlinePath(CommonUtils.shortName(actPath, 50)), false);
 
@@ -234,7 +231,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
         
         XmlUtil.setChildText(slideShowElement, "imgIdx", Integer.toString(imageIdx), false);
 
-        String imgPath = (String) imageFiles.get(imageIdx);
+        String imgPath = imageFiles.get(imageIdx);
         
         XmlUtil.setChildText(slideShowElement, "imgPath", imgPath, false);
         
@@ -256,7 +253,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
         
         XmlUtil.setChildText(slideShowElement, "nextImgIdx", Integer.toString(nextImageIdx), false);
 
-        String nextFileName = (String) imageFiles.get(nextImageIdx);
+        String nextFileName = imageFiles.get(nextImageIdx);
 
         nextFileName = UTF8URLEncoder.encode(nextFileName);
 		
@@ -311,7 +308,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
         ArrayList<String> imageTree = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER);
         if (imageTree == null)
         {
-            imageTree = new ArrayList<String>();
+            imageTree = new ArrayList<>();
             session.setAttribute(SessionKey.SLIDESHOW_BUFFER,imageTree);
         }
 
@@ -328,10 +325,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
 
         if (imageFiles!=null)
         {
-            for (i=0;i<imageFiles.size();i++)
-            {
-                FileContainer fileCont = (FileContainer) imageFiles.get(i);
-                
+            for (FileContainer fileCont: imageFiles){
                 imageTree.add(fileCont.getRealFile().getAbsolutePath());
             }
         }
@@ -382,7 +376,7 @@ public class XslSlideShowInFrameHandler extends XslRequestHandlerBase
 
 		for (int i = 0; i < imageTree.size(); i++) 
 		{
-			String fileName = (String) imageTree.get(i);
+			String fileName = imageTree.get(i);
 			if (fileName.equals(startFilePath))
 			{
 				return i;

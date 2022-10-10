@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -14,12 +13,15 @@ import de.webfilesys.LanguageManager;
 import de.webfilesys.gui.CSSManager;
 import de.webfilesys.user.TransientUser;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslUserSettingsHandler extends XslRequestHandlerBase {
 	
+    private static final Logger logger = LogManager.getLogger(XslUserSettingsHandler.class);
 	private String errorMsg = null;
 	
 	public XslUserSettingsHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
@@ -52,7 +54,7 @@ public class XslUserSettingsHandler extends XslRequestHandlerBase {
 
 		TransientUser user = userMgr.getUser(uid);
 		if (user == null) {
-        	Logger.getLogger(getClass()).error("user not found: " + uid);
+        	logger.error("user not found: " + uid);
         	return;
 		}
 		

@@ -28,6 +28,7 @@ public class XslSlideshowParmsHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String currentPath = getCwd();
@@ -39,8 +40,8 @@ public class XslSlideshowParmsHandler extends XslRequestHandlerBase
         
         session.removeAttribute(SessionKey.SLIDESHOW_BUFFER);
 
-        session.setAttribute("screenWidth", new Integer(screenWidth));
-        session.setAttribute("screenHeight", new Integer(screenHeight));
+        session.setAttribute("screenWidth", screenWidth);
+        session.setAttribute("screenHeight", screenHeight);
 
 		String shortPath = CommonUtils.shortName(getHeadlinePath(currentPath), 80);
 		

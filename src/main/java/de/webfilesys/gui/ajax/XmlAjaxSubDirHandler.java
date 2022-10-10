@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Constants;
@@ -25,12 +24,15 @@ import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.StringComparator;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlAjaxSubDirHandler.class);
 	DirTreeStatus dirTreeStatus = null;
 	
 	public XmlAjaxSubDirHandler(
@@ -43,13 +45,14 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String expandDir = req.getParameter("path");
 
 		if (!accessAllowed(expandDir))
 		{
-			Logger.getLogger(getClass()).warn("user " + this.getUid() + " tried to access directory outside the home directory: " + expandDir);
+			logger.warn("user " + this.getUid() + " tried to access directory outside the home directory: " + expandDir);
 			
 			try
 			{
@@ -57,7 +60,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 			}
 			catch (IOException ioex)
 			{
-				Logger.getLogger(getClass()).warn(ioex);
+				logger.warn(ioex);
 			}
 			
 			return;
@@ -132,7 +135,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 		}
 		else
 		{
-			hasSubdirs = (subdirExist.intValue()==1);
+			hasSubdirs = (subdirExist==1);
 		}
 
 		parentElement = doc.createElement("parentFolder");
@@ -221,7 +224,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 	            }
 	            catch (IOException ioex)
 	            {
-	                Logger.getLogger(getClass()).error(ioex);
+	                logger.error(ioex);
 	            }
 	        }
 		}
@@ -234,7 +237,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 
 		if (fileList == null)
 		{
-			Logger.getLogger(getClass()).warn("filelist is null for " + parentPath);
+			logger.warn("filelist is null for " + parentPath);
 			
 			dirTreeStatus.collapseDir(parentPath);
 			
@@ -253,7 +256,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 			pathWithSlash = parentPath + File.separator;
 		}
 
-		ArrayList<String> subdirList = new ArrayList<String>();
+		ArrayList<String> subdirList = new ArrayList<>();
 
 		for (File file : fileList)
 		{
@@ -270,7 +273,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 			}
 		}
 
-		if (subdirList.size() == 0)
+		if (subdirList.isEmpty())
 		{
 			return(parentElement);
 		}
@@ -310,7 +313,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 
 			if (subdirExist == null) {
 				folderElement.setAttribute("leaf", "unknown");    
-			} else if (subdirExist.intValue() != 1) {
+			} else if (subdirExist != 1) {
 				folderElement.setAttribute("leaf", "true");    
 			}
 			
@@ -351,7 +354,7 @@ public class XmlAjaxSubDirHandler extends XmlRequestHandlerBase
 					}
 					catch (IOException ioex)
 					{
-						Logger.getLogger(getClass()).error(ioex);
+						logger.error(ioex);
 					}
 				}
 			}

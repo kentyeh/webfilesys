@@ -5,16 +5,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.util.PatternComparator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FileLinkSelector
-{
-	private int sortBy;
+{   
+    private static final Logger logger = LogManager.getLogger(FileLinkSelector.class);
+	private final int sortBy;
 	private ArrayList<FileContainer> selectedFiles;
-	private String path;
-	private boolean hideMetaInf;
+	private final String path;
+	private final boolean hideMetaInf;
 
 	public FileLinkSelector(String path,int sortBy)
 	{
@@ -47,12 +48,12 @@ public class FileLinkSelector
 
 		ArrayList<FileContainer> filesAndLinks = getFilesAndLinks();
         
-		if ((filesAndLinks.size() ==0))
+		if ((filesAndLinks.isEmpty()))
 		{
 			return(selectionStatus);
 		}
 
-		selectedFiles = new ArrayList<FileContainer>();
+		selectedFiles = new ArrayList<>();
 
 		int selectedFileNumber=0;
 
@@ -88,7 +89,7 @@ public class FileLinkSelector
 					{
 						MetaInfManager.getInstance().removeLink(path,fileName);
 						
-						Logger.getLogger(getClass()).info("removing invalid link " + fileName + " in directory " + path + " pointing to " + fileCont.getRealFile().getAbsolutePath());
+						logger.info("removing invalid link " + fileName + " in directory " + path + " pointing to " + fileCont.getRealFile().getAbsolutePath());
 					}
 				}
 			}
@@ -105,7 +106,7 @@ public class FileLinkSelector
 
 		String lastFileOfAll=null;
         
-		if (selectedFiles.size()>0)
+		if (!selectedFiles.isEmpty())
 		{
 			lastFileOfAll = ((FileContainer) selectedFiles.get(selectedFiles.size()-1)).getName();
 		}
@@ -116,7 +117,7 @@ public class FileLinkSelector
 
 		int i;
         
-		ArrayList<FileContainer> filesOnPage = new ArrayList<FileContainer>();
+		ArrayList<FileContainer> filesOnPage = new ArrayList<>();
 
 		if ((afterName==null) && (beforeName==null))
 		{
@@ -205,7 +206,7 @@ public class FileLinkSelector
 		selectionStatus.setBeginIndex(beginIndex);
 		selectionStatus.setEndIndex(endIndex);
 
-		if (selectedFiles.size()>0)
+		if (!selectedFiles.isEmpty())
 		{
 		    FileContainer lastSelectedFile=(FileContainer) filesOnPage.get(filesOnPage.size()-1);
 
@@ -247,14 +248,14 @@ public class FileLinkSelector
 
 		ArrayList<FileContainer> filesAndLinks = getFilesAndLinks();
         
-		if ((filesAndLinks.size() ==0))
+		if ((filesAndLinks.isEmpty()))
 		{
 			return(selectionStatus);
 		}
 
 		MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 		
-		selectedFiles = new ArrayList<FileContainer>();
+		selectedFiles = new ArrayList<>();
 
 		int selectedFileNumber=0;
 
@@ -296,7 +297,7 @@ public class FileLinkSelector
 					{
 						metaInfMgr.removeLink(path,fileName);
 						
-						Logger.getLogger(getClass()).info("removing invalid link " + fileName + " in directory " + path + " pointing to " + fileCont.getRealFile().getAbsolutePath());
+						logger.info("removing invalid link " + fileName + " in directory " + path + " pointing to " + fileCont.getRealFile().getAbsolutePath());
 					}
 				}
 			}
@@ -313,7 +314,7 @@ public class FileLinkSelector
 
 		if (beginIdx > selectedFiles.size() - 1)
 		{
-			if (selectedFiles.size() > 0)
+			if (!selectedFiles.isEmpty())
 			{
 				beginIdx = selectedFiles.size() - 1;
 				
@@ -365,7 +366,7 @@ public class FileLinkSelector
 	}
 
     private ArrayList<FileContainer> getFilesAndLinks() {
-    	ArrayList<FileContainer> filesAndLinks = new ArrayList<FileContainer>();
+    	ArrayList<FileContainer> filesAndLinks = new ArrayList<>();
     	
 		File dirFile = new File(path);
 
@@ -381,10 +382,9 @@ public class FileLinkSelector
         
         if (linkList != null)
         {
-        	for (int i=0;i<linkList.size();i++)
-        	{
-        		filesAndLinks.add(new FileContainer((FileLink) linkList.get(i)));
-        	}
+                for (FileLink linkList1 : linkList) {
+                    filesAndLinks.add(new FileContainer((FileLink) linkList1));
+                }
         }
         
         return(filesAndLinks);

@@ -1,18 +1,21 @@
 package de.webfilesys.graphics;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.SubdirExistCache;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VideoFadeAudioThread extends Thread {
-	public static final String TARGET_SUBDIR = "_fadeAudio";
+    private static final Logger logger = LogManager.getLogger(VideoFadeAudioThread.class);
+
+    public static final String TARGET_SUBDIR = "_fadeAudio";
 	
     private String videoFilePath;
 
@@ -32,10 +35,9 @@ public class VideoFadeAudioThread extends Thread {
     	fadeOutDuration = newVal;
     }
     
+    @Override
     public void run() {
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            Logger.getLogger(getClass()).debug("starting fade audio thread for video file " + videoFilePath);
-        }
+        logger.debug("starting fade audio thread for video file " + videoFilePath);
         
         Thread.currentThread().setPriority(1);
 
@@ -55,7 +57,7 @@ public class VideoFadeAudioThread extends Thread {
                 }
     		}
             if (fadeOutStart < 0) {
-                Logger.getLogger(getClass()).error("failed to determine fade out start point");
+                logger.error("failed to determine fade out start point");
                 return;
             }
         }
@@ -74,7 +76,7 @@ public class VideoFadeAudioThread extends Thread {
             File targetDirFile = new File(targetPath);
             if (!targetDirFile.exists()) {
                 if (!targetDirFile.mkdir()) {
-                    Logger.getLogger(getClass()).error("failed to create target folder for video audio fade: " + targetPath);
+                    logger.error("failed to create target folder for video audio fade: " + targetPath);
                 }
             }
             
@@ -94,7 +96,7 @@ public class VideoFadeAudioThread extends Thread {
             
             // ffmpeg -i testvideo.mp4 -filter:a "afade=in:st=0:d=1, afade=out:st=30:d=6" -c:v libx264 -c:a aac testvideo-fade.mp4
             
-            StringBuffer fadeParams = new StringBuffer();
+            StringBuilder fadeParams = new StringBuilder();
             if (fadeInDuration > 0) {
             	fadeParams.append("afade=in:st=0:d=");
             	fadeParams.append(fadeInDuration);
@@ -107,7 +109,7 @@ public class VideoFadeAudioThread extends Thread {
             	fadeParams.append(fadeOutDuration);
             }
             
-            ArrayList<String> progNameAndParams = new ArrayList<String>();
+            ArrayList<String> progNameAndParams = new ArrayList<>();
             progNameAndParams.add(ffmpegExePath);
             progNameAndParams.add("-i");
             progNameAndParams.add(videoFilePath);
@@ -124,26 +126,22 @@ public class VideoFadeAudioThread extends Thread {
             
             progNameAndParams.add(targetFilePath);
             
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            	StringBuilder buff = new StringBuilder();
-                for (String cmdToken : progNameAndParams) {
-                	buff.append(cmdToken);
-                	buff.append(' ');
-                }
-                Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+            StringBuilder buff = new StringBuilder();
+            for (String cmdToken : progNameAndParams) {
+                buff.append(cmdToken);
+                buff.append(' ');
             }
+            logger.debug("ffmpeg call with params: " + buff.toString());
             
 			try {
 				Process convertProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 				
-		        DataInputStream grabProcessOut = new DataInputStream(convertProcess.getErrorStream());
+		        BufferedReader grabProcessOut = new BufferedReader(new InputStreamReader(convertProcess.getErrorStream()));
 		        
 		        String outLine = null;
 		        
 		        while ((outLine = grabProcessOut.readLine()) != null) {
-		        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-		                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-		        	}
+		            logger.debug("ffmpeg output: " + outLine);
 		        }
 				
 				int convertResult = convertProcess.waitFor();
@@ -151,16 +149,14 @@ public class VideoFadeAudioThread extends Thread {
 				if (convertResult == 0) {
 					File resultFile = new File(targetFilePath);
 					if (!resultFile.exists()) {
-	                    Logger.getLogger(getClass()).error("result file from ffmpeg fade audio not found: " + targetFilePath);
+	                    logger.error("result file from ffmpeg fade audio not found: " + targetFilePath);
 					}
-					SubdirExistCache.getInstance().setExistsSubdir(sourcePath, new Integer(1));
+					SubdirExistCache.getInstance().setExistsSubdir(sourcePath, 1);
 				} else {
-					Logger.getLogger(getClass()).warn("ffmpeg returned error " + convertResult);
+					logger.warn("ffmpeg returned error " + convertResult);
 				}
-			} catch (IOException ioex) {
-				Logger.getLogger(getClass()).error("failed to fade audio in video " + videoFilePath, ioex);
-			} catch (InterruptedException iex) {
-				Logger.getLogger(getClass()).error("failed to fade audio in video " + videoFilePath, iex);
+			} catch (IOException | InterruptedException ioex) {
+				logger.error("failed to fade audio in video " + videoFilePath, ioex);
 			}
         }
     }

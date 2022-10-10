@@ -2,11 +2,15 @@ package de.webfilesys;
 
 import java.io.File;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 import de.webfilesys.graphics.ThumbnailThread;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SubdirExistTester extends Thread {
+    private static final Logger logger = LogManager.getLogger(SubdirExistTester.class);
+    private final ReentrantLock lock = new ReentrantLock();
 	private ArrayList<QueueElem> queue = null;
 
 	boolean shutdownFlag = false;
@@ -14,7 +18,7 @@ public class SubdirExistTester extends Thread {
 	private static SubdirExistTester instance = null;
 
 	private SubdirExistTester() {
-		queue = new ArrayList<QueueElem>();
+		queue = new ArrayList<>();
 		shutdownFlag = false;
 	}
 
@@ -31,38 +35,45 @@ public class SubdirExistTester extends Thread {
 		return (instance);
 	}
 
+        @Override
 	public void run() {
-		Logger.getLogger(getClass()).info("SubdirExistTester started");
+		logger.info("SubdirExistTester started");
 
 		Thread.currentThread().setPriority(1);
 
 		while (!shutdownFlag) {
-			while (queue.size() > 0) {
+			while (!queue.isEmpty()) {
 				QueueElem elem = (QueueElem) queue.get(0);
 
 				testForExistingSubdirs(elem);
 
-				synchronized (queue) {
+				try {
+                                    this.lock.lock();
 					queue.remove(0);
-				}
+				} finally {
+                                    this.lock.unlock();
+                                }
 			}
 
 			try {
 				synchronized (this) {
 					wait();
-				}
+                                }
 			} catch (InterruptedException intEx) {
 				shutdownFlag = true;
 			}
 		}
 
-		Logger.getLogger(getClass()).info("SubdirExistTester shutting down");
+		logger.info("SubdirExistTester shutting down");
 	}
 
 	public synchronized void queuePath(String path, int scope, boolean forceRescan) {
-		synchronized (queue) {
+		try {
+                    this.lock.unlock();
 			queue.add(new QueueElem(path, scope, forceRescan));
-		}
+		} finally {
+                    this.lock.unlock();
+                }
 
 		notify();
 	}
@@ -90,13 +101,13 @@ public class SubdirExistTester extends Thread {
 	                }
 	            }
 	            if (hasSubdirs) {
-	             	SubdirExistCache.getInstance().setExistsSubdir(path, new Integer(1));
+	             	SubdirExistCache.getInstance().setExistsSubdir(path, 1);
 	            } else {
-	            	SubdirExistCache.getInstance().setExistsSubdir(path, new Integer(0));
+	            	SubdirExistCache.getInstance().setExistsSubdir(path, 0);
 	            }
 	        } else {
 	        	// TODO: set ExistsSubdir to null ?
-	        	SubdirExistCache.getInstance().setExistsSubdir(path, new Integer(0));
+	        	SubdirExistCache.getInstance().setExistsSubdir(path, 0);
 	        }
 		}
 	}

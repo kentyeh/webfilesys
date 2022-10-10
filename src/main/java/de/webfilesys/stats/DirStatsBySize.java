@@ -2,8 +2,11 @@ package de.webfilesys.stats;
 
 import java.io.File;
 import java.util.ArrayList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DirStatsBySize {
+    private static final Logger logger = LogManager.getLogger(DirStatsBySize.class);
 	
 	private static final long SIZE_MAX = 4L * 1024L * 1024L * 1024L;
 
@@ -13,7 +16,7 @@ public class DirStatsBySize {
 	
 	private static final int SIZE_STEP_FACTOR = 4;
 	
-	private ArrayList sizeCategories = null;
+	private ArrayList<SizeCategory> sizeCategories = null;
 	
 	private long filesInTree = 0L;
 	
@@ -21,7 +24,7 @@ public class DirStatsBySize {
 	
 	public DirStatsBySize(String rootPath) 
 	{
-		sizeCategories = new ArrayList();
+		sizeCategories = new ArrayList<>();
 		
 		long minSize = 0;
 		long maxSize = 1024;
@@ -54,17 +57,17 @@ public class DirStatsBySize {
 			return;
 		}
 		
-		for (int i = 0; i < fileList.length; i++) {
-			if (fileList[i].isDirectory()) {
-				walkThroughFolderTree(fileList[i].getAbsolutePath());
-			} else {
-				if (fileList[i].isFile()) {
-					addToStats(fileList[i].length());
-					filesInTree++;
-					treeFileSize += fileList[i].length();
-				}
-			}
-		}
+            for (File fileList1 : fileList) {
+                if (fileList1.isDirectory()) {
+                    walkThroughFolderTree(fileList1.getAbsolutePath());
+                } else {
+                    if (fileList1.isFile()) {
+                        addToStats(fileList1.length());
+                        filesInTree++;
+                        treeFileSize += fileList1.length();
+                    }
+                }
+            }
 	}
 	
 	private void addToStats(long fileSize) {
@@ -82,17 +85,14 @@ public class DirStatsBySize {
 	}
 	
 	private void calculatePercentage() {
-		for (int i = 0; i < sizeCategories.size(); i++) {
-			SizeCategory sizeCat = (SizeCategory) sizeCategories.get(i);
-			
-			if (filesInTree == 0) {
-				sizeCat.setFileNumPercent(0);
-			} else {
-				sizeCat.setFileNumPercent((int) (sizeCat.getFileNum() * 100L / filesInTree));
-			}
-			
-			sizeCat.setSizePercent(treeFileSize);
-		}
+            for (SizeCategory sizeCat : sizeCategories) {
+                if (filesInTree == 0) {
+                    sizeCat.setFileNumPercent(0);
+                } else {
+                    sizeCat.setFileNumPercent((int) (sizeCat.getFileNum() * 100L / filesInTree));
+                }
+                sizeCat.setSizePercent(treeFileSize);
+            }
 	}
 	
 	/**
@@ -106,12 +106,11 @@ public class DirStatsBySize {
 	public long getFileNumCategoryMax() {
         long fileNumMax = 0L;
         
-	    for (int i = 0; i < sizeCategories.size(); i++) {
-            SizeCategory sizeCat = (SizeCategory) sizeCategories.get(i);
-            if (sizeCat.getFileNum() > fileNumMax) {
-                fileNumMax = sizeCat.getFileNum();
+            for (SizeCategory sizeCat : sizeCategories) {
+                if (sizeCat.getFileNum() > fileNumMax) {
+                    fileNumMax = sizeCat.getFileNum();
+                }
             }
-        }
 	    
 	    return fileNumMax;
 	}
@@ -119,27 +118,25 @@ public class DirStatsBySize {
     public long getSizeSumCategoryMax() {
         long sizeSumMax = 0L;
         
-        for (int i = 0; i < sizeCategories.size(); i++) {
-            SizeCategory sizeCat = (SizeCategory) sizeCategories.get(i);
-            if (sizeCat.getSizeSum() > sizeSumMax) {
-                sizeSumMax = sizeCat.getSizeSum();
+            for (SizeCategory sizeCat : sizeCategories) {
+                if (sizeCat.getSizeSum() > sizeSumMax) {
+                    sizeSumMax = sizeCat.getSizeSum();
+                }
             }
-        }
         
         return sizeSumMax;
     }
 	
 	private void showResults() 
 	{
-		for (int i = 0; i < sizeCategories.size(); i++) {
-			SizeCategory sizeCat = (SizeCategory) sizeCategories.get(i);
-			System.out.println(formatSizeForDisplay(sizeCat.getMinSize()) + " - " + formatSizeForDisplay(sizeCat.getMaxSize()) + " : " + sizeCat.getFileNum() + " (" + sizeCat.getFileNumPercent() + "% / " + sizeCat.getSizePercent() + "%)");
-		}
+            for (SizeCategory sizeCat : sizeCategories) {
+                logger.info(formatSizeForDisplay(sizeCat.getMinSize()) + " - " + formatSizeForDisplay(sizeCat.getMaxSize()) + " : " + sizeCat.getFileNum() + " (" + sizeCat.getFileNumPercent() + "% / " + sizeCat.getSizePercent() + "%)");
+            }
 	}
 	
 	private String formatSizeForDisplay(long sizeVal) 
 	{
-		StringBuffer formattedSize = new StringBuffer();
+		StringBuilder formattedSize = new StringBuilder();
 		
 		long formatVal = sizeVal;
 		

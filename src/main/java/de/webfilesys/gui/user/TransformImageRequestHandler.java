@@ -26,11 +26,12 @@ public class TransformImageRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String actPath = getCwd();
 
-		ArrayList<String> selectedFiles = new ArrayList<String>();
+		ArrayList<String> selectedFiles = new ArrayList<>();
 
 		Enumeration allKeys = req.getParameterNames();
 
@@ -53,16 +54,8 @@ public class TransformImageRequestHandler extends UserRequestHandler
 
 		String degrees=getParameter("degrees");
 
-		String operation="";
-
-		if (degrees.equals("90"))
-		{
-			operation=getResource("label.rotateright","rotate right");
-		}
-		else
-		{
-			operation=getResource("label.rotateleft","rotate left");
-		}
+		String operation=degrees.equals("90")?getResource("label.rotateright","rotate right")
+                        :getResource("label.rotateleft","rotate left");
 
 		output.println("<html>");
 		output.println("<head>");

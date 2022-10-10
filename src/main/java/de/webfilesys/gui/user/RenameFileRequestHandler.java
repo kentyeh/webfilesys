@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Category;
 import de.webfilesys.Comment;
@@ -19,11 +18,14 @@ import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.gui.xsl.XslFileListHandler;
 import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class RenameFileRequestHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(RenameFileRequestHandler.class);
 	protected HttpServletRequest req = null;
 
 	protected HttpServletResponse resp = null;
@@ -37,6 +39,7 @@ public class RenameFileRequestHandler extends UserRequestHandler {
 		this.resp = resp;
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -72,7 +75,7 @@ public class RenameFileRequestHandler extends UserRequestHandler {
 
 		File dest = new File(newFilePath);
 
-		if ((newFileName.indexOf("..") >= 0) || (!source.renameTo(dest))) {
+		if ((newFileName.contains("..")) || (!source.renameTo(dest))) {
 			String errorMsg = oldFileName + "<br/>" + getResource("error.renameFailed", "could not be renamed to")
 					+ "<br/>" + newFileName;
 
@@ -100,11 +103,9 @@ public class RenameFileRequestHandler extends UserRequestHandler {
 		ArrayList<Category> assignedCategories = metaInfMgr.getListOfCategories(oldFilePath);
 
 		if (assignedCategories != null) {
-			for (int i = 0; i < assignedCategories.size(); i++) {
-				Category cat = (Category) assignedCategories.get(i);
-
-				metaInfMgr.addCategory(newFilePath, cat);
-			}
+                    for (Category cat : assignedCategories) {
+                        metaInfMgr.addCategory(newFilePath, cat);
+                    }
 		}
 
 		GeoTag geoTag = metaInfMgr.getGeoTag(oldFilePath);
@@ -131,7 +132,7 @@ public class RenameFileRequestHandler extends UserRequestHandler {
 
 		if (thumbnailFile.exists()) {
 			if (!thumbnailFile.delete()) {
-				Logger.getLogger(getClass()).debug("cannot remove thumbnail file " + thumbnailPath);
+				logger.debug("cannot remove thumbnail file " + thumbnailPath);
 			}
 		}
 

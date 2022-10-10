@@ -13,16 +13,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class GrepRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(GrepRequestHandler.class);
     private static final String ENCODING_ERROR = "#### failed to read line due to charcater encoding problems";
     
 	private static final int BYTES_TO_CHECK = 2 * 1024 * 1024;
@@ -67,13 +69,13 @@ public class GrepRequestHandler extends UserRequestHandler
         
         if (!fileToSend.exists())
         {
-        	Logger.getLogger(getClass()).warn("requested file does not exist: " + filePath);
+        	logger.warn("requested file does not exist: " + filePath);
         	
         	error = true;
         }
         else if ((!fileToSend.isFile()) || (!fileToSend.canRead()))
         {
-        	Logger.getLogger(getClass()).warn("requested file is not a readable file: " + filePath);
+        	logger.warn("requested file is not a readable file: " + filePath);
         	
         	error = true;
         }
@@ -115,24 +117,11 @@ public class GrepRequestHandler extends UserRequestHandler
         
         String fileEncoding = guessFileEncoding(filePath);
 		
-        BufferedReader fin = null;
-        FileInputStream fis = null;
-        
         int excCounter = 0;
         
-        try
-        {
-            if (fileEncoding == null) 
-            {
-                // unknown - use OS default encoding
-                fin = new BufferedReader(new FileReader(filePath));
-            }
-            else 
-            {
-                fis = new FileInputStream(filePath);
-                
-                fin = new BufferedReader(new InputStreamReader(fis, fileEncoding));
-            }
+        try (BufferedReader fin = fileEncoding == null ? new BufferedReader(new FileReader(filePath))
+                : new BufferedReader(new InputStreamReader(new FileInputStream(filePath), fileEncoding)))
+        { 
             
             DecimalFormat numberFormat = new DecimalFormat("000000");
             
@@ -170,7 +159,7 @@ public class GrepRequestHandler extends UserRequestHandler
                     }
                 } 
                 catch (Exception miEx) {
-                    Logger.getLogger(getClass()).warn("error during reading file for grep", miEx);
+                    logger.warn("error during reading file for grep", miEx);
                     excCounter++;
                     output.println(ENCODING_ERROR);
                 }
@@ -178,25 +167,8 @@ public class GrepRequestHandler extends UserRequestHandler
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error("failed to read file for grep", ioex);
+            logger.error("failed to read file for grep", ioex);
             excCounter++;
-        }
-        finally
-        {
-            try
-            {
-                if (fin != null)
-                {
-                    fin.close();
-                }
-                if (fis != null)
-                {
-                    fis.close();
-                }
-            }
-            catch (Exception ex)
-            {
-            }
         }
         
         output.println("</pre>");
@@ -222,7 +194,7 @@ public class GrepRequestHandler extends UserRequestHandler
 	
 	private String formatLine(String line, String filter) 
 	{
-		StringBuffer formattedLine = new StringBuffer();
+		StringBuilder formattedLine = new StringBuilder();
 		
 		int filterLength = filter.length();
 		

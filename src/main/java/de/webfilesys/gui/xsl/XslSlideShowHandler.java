@@ -36,6 +36,7 @@ public class XslSlideShowHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String actPath = getParameter("actpath");
@@ -100,7 +101,7 @@ public class XslSlideShowHandler extends XslRequestHandlerBase
 		}
 
 		ArrayList<String> imageFiles = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER);
-		if ((imageFiles==null) || (imageFiles.size()==0))
+		if ((imageFiles==null) || (imageFiles.isEmpty()))
 		{
             // todo: error handling
 			return;
@@ -162,20 +163,12 @@ public class XslSlideShowHandler extends XslRequestHandlerBase
 	{
 		int i;
 
-		String pathWithSlash=null;
-		if (actPath.endsWith(File.separator))
-		{
-			pathWithSlash=actPath;
-		}
-		else
-		{
-			pathWithSlash=actPath + File.separator;
-		}
+		String pathWithSlash=actPath.endsWith(File.separator)?actPath:actPath+File.separator;
 
 		ArrayList<String> imageTree = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER);
 		if (imageTree==null)
 		{
-			imageTree = new ArrayList<String>();
+			imageTree = new ArrayList<>();
 			session.setAttribute(SessionKey.SLIDESHOW_BUFFER,imageTree);
 		}
 
@@ -183,12 +176,9 @@ public class XslSlideShowHandler extends XslRequestHandlerBase
 
 		FileSelectionStatus selectionStatus=fileSelector.selectFiles(imgFileMasks,4096,null,null);
  
-		ArrayList<FileContainer> imageFiles = null;
-		if (randomize) {
-			imageFiles = selectionStatus.getRandomizedFiles();
-		} else {
-			imageFiles = selectionStatus.getSelectedFiles();
-		}
+		ArrayList<FileContainer> imageFiles = randomize?
+                        selectionStatus.getRandomizedFiles():selectionStatus.getSelectedFiles();
+		
 
 		if (imageFiles!=null)
 		{

@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.Category;
 import de.webfilesys.ClipBoard;
 import de.webfilesys.CopyStatus;
@@ -24,12 +22,15 @@ import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.graphics.VideoThumbnailCreator;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class ClipboardPasteRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(ClipboardPasteRequestHandler.class);
 	public ClipboardPasteRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -92,7 +93,7 @@ public class ClipboardPasteRequestHandler extends UserRequestHandler
 		
 		if (clipBoard == null)
 		{
-			Logger.getLogger(getClass()).warn("clipboard is empty in paste operation");
+			logger.warn("clipboard is empty in paste operation");
 
 		    return;
 		}
@@ -299,7 +300,7 @@ public class ClipboardPasteRequestHandler extends UserRequestHandler
 							{
 								if (!thumbnailFile.delete())
 								{
-									Logger.getLogger(getClass()).debug("cannot remove thumbnail file " + thumbnailPath);
+									logger.debug("cannot remove thumbnail file " + thumbnailPath);
 								}
 							}
 							
@@ -310,7 +311,7 @@ public class ClipboardPasteRequestHandler extends UserRequestHandler
 
 				                if (videoThumbnailFile.exists()) {
 				                    if (!videoThumbnailFile.delete()) {
-				                        Logger.getLogger(getClass()).warn("failed to remove video thumbnail file " + videoThumbnailPath);
+				                        logger.warn("failed to remove video thumbnail file " + videoThumbnailPath);
 				                    }
 				                }
 				            }

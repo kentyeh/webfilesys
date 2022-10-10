@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Constants;
@@ -26,12 +25,15 @@ import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlTransformImageHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlTransformImageHandler.class);
 	DirTreeStatus dirTreeStatus = null;
 	
 	public XmlTransformImageHandler(
@@ -44,6 +46,7 @@ public class XmlTransformImageHandler extends XmlRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -90,7 +93,7 @@ public class XmlTransformImageHandler extends XmlRequestHandlerBase
 		
 		if (sessionZoom != null)
 		{
-			zoom = sessionZoom.booleanValue();
+			zoom = sessionZoom;
 		}
 		
 		int screenWidth = Constants.DEFAULT_SCREEN_WIDTH;
@@ -100,14 +103,14 @@ public class XmlTransformImageHandler extends XmlRequestHandlerBase
 		
 		if (widthScreen != null)
 		{
-			screenWidth = widthScreen.intValue();
+			screenWidth = widthScreen;
 		}
 
 		Integer heightScreen = (Integer) session.getAttribute("screenHeight");
 		
 		if (heightScreen != null)
 		{
-			screenHeight = heightScreen.intValue();
+			screenHeight = heightScreen;
 		}
 
 		SimpleDateFormat dateFormat = LanguageManager.getInstance().getDateFormat(language);
@@ -204,7 +207,7 @@ public class XmlTransformImageHandler extends XmlRequestHandlerBase
 		}
 		catch (IOException io1)
 		{
-			Logger.getLogger(getClass()).error(io1);
+			logger.error(io1);
 			imgFound = false;                 
 		}
 		

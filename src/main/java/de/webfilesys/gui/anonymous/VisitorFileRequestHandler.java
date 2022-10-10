@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.InvitationManager;
 import de.webfilesys.MetaInfManager;
@@ -18,12 +17,15 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.gui.RequestHandler;
 import de.webfilesys.util.MimeTypeMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class VisitorFileRequestHandler extends RequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(VisitorFileRequestHandler.class);
 	public VisitorFileRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -33,6 +35,7 @@ public class VisitorFileRequestHandler extends RequestHandler
         super(req, resp, session, output);
 	}
 
+        @Override
 	protected void process()
 	{
 		boolean error = false;
@@ -41,7 +44,7 @@ public class VisitorFileRequestHandler extends RequestHandler
 
 		if (accessCode == null)
 		{
-			Logger.getLogger(getClass()).warn("invalid visitor access code");
+			logger.warn("invalid visitor access code");
 			return;
 		}
 
@@ -49,7 +52,7 @@ public class VisitorFileRequestHandler extends RequestHandler
 
 		if (filePath == null)
 		{
-			Logger.getLogger(getClass()).warn("visitor access with invalid access code");
+			logger.warn("visitor access with invalid access code");
 			return;
 		}
 		
@@ -57,13 +60,13 @@ public class VisitorFileRequestHandler extends RequestHandler
         
         if (!fileToSend.exists())
         {
-        	Logger.getLogger(getClass()).warn("requested file does not exist: " + filePath);
+        	logger.warn("requested file does not exist: " + filePath);
         	
         	error = true;
         }
         else if ((!fileToSend.isFile()) || (!fileToSend.canRead()))
         {
-        	Logger.getLogger(getClass()).warn("requested file is not a readable file: " + filePath);
+        	logger.warn("requested file is not a readable file: " + filePath);
         	
         	error = true;
         }
@@ -72,9 +75,9 @@ public class VisitorFileRequestHandler extends RequestHandler
         {
             resp.setStatus(404);
 
-            try
+            try(PrintWriter output = new PrintWriter(resp.getWriter()))
     		{
-    			PrintWriter output = new PrintWriter(resp.getWriter());
+    			
     			
     			output.println("File not found or not readable: " + filePath);
     			
@@ -84,7 +87,7 @@ public class VisitorFileRequestHandler extends RequestHandler
     		}
             catch (IOException ioEx)
             {
-            	Logger.getLogger(getClass()).warn(ioEx);
+            	logger.warn(ioEx);
             }
         }
 
@@ -143,7 +146,7 @@ public class VisitorFileRequestHandler extends RequestHandler
 
 	        if (bytesWritten != fileSize)
 	        {
-	            Logger.getLogger(getClass()).warn(
+	            logger.warn(
 	                "only " + bytesWritten + " bytes of " + fileSize + " have been written to output");
 	        }
 
@@ -151,14 +154,14 @@ public class VisitorFileRequestHandler extends RequestHandler
 	        
 	        buffer = null;
 
-			if (WebFileSys.getInstance().isDownloadStatistics() && (filePath.indexOf(ThumbnailThread.THUMBNAIL_SUBDIR) < 0))
+			if (WebFileSys.getInstance().isDownloadStatistics() && (!filePath.contains(ThumbnailThread.THUMBNAIL_SUBDIR)))
 			{
 				MetaInfManager.getInstance().incrementDownloads(filePath);
 			}
 		}
         catch (IOException ioEx)
         {
-        	Logger.getLogger(getClass()).warn(ioEx);
+        	logger.warn(ioEx);
         }
 		finally {
 			if (fileInput != null) 

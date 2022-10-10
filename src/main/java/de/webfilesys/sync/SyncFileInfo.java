@@ -62,9 +62,10 @@ public class SyncFileInfo
         return modificationTime;
     }
     
+    @Override
     public String toString()
     {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         
         buff.append("FileSyncInfo [");
         buff.append("path=");

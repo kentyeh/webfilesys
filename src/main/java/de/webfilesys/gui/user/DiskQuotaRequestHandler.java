@@ -24,6 +24,7 @@ public class DiskQuotaRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String userid=getParameter("userid");
@@ -75,7 +76,7 @@ public class DiskQuotaRequestHandler extends UserRequestHandler
 
 		output.println("<table class=\"dataForm\" width=\"100%\">");
 		
-		if (userid!=uid)
+		if (!userid.equals(uid))
 		{
 			output.println("<tr><td class=\"formParm1\">");
 			output.println(getResource("label.user","user") + ": ");

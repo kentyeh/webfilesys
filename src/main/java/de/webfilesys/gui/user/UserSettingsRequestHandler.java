@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.LanguageManager;
 import de.webfilesys.gui.CSSManager;
@@ -15,11 +14,14 @@ import de.webfilesys.gui.xsl.XslFileListHandler;
 import de.webfilesys.user.TransientUser;
 import de.webfilesys.user.UserMgmtException;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class UserSettingsRequestHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(UserSettingsRequestHandler.class);
 	public UserSettingsRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -29,6 +31,7 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -44,7 +47,7 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
         
 		String login=uid;
 
-		StringBuffer errorMsg=new StringBuffer();
+		StringBuilder errorMsg=new StringBuilder();
 
 		String temp=null;
 
@@ -53,7 +56,7 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 		if ((oldPassword!=null) && (oldPassword.trim().length() > 0)) {
 			if (!userMgr.checkPassword(login,oldPassword)) {
 				temp=getResource("error.invalidpassword","the current password is invalid");
-				errorMsg.append(temp + "\\n");
+				errorMsg.append(temp).append("\\n");
 			}
 		}
 
@@ -63,26 +66,22 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 			((pwconfirm!=null) && (pwconfirm.trim().length() > 0))) {
 			if ((oldPassword==null) || (oldPassword.trim().length()==0)) {
 				temp=getResource("error.invalidpassword","the current password is invalid");
-				errorMsg.append(temp + "\\n");
+				errorMsg.append(temp).append("\\n");
 			}
 
-			if (password==null) {
-				password="";
-			} else {
-				password=password.trim();
-			}
+			password=password.trim();
 
 			if (password.length() < 5) {
 				temp=getResource("error.passwordlength","the minimum password length is 5 characters");
-				errorMsg.append(temp + "\\n");
+				errorMsg.append(temp).append("\\n");
 			} else {
 				if (password.indexOf(' ')>0) {
 					temp=getResource("error.spacesinpw","the password must not contain spaces");
-					errorMsg.append(temp + "\\n");
+					errorMsg.append(temp).append("\\n");
 				} else {
 					if ((pwconfirm==null) || (!pwconfirm.equals(password))) {
 						temp=getResource("error.pwmissmatch","the password and the password confirmation are not equal");
-						errorMsg.append(temp + "\\n");
+						errorMsg.append(temp).append("\\n");
 					}
 				}
 			}
@@ -95,7 +94,7 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 			((ropwconfirm!=null) && (ropwconfirm.trim().length() > 0))) {
 			if ((oldPassword==null) || (oldPassword.trim().length()==0)) {
 				temp=getResource("error.invalidpassword","the current password is invalid");
-				errorMsg.append(temp + "\\n");
+				errorMsg.append(temp).append("\\n");
 			}
 
 			if (ropassword==null) {
@@ -113,15 +112,15 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 			if ((ropassword.length() > 0) || (ropwconfirm.length() > 0)) {
 				if (ropassword.length() < 5) {
 					temp=getResource("error.passwordlength","the minimum password length is 5 characters");
-					errorMsg.append(temp + "\\n");
+					errorMsg.append(temp).append("\\n");
 				} else {
 					if (ropassword.indexOf(' ') >= 0) {
 						temp=getResource("error.spacesinpw","the password must not contain spaces");
-						errorMsg.append(temp + "\\n");
+						errorMsg.append(temp).append("\\n");
 					} else {
 						if (!ropassword.equals(ropwconfirm)) {
 							temp=getResource("error.pwmissmatch","password and password confirmation do not match");
-							errorMsg.append(temp + "\\n");
+							errorMsg.append(temp).append("\\n");
 						}
 					}
 				}
@@ -136,8 +135,8 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 		TransientUser changedUser = userMgr.getUser(login);
 		
 		if (changedUser == null) {
-            Logger.getLogger(getClass()).error("user for update not found: " + login);
-			errorMsg.append("user for update not found: " + login);
+            logger.error("user for update not found: " + login);
+			errorMsg.append("user for update not found: ").append(login);
 			userForm(errorMsg.toString());
 			return;
 		}
@@ -164,8 +163,8 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 		try {
 			userMgr.updateUser(changedUser);
 		} catch (UserMgmtException ex) {
-            Logger.getLogger(getClass()).error("failed to update user " + login, ex);
-			errorMsg.append("failed to update user " + login);
+            logger.error("failed to update user " + login, ex);
+			errorMsg.append("failed to update user ").append(login);
 			userForm(errorMsg.toString());
 			return;
 		}
@@ -178,7 +177,7 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 
 		TransientUser user = userMgr.getUser(login);
 		if (user == null) {
-        	Logger.getLogger(getClass()).error("user not found: " + login);
+        	logger.error("user not found: " + login);
         	return;
 		}
 
@@ -271,19 +270,17 @@ public class UserSettingsRequestHandler extends UserRequestHandler {
 		output.println("<td class=\"formParm2\">");
 		output.println("<select name=\"css\" size=\"1\">");
 
-		for (int i = 0; i < cssList.size(); i++) {
-			String css = (String) cssList.get(i);
-
-			if (!css.equals("mobile")) {
-	            output.print("<option");
-
-	            if (css.equals(userCss)) {
-	                output.print(" selected=\"true\"");
-	            }
-
-	            output.println(">" + css + "</option>");
-			}
-		}
+            for (String css : cssList) {
+                if (!css.equals("mobile")) {
+                    output.print("<option");
+                    
+                    if (css.equals(userCss)) {
+                        output.print(" selected=\"true\"");
+                    }
+                    
+                    output.println(">" + css + "</option>");
+                }
+            }
 		output.println("</select>");
 		output.println("</td>");
 		output.println("</tr>");

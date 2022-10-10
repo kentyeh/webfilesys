@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Constants;
 import de.webfilesys.FileComparator;
@@ -19,6 +18,8 @@ import de.webfilesys.GeoTag;
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Points of interest for all picture files of the directory for Open Street Maps.
@@ -26,6 +27,7 @@ import de.webfilesys.util.CommonUtils;
  */
 public class OpenStreetMapFilesPOIHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(OpenStreetMapFilesPOIHandler.class);
     private static final int MAX_FILE_NUM = 10000;
 	
 	public OpenStreetMapFilesPOIHandler(
@@ -38,13 +40,14 @@ public class OpenStreetMapFilesPOIHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String path = getParameter("path");
 
 		if (!accessAllowed(path))
 		{
-			Logger.getLogger(getClass()).warn("user " + uid + " tried to access folder outside of his document root: " + path);
+			logger.warn("user " + uid + " tried to access folder outside of his document root: " + path);
 			
 			return;
 		}
@@ -53,7 +56,7 @@ public class OpenStreetMapFilesPOIHandler extends UserRequestHandler
 		
 		if (!folder.exists())
 		{
-			Logger.getLogger(getClass()).error("folder not found: " + path);
+			logger.error("folder not found: " + path);
 			
 			return;
 		}
@@ -71,80 +74,71 @@ public class OpenStreetMapFilesPOIHandler extends UserRequestHandler
         
         if (selectedFiles != null)
         {
-            for (int i = 0; i < selectedFiles.size(); i++)
-            {
-                FileContainer fileCont = (FileContainer) selectedFiles.get(i);
-                
-                File imgFile = fileCont.getRealFile();
-
-        		GeoTag geoTag = metaInfMgr.getGeoTag(imgFile.getAbsolutePath());
-
-        		boolean geoDataExist = false;
-        		
-        		float latitude = Float.NEGATIVE_INFINITY;
-        		float longitude = Float.NEGATIVE_INFINITY;
-        		String infoText = null;
-
-        		if (geoTag != null)
-        		{
-        	        latitude = geoTag.getLatitude();
-        	        longitude = geoTag.getLongitude();
-        	        infoText = geoTag.getInfoText();
-        	        geoDataExist = true;
-        		}
-        		else
-        		{
-                    String fileExt = CommonUtils.getFileExtension(imgFile.getAbsolutePath());
-                    
-                    if (fileExt.equals(".jpg") || fileExt.equals(".jpeg"))
-                    {
-                        // use GPS coordinates from Exif data if present in the JPEG file
-                        CameraExifData exifData = new CameraExifData(imgFile.getAbsolutePath());
-
-                        if (exifData.hasExifData())
+                    for (FileContainer fileCont : selectedFiles) {
+                        File imgFile = fileCont.getRealFile();
+                        GeoTag geoTag = metaInfMgr.getGeoTag(imgFile.getAbsolutePath());
+                        boolean geoDataExist = false;
+                        float latitude = Float.NEGATIVE_INFINITY;
+                        float longitude = Float.NEGATIVE_INFINITY;
+                        String infoText = null;
+                        if (geoTag != null)
                         {
-                            latitude = exifData.getGpsLatitude();
-                            longitude = exifData.getGpsLongitude();
+                            latitude = geoTag.getLatitude();
+                            longitude = geoTag.getLongitude();
+                            infoText = geoTag.getInfoText();
+                            geoDataExist = true;
+                        }
+                        else
+                        {
+                            String fileExt = CommonUtils.getFileExtension(imgFile.getAbsolutePath());
                             
-                            if ((latitude >= 0.0f) && (longitude >= 0.0f))
+                            if (fileExt.equals(".jpg") || fileExt.equals(".jpeg"))
                             {
-                                geoDataExist = true;
+                                // use GPS coordinates from Exif data if present in the JPEG file
+                                CameraExifData exifData = new CameraExifData(imgFile.getAbsolutePath());
                                 
-                                String latitudeRef = exifData.getGpsLatitudeRef();
-                                
-                                if ((latitudeRef != null) && latitudeRef.equalsIgnoreCase("S")) 
+                                if (exifData.hasExifData()) 
                                 {
-                                    latitude = (-latitude);
+                                    latitude = exifData.getGpsLatitude();
+                                    longitude = exifData.getGpsLongitude();
+                                    
+                                    if ((latitude >= 0.0f) && (longitude >= 0.0f))
+                                    {
+                                        geoDataExist = true;
+                                        
+                                        String latitudeRef = exifData.getGpsLatitudeRef();
+                                        
+                                        if ((latitudeRef != null) && latitudeRef.equalsIgnoreCase("S"))
+                                        {
+                                            latitude = (-latitude);
+                                        }
+                                        
+                                        String longitudeRef = exifData.getGpsLongitudeRef();
+                                        
+                                        if ((longitudeRef != null) && longitudeRef.equalsIgnoreCase("W"))
+                                        {
+                                            longitude = (-longitude);
+                                        }
+                                    }
                                 }
-                                
-                                String longitudeRef = exifData.getGpsLongitudeRef();
-
-                                if ((longitudeRef != null) && longitudeRef.equalsIgnoreCase("W")) 
-                                {
-                                    longitude = (-longitude);
-                                } 
                             }
                         }
-                    }
-        		}
-        		
-        		if ((infoText == null) || (infoText.trim().length() == 0)) {
-        			infoText = fileCont.getName();
-        		}
-        		
-                if (geoDataExist)
-                {
-                    String descrText = "<img src=\"/webfilesys/servlet?command=picThumb&amp;imgFile=" + URLEncoder.encode(imgFile.getName()) + "\" style=\"max-width:160px;display:inline;\">";  
-                    
-            		String description = metaInfMgr.getDescription(imgFile.getAbsolutePath());
-            		if (!CommonUtils.isEmpty(description)) {
-            			descrText += "<p>" + CommonUtils.escapeHTML(description) + "</p>";
-            		}
-            		
-                    output.print(latitude);
-                    output.print('\t');
-                    output.print(longitude);
-                    output.print('\t');
+                        if ((infoText == null) || (infoText.trim().length() == 0)) {
+                            infoText = fileCont.getName();
+                        }
+                        if (geoDataExist)
+                        {
+                            String descrText = "<img src=\"/webfilesys/servlet?command=picThumb&amp;imgFile=" + URLEncoder.encode(imgFile.getName()) + "\" style=\"max-width:160px;display:inline;\">";
+                            
+                            String description = metaInfMgr.getDescription(imgFile.getAbsolutePath());
+                            if (!CommonUtils.isEmpty(description)) {
+                                descrText += "<p>" + CommonUtils.escapeHTML(description) + "</p>";
+                            }
+                            
+                            output.print(latitude);
+                            output.print('\t');
+                            output.print(longitude);
+                            output.print('\t');
                     output.print(infoText);
                     output.print('\t');
                     output.print(descrText);
@@ -154,8 +148,7 @@ public class OpenStreetMapFilesPOIHandler extends UserRequestHandler
                     output.print("32,32");
                     output.print('\t');
                     output.println("-16,-16");
-                }
-            }
+                }   }
         }
 
         output.flush();

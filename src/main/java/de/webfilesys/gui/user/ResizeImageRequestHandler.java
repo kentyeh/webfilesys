@@ -3,15 +3,11 @@ package de.webfilesys.gui.user;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageFilter;
-import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.SubdirExistCache;
 import de.webfilesys.WebFileSys;
@@ -42,11 +37,12 @@ import de.webfilesys.graphics.GifQuantizer;
 import de.webfilesys.graphics.ImageTextStamp;
 import de.webfilesys.graphics.ImageTransform;
 import de.webfilesys.graphics.ImageTransformUtil;
-import de.webfilesys.graphics.RotateFilter;
 import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLDecoder;
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Resize/convert and/or add a copyright text to a single picture or selected
@@ -56,6 +52,7 @@ import de.webfilesys.util.UTF8URLEncoder;
  */
 public class ResizeImageRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(ResizeImageRequestHandler.class);
 	private static final int MIN_TARGET_SIZE = 8;
 	private static final int MAX_TARGET_SIZE = 32000;
 	
@@ -66,6 +63,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
     }
 
+    @Override
     protected void process()
     {
         if (!checkWriteAccess())
@@ -185,7 +183,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
             }
             catch (NumberFormatException nfex)
             {
-    			Logger.getLogger(getClass()).error("parameter copyRightColor invalid", nfex);
+    			logger.error("parameter copyRightColor invalid", nfex);
             }
         }
 
@@ -296,13 +294,13 @@ public class ResizeImageRequestHandler extends UserRequestHandler
                         output.println("cannot create dir for scaled images");
                         output.println("</body></html>");
                         output.flush();
-                        Logger.getLogger(getClass()).error("cannot create dir for scaled images: " + scaledDir);
+                        logger.error("cannot create dir for scaled images: " + scaledDir);
                         return;
                     }
                     else
                     {
-                    	SubdirExistCache.getInstance().setExistsSubdir(scaledImageFolder, new Integer(0));
-                    	SubdirExistCache.getInstance().setExistsSubdir(actPath.replace('/', File.separatorChar), new Integer(1));
+                    	SubdirExistCache.getInstance().setExistsSubdir(scaledImageFolder, 0);
+                    	SubdirExistCache.getInstance().setExistsSubdir(actPath.replace('/', File.separatorChar), 1);
                     }
                 }
             }
@@ -331,7 +329,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
                     }
                     catch (NumberFormatException numEx) 
                     {
-                        Logger.getLogger(getClass()).error(numEx);
+                        logger.error(numEx);
                     }
                 }
                 
@@ -425,7 +423,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
         }
         catch (IOException ioex3)
         {
-            Logger.getLogger(getClass()).error(ioex3);
+            logger.error(ioex3);
 
             javascriptAlert("cannot read image file");
 
@@ -521,7 +519,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
             try {
                 tracker.waitForAll();
             } catch (Exception ex) {
-                Logger.getLogger(getClass()).warn("failed to load image " + imgFileName, ex);
+                logger.warn("failed to load image " + imgFileName, ex);
             }
 
             tracker.removeImage(origImage);
@@ -600,7 +598,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
                 }
                 catch (IOException ioEx)
                 {
-                    Logger.getLogger(getClass()).error(ioEx);
+                    logger.error(ioEx);
                     return (false);
                 }
             } 
@@ -686,7 +684,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
 
                 if (pngBytes == null)
                 {
-                    Logger.getLogger(getClass()).error("PNG Encoder : Null image");
+                    logger.error("PNG Encoder : Null image");
                 }
                 else
                 {
@@ -741,7 +739,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
             javascriptAlert(getResource("alert.outOfMemory",
                     "insufficient memory to perform the requested operation"));
 
-            Logger.getLogger(getClass()).error(memEx.toString());
+            logger.error(memEx.toString());
 
             output.flush();
 
@@ -763,7 +761,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
         }
         catch (IOException ioEx)
         {
-            Logger.getLogger(getClass()).warn(ioEx);
+            logger.warn(ioEx);
 
             javascriptAlert("error writing output file: " + ioEx);
 

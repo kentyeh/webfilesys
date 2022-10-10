@@ -3,15 +3,15 @@ package de.webfilesys.sync;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Hashtable;
-
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DirSynchronizer
 {
-    private static final Logger LOG = Logger.getLogger(DirSynchronizer.class);
+    private static final Logger logger = LogManager.getLogger(DirSynchronizer.class);
 	
     /** the granularity of file timestamps for FAT filesystems is 2 sec ! */
     private static final long TIMESTAMP_GRANULARITY = 2000;
@@ -26,7 +26,7 @@ public class DirSynchronizer
      */
     private static final long DST_OFFSET = 60l * 60l * 1000l;
     
-    private ArrayList differencesList = new ArrayList();
+    private final ArrayList<SyncItem> differencesList = new ArrayList<>();
 
     private int idCounter = 0;
     
@@ -89,39 +89,31 @@ public class DirSynchronizer
             targetDirMissing = true;
         }
 
-        Hashtable targetFiles = new Hashtable();
-        Hashtable targetFolders = new Hashtable();
+        ConcurrentHashMap<String,Integer> targetFiles = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String,Integer> targetFolders = new ConcurrentHashMap<>();
 
         if (!targetDirMissing)
         {
             String targetFileList[] = targetDir.list();
 
-            for (int i = 0; i < targetFileList.length; i++)
-            {
-                File targetFile = new File(targetPath, targetFileList[i]);
-
-                if (targetFile.isDirectory())
-                {
-                    targetFolders.put(targetFileList[i], new Integer(0));
-                }
-                else
-                {
-                    targetFiles.put(targetFileList[i], new Integer(0));
+            for (String targetFileList1 : targetFileList) {
+                File targetFile = new File(targetPath, targetFileList1);
+                if (targetFile.isDirectory()) {
+                    targetFolders.put(targetFileList1, 0);
+                } else {
+                    targetFiles.put(targetFileList1, 0);
                 }
             }
         }
 
         String sourceFileList[] = sourceDir.list();
 
-        for (int i = 0; i < sourceFileList.length; i++)
-        {
-            String sourceFileName = sourceFileList[i];
-
+        for (String sourceFileName : sourceFileList) {
             File sourceFile = new File(sourcePath, sourceFileName);
 
             if (sourceFile.isDirectory())
             {
-                Integer targetFolderExist = (Integer) targetFolders
+                Integer targetFolderExist = targetFolders
                         .get(sourceFileName);
 
                 if (targetFolderExist == null)
@@ -142,18 +134,18 @@ public class DirSynchronizer
 
                     determineMissingTree(sourcePath + File.separatorChar
                             + sourceFileName, targetPath + File.separatorChar
-                            + sourceFileName, false);
+                                    + sourceFileName, false);
                 }
                 else
                 {
-                    targetFolders.put(sourceFileName, new Integer(1));
+                    targetFolders.put(sourceFileName, 1);
                     diff(sourcePath + File.separatorChar + sourceFileName,
                             targetPath + File.separatorChar + sourceFileName);
                 }
             }
             else
             {
-                Integer targetFileExist = (Integer) targetFiles
+                Integer targetFileExist = targetFiles
                         .get(sourceFileName);
 
                 if (targetFileExist == null)
@@ -192,7 +184,7 @@ public class DirSynchronizer
 
                     long sourceModified = sourceFile.lastModified();
                     long targetModified = targetFile.lastModified();
-
+                    
                     if (!ignoreDifferentDate) 
                     {
                         long timestampDiff = Math.abs(sourceModified - targetModified);
@@ -200,8 +192,8 @@ public class DirSynchronizer
                         if (timestampDiff > TIMESTAMP_GRANULARITY)
                         {
                             if (!WebFileSys.getInstance().isSyncIgnoreOffsetDST() ||
-                                (timestampDiff < DST_OFFSET - TIMESTAMP_GRANULARITY) ||
-                                (timestampDiff > DST_OFFSET + TIMESTAMP_GRANULARITY))
+                                    (timestampDiff < DST_OFFSET - TIMESTAMP_GRANULARITY) ||
+                                    (timestampDiff > DST_OFFSET + TIMESTAMP_GRANULARITY))
                             {
                                 differentDate = true;
                             }
@@ -290,7 +282,7 @@ public class DirSynchronizer
                         }
                     }
 
-                    targetFiles.put(sourceFileName, new Integer(1));
+                    targetFiles.put(sourceFileName, 1);
                 }
             }
         }
@@ -301,8 +293,7 @@ public class DirSynchronizer
         {
             String targetKey = (String) targetKeys.nextElement();
 
-            int targetFileChecked = ((Integer) targetFiles.get(targetKey))
-                    .intValue();
+            int targetFileChecked = targetFiles.get(targetKey);
 
             if (targetFileChecked == 0)
             {
@@ -327,8 +318,7 @@ public class DirSynchronizer
         {
             String targetKey = (String) targetKeys.nextElement();
 
-            int targetFolderChecked = ((Integer) targetFolders.get(targetKey))
-                    .intValue();
+            int targetFolderChecked = targetFolders.get(targetKey);
 
             if (targetFolderChecked == 0)
             {
@@ -361,16 +351,11 @@ public class DirSynchronizer
         String fileList[] = folder.list();
 
         if (fileList == null) {
-        	if (LOG.isInfoEnabled()) {
-            	LOG.info("sync dirs: file list is null for directory " + path);
-        	}
+            logger.info("sync dirs: file list is null for directory " + path);
         	return;
         }
         
-        for (int i = 0; i < fileList.length; i++)
-        {
-            String fileName = fileList[i];
-
+        for (String fileName : fileList) {
             SyncItem syncItem = new SyncItem(idCounter++);
 
             syncItem.setFileName(fileName);

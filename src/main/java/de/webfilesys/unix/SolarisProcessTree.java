@@ -1,27 +1,32 @@
 package de.webfilesys.unix;
 
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.StringTokenizer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SolarisProcessTree extends ProcessTree
 {
+    private static final Logger logger = LogManager.getLogger(SolarisProcessTree.class);
     public SolarisProcessTree(String userid)
     {
         super(userid);
     }
 
+    @Override
     protected void readProcessList()
     {
         String prog_name_parms[];
      
         prog_name_parms=new String[3];
 
-        prog_name_parms[0]=new String("/bin/sh");
-        prog_name_parms[1]=new String("-c");
+        prog_name_parms[0]="/bin/sh";
+        prog_name_parms[1]="-c";
 
         // prog_name_parms[2]=new String("ps auxlww --sort=uid,pid" + " 2>&1");
-        prog_name_parms[2]=new String("ps -eo user,pid,ppid,vsz,tty,time,stime,args" + " 2>&1");
+        prog_name_parms[2]="ps -eo user,pid,ppid,vsz,tty,time,stime,args" + " 2>&1";
 
         Runtime rt=Runtime.getRuntime();
 
@@ -31,12 +36,12 @@ public class SolarisProcessTree extends ProcessTree
         {
             dsmc_process=rt.exec(prog_name_parms);
         }
-        catch (Exception e)
+        catch (IOException e)
         {
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
         }
 
-        DataInputStream dsmc_out=new DataInputStream(dsmc_process.getInputStream());
+        try(BufferedReader  dsmc_out=new BufferedReader(new InputStreamReader(dsmc_process.getInputStream()))){
         String stdout_line=null;
 
         StringTokenizer proc_parser=null;
@@ -57,14 +62,7 @@ public class SolarisProcessTree extends ProcessTree
 
         while (!done)
         {
-            try 
-            {
-                stdout_line = dsmc_out.readLine();
-            }
-            catch (IOException ioe)
-            {
-                System.out.println(ioe);
-            }
+            stdout_line = dsmc_out.readLine();
               
             if (stdout_line==null)
             {
@@ -112,7 +110,11 @@ public class SolarisProcessTree extends ProcessTree
                     }
                 }
             }
-        }     
+        }}
+        catch (IOException ioe)
+        {
+                logger.error(ioe.getMessage(),ioe);
+        }
     }
 
 }

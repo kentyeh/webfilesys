@@ -2,7 +2,6 @@ package de.webfilesys;
 
 import java.io.File;
 import java.util.Enumeration;
-import java.util.Hashtable;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -10,25 +9,28 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.calendar.AppointmentManager;
 import de.webfilesys.decoration.DecorationManager;
 import de.webfilesys.graphics.AutoThumbnailCreator;
 import de.webfilesys.user.UserManager;
 import de.webfilesys.user.UserManagerBase;
 import de.webfilesys.watch.FolderWatchManager;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SessionHandler
 implements HttpSessionListener, ServletContextListener
 {
+    private static final Logger logger = LogManager.getLogger(SessionHandler.class);
 	private static int activeSessions = 0;
 
-	private static Hashtable sessionList = new Hashtable();
+	private static ConcurrentHashMap<String,HttpSession> sessionList = new ConcurrentHashMap<>();
 
 	/**
 	 * @see javax.servlet.http.HttpSessionListener#sessionCreated(HttpSessionEvent)
 	 */
+        @Override
 	public void sessionCreated(HttpSessionEvent sessionEvent)
 	{
 		HttpSession session = sessionEvent.getSession();
@@ -41,13 +43,14 @@ implements HttpSessionListener, ServletContextListener
 		
         if (activeSessions >= 0)  // this value can be negative because of sessions that survived tomcat restart
         {
-  		    // Logger.getLogger(getClass()).debug("active sessions: " + activeSessions);
+  		    // logger.debug("active sessions: " + activeSessions);
         }
 	}
 
 	/**
 	 * @see javax.servlet.http.HttpSessionListener#sessionDestroyed(HttpSessionEvent)
 	 */
+        @Override
 	public void sessionDestroyed(HttpSessionEvent sessionEvent)
 	{
 		HttpSession session = sessionEvent.getSession();
@@ -64,44 +67,46 @@ implements HttpSessionListener, ServletContextListener
 
 			if (userid == null)
 			{
-		        Logger.getLogger(getClass()).info("session expired/destroyed with id " + sessionId);
+		        logger.info("session expired/destroyed with id " + sessionId);
 			}
 			else
 			{
-		        Logger.getLogger(getClass()).info("session expired/destroyed for user: " + userid + " sessionId: " + sessionId);
+		        logger.info("session expired/destroyed for user: " + userid + " sessionId: " + sessionId);
 			}
 		}
 		catch (IllegalStateException iex)
 		{
-			Logger.getLogger(getClass()).info("session expired/destroyed with id " + sessionId);
+			logger.info("session expired/destroyed with id " + sessionId);
 
 			// In tomcat version 4 the session has already been invalidated when sessionDestroyed()
 			// is called. So we get an IllegalStateException when we try to read the userid attribute.
 			// In tomcat version 5 sessionDestroyed() is called before the session is being invalidated.
 			
-			Logger.getLogger(getClass()).debug(iex);
+			logger.debug(iex);
 		}
 
 		activeSessions--;
 
-		Logger.getLogger(getClass()).debug("active sessions: " + activeSessions);
+		logger.debug("active sessions: " + activeSessions);
 	}
 
-	public static Enumeration getSessions()
+	public static Enumeration<HttpSession> getSessions()
 	{
 		return (sessionList.elements());
 	}
 	
+        @Override
     public void contextInitialized (ServletContextEvent servletContextEvent)
     {
     	// ServletContext servletContext = servletContextEvent.getServletContext ();
     }
 
+        @Override
     public void contextDestroyed (ServletContextEvent servletContextEvent)
     {
         // ServletContext servletContext = servletContextEvent.getServletContext ();
 
-    	Logger.getLogger(getClass()).info("saving and cleaning up on context shutdown");
+    	logger.info("saving and cleaning up on context shutdown");
     	
     	UserManager userMgr = WebFileSys.getInstance().getUserMgr();    	
     	
@@ -156,12 +161,12 @@ implements HttpSessionListener, ServletContextListener
 			}
 			catch (InterruptedException iex)
 			{
-				System.out.println(iex);
+				logger.error(iex);
 			}
 		}
 		while (!userMgr.isReadyForShutdown());
 
-        Logger.getLogger(getClass()).info("WebFileSys ready for shutdown");
+        logger.info("WebFileSys ready for shutdown");
     }
 	
 }

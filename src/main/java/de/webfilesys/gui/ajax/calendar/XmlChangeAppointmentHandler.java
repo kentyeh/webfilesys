@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.calendar.Appointment;
@@ -17,8 +16,11 @@ import de.webfilesys.calendar.AppointmentManager;
 import de.webfilesys.gui.ajax.XmlRequestHandlerBase;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class XmlChangeAppointmentHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(XmlChangeAppointmentHandler.class);
 	public XmlChangeAppointmentHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -40,14 +42,14 @@ public class XmlChangeAppointmentHandler extends XmlRequestHandlerBase {
 		
 		if (CommonUtils.isEmpty(appointmentId))
 		{
-			Logger.getLogger(getClass()).warn("missing parameter appointmentId");
+			logger.warn("missing parameter appointmentId");
 			return;
 		}
 		
 		Appointment appointment = AppointmentManager.getInstance().getAppointment(uid, appointmentId);
 		if (appointment == null)
 		{
-			Logger.getLogger(getClass()).warn("appointment for update not found with id " + appointmentId);
+			logger.warn("appointment for update not found with id " + appointmentId);
 			return;
 		}
 		
@@ -60,23 +62,23 @@ public class XmlChangeAppointmentHandler extends XmlRequestHandlerBase {
 
 		String startHourParam = getParameter("startHour");
 		if (CommonUtils.isEmpty(startHourParam)) {
-			Logger.getLogger(getClass()).warn("missing parameter startHour");
+			logger.warn("missing parameter startHour");
 			return;
 		}
 		String startMinuteParam = getParameter("startMinute");
 		if (CommonUtils.isEmpty(startMinuteParam)) {
-			Logger.getLogger(getClass()).warn("missing parameter startMinute");
+			logger.warn("missing parameter startMinute");
 			return;
 		}
 
 		String endHourParam = getParameter("endHour");
 		if (CommonUtils.isEmpty(endHourParam)) {
-			Logger.getLogger(getClass()).warn("missing parameter endHour");
+			logger.warn("missing parameter endHour");
 			return;
 		}
 		String endMinuteParam = getParameter("endMinute");
 		if (CommonUtils.isEmpty(endMinuteParam)) {
-			Logger.getLogger(getClass()).warn("missing parameter endMinute");
+			logger.warn("missing parameter endMinute");
 			return;
 		}
 		
@@ -88,13 +90,13 @@ public class XmlChangeAppointmentHandler extends XmlRequestHandlerBase {
 		
 		String repeatPeriodParam = getParameter("repeatPeriod");
 		if (CommonUtils.isEmpty(repeatPeriodParam)) {
-			Logger.getLogger(getClass()).warn("missing parameter repeatPeriod");
+			logger.warn("missing parameter repeatPeriod");
 			return;
 		}
 		
 		String alarmTypeParam = getParameter("alarmType");
 		if (CommonUtils.isEmpty(alarmTypeParam)) {
-			Logger.getLogger(getClass()).warn("missing parameter alarmType");
+			logger.warn("missing parameter alarmType");
 			return;
 		}
 		
@@ -134,7 +136,7 @@ public class XmlChangeAppointmentHandler extends XmlRequestHandlerBase {
 		}
 		catch (NumberFormatException numEx)
 		{
-			Logger.getLogger(getClass()).warn("invalid parameter value", numEx);
+			logger.warn("invalid parameter value", numEx);
 			return;
 		}
 		

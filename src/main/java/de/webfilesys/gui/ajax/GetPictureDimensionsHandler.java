@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.FileLink;
@@ -17,13 +16,15 @@ import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class GetPictureDimensionsHandler extends XmlRequestHandlerBase {
 	
-    private static final Logger LOG = Logger.getLogger(GetPictureDimensionsHandler.class);
+    private static final Logger logger = LogManager.getLogger(GetPictureDimensionsHandler.class);
 	
 	public GetPictureDimensionsHandler(
     		HttpServletRequest req, 
@@ -38,7 +39,7 @@ public class GetPictureDimensionsHandler extends XmlRequestHandlerBase {
         String fileName = getParameter("fileName");
 
         if (CommonUtils.isEmpty(fileName)) {
-        	LOG.warn("parameter fileName missing");
+        	logger.warn("parameter fileName missing");
         	return;
         }
         
@@ -51,12 +52,12 @@ public class GetPictureDimensionsHandler extends XmlRequestHandlerBase {
         	FileLink fileLink = MetaInfManager.getInstance().getLink(path, fileName);
         	if (fileLink != null) {
         		if (!accessAllowed(fileLink.getDestPath())) {
-        			LOG.error("user " + uid + " tried to access a linked file outside his docuemnt root: " + fileLink.getDestPath());
+        			logger.error("user " + uid + " tried to access a linked file outside his docuemnt root: " + fileLink.getDestPath());
         			return;
         		}
         		picFile = new File(fileLink.getDestPath());
         	} else {
-    			LOG.error("link does not exist: " + path + " " + fileName);
+    			logger.error("link does not exist: " + path + " " + fileName);
     			return;
         	}
         } else {
@@ -64,7 +65,7 @@ public class GetPictureDimensionsHandler extends XmlRequestHandlerBase {
         }
         
         if ((!picFile.exists()) || (!picFile.isFile()) || (!picFile.canRead())) {
-        	LOG.warn("not a readable file: " + path + " " + fileName);
+        	logger.warn("not a readable file: " + path + " " + fileName);
         	return;
         }
 
@@ -90,7 +91,7 @@ public class GetPictureDimensionsHandler extends XmlRequestHandlerBase {
 	        XmlUtil.setChildText(resultElement, "ypix", Integer.toString(picHeight));
 	        XmlUtil.setChildText(resultElement, "imageType", Integer.toString(scaledImage.getImageType()));
 		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error("failed to create scaled image " + picFile.getAbsolutePath(), ioex);
+			logger.error("failed to create scaled image " + picFile.getAbsolutePath(), ioex);
 		}
         	
         doc.appendChild(resultElement);

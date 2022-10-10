@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.w3c.dom.Element;
 
 /**
  * @author Frank Hoehnel
@@ -23,7 +24,7 @@ public class GoogleEarthFolderPlacemarkHandler extends GoogleEarthHandlerBase
         super(req, resp, session, output, uid);
  	}
 
-	protected ArrayList createPlacemarkXml() 
+	protected ArrayList<Element> createPlacemarkXml() 
 	{
         String folderPath = getCwd();
         
@@ -36,7 +37,7 @@ public class GoogleEarthFolderPlacemarkHandler extends GoogleEarthHandlerBase
             folderPath = folderPath + File.separator + ".";
         }
         
-        ArrayList placemarkElementList = new ArrayList();
+        ArrayList<Element> placemarkElementList = new ArrayList();
         
         placemarkElementList.add(createPlacemark(folderPath));
         

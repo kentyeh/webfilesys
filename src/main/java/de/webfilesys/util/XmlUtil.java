@@ -1,17 +1,22 @@
 package de.webfilesys.util;
 
-import java.io.IOException;
 import java.io.Writer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
+import org.w3c.dom.ls.LSParser;
+import org.w3c.dom.ls.LSSerializer;
 
 public class XmlUtil
 {
+    private static final Logger logger = LogManager.getLogger(XmlUtil.class);
     public static Element getChildByTagName(Element e,String tagname)
     {
         if (e==null )
@@ -48,7 +53,7 @@ public class XmlUtil
             return("");
         }
 
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
 
         int listLength=children.getLength();
 
@@ -208,37 +213,41 @@ public class XmlUtil
     
     public static void writeToStream(Element rootElement,Writer outputWriter)
     {
-        OutputFormat outputFormat = new OutputFormat();
-        outputFormat.setEncoding("UTF-8");
-        outputFormat.setLineWidth(0);
-        outputFormat.setPreserveSpace(true);
-        
-        XMLSerializer output = new XMLSerializer(outputWriter,outputFormat);
-        try
-        {
-            output.serialize(rootElement);
-        }
-        catch (IOException ioex)
-        {
-            System.out.println(ioex.getMessage());
+        try {
+            DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
+            DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("XML 3.0 LS 3.0");
+            if(impl == null){
+                logger.error("No DOMImplementation found !");
+            }else{
+                LSParser parser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, "http://www.w3.org/TR/REC-xml");
+                LSSerializer serializer = impl.createLSSerializer();
+                LSOutput output = impl.createLSOutput();
+                output.setEncoding("UTF-8");
+                output.setCharacterStream(outputWriter);
+                serializer.write(rootElement, output);
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException ex) {
+              logger.error(ex.getMessage());
         }
     }
 
-	public static void writeToStream(Document doc, Writer outputWriter)
-	{
-		OutputFormat outputFormat = new OutputFormat();
-		outputFormat.setEncoding("UTF-8");
-		outputFormat.setLineWidth(0);
-		outputFormat.setPreserveSpace(true);
-        
-		XMLSerializer output = new XMLSerializer(outputWriter,outputFormat);
-		try
-		{
-			output.serialize(doc);
-		}
-		catch (IOException ioex)
-		{
-			System.out.println(ioex.getMessage());
-		}
-	}
+public static void writeToStream(Document doc, Writer outputWriter)
+{
+        try {
+            DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
+            DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("XML 3.0 LS 3.0");
+            if(impl == null){
+                logger.error("No DOMImplementation found !");
+            }else{
+                LSParser parser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, "http://www.w3.org/TR/REC-xml");
+                LSSerializer serializer = impl.createLSSerializer();
+                LSOutput output = impl.createLSOutput();
+                output.setEncoding("UTF-8");
+                output.setCharacterStream(outputWriter);
+                serializer.write(doc, output);
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException ex) {
+              logger.error(ex.getMessage());
+        }
+}
 }

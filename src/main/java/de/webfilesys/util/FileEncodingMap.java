@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FileEncodingMap 
 {
+    private static final Logger logger = LogManager.getLogger(FileEncodingMap.class);
     private static final String MAPPING_FILE = "fileEncoding.conf";
 
     private Properties encodingMap = null;
@@ -20,37 +22,19 @@ public class FileEncodingMap
     private FileEncodingMap()
     {
         encodingMap = new Properties();
-    	FileInputStream fin = null;
-
-        try
+        String propFilePath = WebFileSys.getInstance().getConfigBaseDir() + "/" + MAPPING_FILE;
+        try(FileInputStream fin = new FileInputStream(propFilePath))
         {
-        	String propFilePath = WebFileSys.getInstance().getConfigBaseDir() + "/" + MAPPING_FILE;
         	
-        	fin = new FileInputStream(propFilePath);
-
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-                Logger.getLogger(getClass()).debug("reading file encoding map from " + propFilePath);
-            }
+        	
+            logger.debug("reading file encoding map from " + propFilePath);
             
         	encodingMap.load(fin);
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error("Failed to read file encoding configuration", ioex);
+            logger.error("Failed to read file encoding configuration", ioex);
         }
-		finally
-		{
-			if (fin != null) 
-			{
-				try 
-				{
-					fin.close();
-				}
-				catch (IOException ex)
-				{
-				}
-			}
-		}
     }
 
     public synchronized static FileEncodingMap getInstance()

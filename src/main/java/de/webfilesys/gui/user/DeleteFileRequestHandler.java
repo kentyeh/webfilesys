@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Constants;
 import de.webfilesys.MetaInfManager;
@@ -17,12 +16,15 @@ import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.gui.xsl.XslFileListHandler;
 import de.webfilesys.gui.xsl.XslThumbnailHandler;
 import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class DeleteFileRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(DeleteFileRequestHandler.class);
 	protected boolean confirmed = false;
 	
     boolean clientIsLocal = false;
@@ -51,6 +53,7 @@ public class DeleteFileRequestHandler extends UserRequestHandler
         this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -75,7 +78,7 @@ public class DeleteFileRequestHandler extends UserRequestHandler
 
 		if (!accessAllowed(filePath))
 		{
-			Logger.getLogger(getClass()).warn("user " + uid + " tried to delete file outside of it's document root: " + filePath);
+			logger.warn("user " + uid + " tried to delete file outside of it's document root: " + filePath);
 			return;
 		}
 
@@ -121,7 +124,7 @@ public class DeleteFileRequestHandler extends UserRequestHandler
             {
                 if (!thumbnailFile.delete())
                 {
-                    Logger.getLogger(getClass()).warn("cannot remove thumbnail file " + thumbnailPath);
+                    logger.warn("cannot remove thumbnail file " + thumbnailPath);
                 }
             }
 
@@ -143,7 +146,7 @@ public class DeleteFileRequestHandler extends UserRequestHandler
                     
                     if (sessionViewMode != null)
                     {
-                        viewMode = sessionViewMode.intValue();
+                        viewMode = sessionViewMode;
                     }
 
                     if (viewMode == Constants.VIEW_MODE_THUMBS)
@@ -183,7 +186,7 @@ public class DeleteFileRequestHandler extends UserRequestHandler
         output.println("<HTML>");
         output.println("<HEAD>");
 
-        StringBuffer errorMsg = new StringBuffer();
+        StringBuilder errorMsg = new StringBuilder();
         errorMsg.append(getResource("alert.delFileFailedPart1", "Failed to delete the file"));
         errorMsg.append("\\n");
         errorMsg.append(fileName);

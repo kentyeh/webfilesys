@@ -10,16 +10,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class ZipDirRequestHandler extends UserRequestHandler {
-    private static final Logger LOG = Logger.getLogger(ZipDirRequestHandler.class);
+    private static final Logger logger = LogManager.getLogger(ZipDirRequestHandler.class);
 	
 	public ZipDirRequestHandler(
     		HttpServletRequest req, 
@@ -30,6 +30,7 @@ public class ZipDirRequestHandler extends UserRequestHandler {
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -57,8 +58,6 @@ public class ZipDirRequestHandler extends UserRequestHandler {
 		headLine(getResource("label.zippingdir","compressing directory"));
 
 		output.flush();
-
-		ZipOutputStream zipOut = null;
 
 		try {
 			File zipDestFile = File.createTempFile("webfilesys", null);
@@ -142,18 +141,13 @@ public class ZipDirRequestHandler extends UserRequestHandler {
 
 			output.flush();
 			
-			zipOut = new ZipOutputStream(new FileOutputStream(zipDestFile));
+                        int zipFileCount = 0 ;
+			try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipDestFile))){
 
-			treeFileSize = 0l;
+			    treeFileSize = 0l;
 
-			int zipFileCount = zipTree(currentPath, "", zipOut, 0);
+			    zipFileCount = zipTree(currentPath, "", zipOut, 0);
 			
-			if (zipOut != null) {
-				try {
-					zipOut.close();
-					zipOut = null;
-				} catch (Exception ioex) {
-				}
 			}
 			
 	        output.println("<script language=\"javascript\">");
@@ -188,10 +182,10 @@ public class ZipDirRequestHandler extends UserRequestHandler {
 
 				if (!zipDestFile.renameTo(moveDestFile)) {
 					if (!copyFile(zipDestFile.getAbsolutePath(), finalZipFilePath)) {
-						LOG.warn("cannot copy temporary zip file " + zipDestFile.getAbsolutePath() + " to " + finalZipFilePath);
+						logger.warn("cannot copy temporary zip file " + zipDestFile.getAbsolutePath() + " to " + finalZipFilePath);
 					} else {
 						if (!zipDestFile.delete()) {
-							LOG.warn("cannot delete temporary zip file " + zipDestFile.getAbsolutePath());
+							logger.warn("cannot delete temporary zip file " + zipDestFile.getAbsolutePath());
 						}
 					}
 				}
@@ -217,7 +211,7 @@ public class ZipDirRequestHandler extends UserRequestHandler {
 			output.flush();
 			
 		} catch (IOException ioex) {
-			LOG.error(ioex);
+			logger.error(ioex);
 			
 			output.println("<script language=\"javascript\">");
 			output.println("alert('Failed to zip folder tree!');");
@@ -233,15 +227,6 @@ public class ZipDirRequestHandler extends UserRequestHandler {
 			output.println("</body>");
 			output.println("</html>");
 			output.flush();
-			return;
-		} finally {
-			if (zipOut != null) {
-				try {
-					zipOut.close();
-				} catch (Exception ioex) {
-					LOG.warn(ioex);
-				}
-			}
 		}
 	}
 }

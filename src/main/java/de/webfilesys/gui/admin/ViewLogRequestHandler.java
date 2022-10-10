@@ -10,11 +10,14 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class ViewLogRequestHandler extends LogRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(ViewLogRequestHandler.class);
 	public ViewLogRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -85,7 +88,7 @@ public class ViewLogRequestHandler extends LogRequestHandlerBase {
 				output.println("</span>");
 			}
 		} catch (IOException ioe) {
-			System.out.println(ioe);
+			logger.error(ioe);
 			output.println(ioe);
 		} finally {
 			if (logIn != null) {

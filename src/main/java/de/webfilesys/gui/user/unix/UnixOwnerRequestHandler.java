@@ -1,6 +1,5 @@
 package de.webfilesys.gui.user.unix;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -10,18 +9,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.user.UserRequestHandler;
 import de.webfilesys.gui.xsl.XslUnixDirTreeHandler;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class UnixOwnerRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(UnixOwnerRequestHandler.class);
     private boolean valuesProvided = false;
 
     public UnixOwnerRequestHandler(
@@ -37,6 +40,7 @@ public class UnixOwnerRequestHandler extends UserRequestHandler
         this.valuesProvided = valuesProvided;
     }
 
+    @Override
     protected void process()
     {
         if (File.separatorChar != '/')
@@ -160,22 +164,21 @@ public class UnixOwnerRequestHandler extends UserRequestHandler
             }
             catch (Exception e)
             {
-                Logger.getLogger(getClass()).error(e);
+                logger.error(e);
             }
 
             if (!isWebspaceUser())
             {
-                prog_name_parms[0] = new String("/bin/sh");
-                prog_name_parms[1] = new String("-c");
+                prog_name_parms[0] = "/bin/sh";
+                prog_name_parms[1] = "-c";
                 prog_name_parms[2] =
-                    new String(
                         "chown "
-                            + new_owner
-                            + ":"
-                            + new_group
-                            + " "
-                            + file_name
-                            + " 2>&1");
+                        + new_owner
+                        + ":"
+                        + new_group
+                        + " "
+                        + file_name
+                        + " 2>&1";
 
                 try
                 {
@@ -183,7 +186,7 @@ public class UnixOwnerRequestHandler extends UserRequestHandler
                 }
                 catch (Exception e)
                 {
-                    Logger.getLogger(getClass()).error(e);
+                    logger.error(e);
                 }
             }
         }
@@ -256,8 +259,7 @@ public class UnixOwnerRequestHandler extends UserRequestHandler
             {
                 opSysProcess = rt.exec(prog_name_parms);
                 
-                DataInputStream processOut =
-                    new DataInputStream(opSysProcess.getInputStream());
+                try(BufferedReader processOut = new BufferedReader(new InputStreamReader(opSysProcess.getInputStream()))){
 
                 boolean done = false;
 
@@ -303,13 +305,14 @@ public class UnixOwnerRequestHandler extends UserRequestHandler
                 }
                 catch (IOException ioEx)
                 {
-                	Logger.getLogger(getClass()).error(ioEx);
+                	logger.error(ioEx);
                 }
                 
             }
+            }
             catch (Exception e)
             {
-                Logger.getLogger(getClass()).error(e);
+                logger.error(e);
             }
 
         }
@@ -361,39 +364,39 @@ public class UnixOwnerRequestHandler extends UserRequestHandler
         for (i = 1; i <= 9; i++)
         {
             if (rwx.charAt(i) == '-')
-                checkbox[i] = new String("");
+                checkbox[i] = "";
             else
-                checkbox[i] = new String("checked");
+                checkbox[i] = "checked";
         }
 
         if (rwx.charAt(3) == 'S')
         {
-            checkbox[3] = new String("");
-            checkbox[10] = new String("checked");
+            checkbox[3] = "";
+            checkbox[10] = "checked";
         }
         else
         {
             if (rwx.charAt(3) == 's')
             {
-                checkbox[10] = new String("checked");
+                checkbox[10] = "checked";
             }
             else
-                checkbox[10] = new String("");
+                checkbox[10] = "";
         }
 
         if (rwx.charAt(6) == 'S')
         {
-            checkbox[6] = new String("");
-            checkbox[11] = new String("checked");
+            checkbox[6] = "";
+            checkbox[11] = "checked";
         }
         else
         {
             if (rwx.charAt(6) == 's')
             {
-                checkbox[11] = new String("checked");
+                checkbox[11] = "checked";
             }
             else
-                checkbox[11] = new String("");
+                checkbox[11] = "";
         }
 
         String disableOwner = "";

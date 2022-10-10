@@ -2,24 +2,25 @@ package de.webfilesys.gui.user;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.Hashtable;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.gui.xsl.XslShowImageHandler;
 import de.webfilesys.gui.xsl.album.XslAlbumPictureHandler;
 import de.webfilesys.servlet.VisitorServlet;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class RateVotingHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(RateVotingHandler.class);
 	public RateVotingHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -30,13 +31,14 @@ public class RateVotingHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String imagePath = getParameter("imagePath");
 		
 		if ((imagePath == null) || (imagePath.trim().length() == 0))
 		{
-			Logger.getLogger(getClass()).error("RateVotingHandler: imagePath missing");
+			logger.error("RateVotingHandler: imagePath missing");
 			return;
 		}
 		
@@ -51,7 +53,7 @@ public class RateVotingHandler extends UserRequestHandler
         
         if (temp == null)
         {
-        	Logger.getLogger(getClass()).error("rating is null");
+        	logger.error("rating is null");
         	return;
         }
         
@@ -63,7 +65,7 @@ public class RateVotingHandler extends UserRequestHandler
         }
         catch (NumberFormatException nfe)
         {
-			Logger.getLogger(getClass()).error("invalid rating: " + temp);
+			logger.error("invalid rating: " + temp);
 			return;
         }
 
@@ -71,11 +73,11 @@ public class RateVotingHandler extends UserRequestHandler
 
 		if (readonly)
 		{
-            Hashtable ratedPictures = (Hashtable) session.getAttribute("ratedPictures");
+            ConcurrentHashMap<String,Boolean> ratedPictures = (ConcurrentHashMap<String,Boolean>) session.getAttribute("ratedPictures");
 			
 			if (ratedPictures == null)
 	    	{
-	    		ratedPictures = new Hashtable(5);
+	    		ratedPictures = new ConcurrentHashMap<>(5);
 	    		
 	    		session.setAttribute("ratedPictures", ratedPictures);
 	    	}
@@ -90,7 +92,7 @@ public class RateVotingHandler extends UserRequestHandler
 					metaInfMgr.addVisitorRating(imagePathOS, rating);
 				}
 
-				ratedPictures.put(imagePathOS, new Boolean(true));
+				ratedPictures.put(imagePathOS, true);
             }
 		}
         else

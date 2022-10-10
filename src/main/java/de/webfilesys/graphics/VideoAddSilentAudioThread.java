@@ -1,17 +1,19 @@
 package de.webfilesys.graphics;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.SubdirExistCache;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VideoAddSilentAudioThread extends Thread {
+    private static final Logger logger = LogManager.getLogger(VideoAddSilentAudioThread.class);
 	public static final String TARGET_SUBDIR = "_silentAudio";
 	
     private String videoFilePath;
@@ -20,10 +22,9 @@ public class VideoAddSilentAudioThread extends Thread {
     	videoFilePath = videoPath;
     }
 
+        @Override
     public void run() {
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            Logger.getLogger(getClass()).debug("starting thread for adding silent audio to video file " + videoFilePath);
-        }
+            logger.debug("starting thread for adding silent audio to video file " + videoFilePath);
         
         Thread.currentThread().setPriority(1);
 
@@ -41,9 +42,9 @@ public class VideoAddSilentAudioThread extends Thread {
             File targetDirFile = new File(targetPath);
             if (!targetDirFile.exists()) {
                 if (!targetDirFile.mkdir()) {
-                    Logger.getLogger(getClass()).error("failed to create target folder for video audio fade: " + targetPath);
+                    logger.error("failed to create target folder for video audio fade: " + targetPath);
                 } else {
-					SubdirExistCache.getInstance().setExistsSubdir(targetPath, Integer.valueOf(1));
+					SubdirExistCache.getInstance().setExistsSubdir(targetPath, 1);
                 }
             }
             
@@ -63,7 +64,7 @@ public class VideoAddSilentAudioThread extends Thread {
             
             // ffmpeg -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -i input.mp4 -c:v copy -c:a aac -shortest output.mp4
             
-            ArrayList<String> progNameAndParams = new ArrayList<String>();
+            ArrayList<String> progNameAndParams = new ArrayList<>();
             progNameAndParams.add(ffmpegExePath);
 
             progNameAndParams.add("-f");
@@ -85,26 +86,22 @@ public class VideoAddSilentAudioThread extends Thread {
             
             progNameAndParams.add(targetFilePath);
             
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            	StringBuilder buff = new StringBuilder();
-                for (String cmdToken : progNameAndParams) {
-                	buff.append(cmdToken);
-                	buff.append(' ');
-                }
-                Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+            StringBuilder buff = new StringBuilder();
+            for (String cmdToken : progNameAndParams) {
+                buff.append(cmdToken);
+                buff.append(' ');
             }
+            logger.debug("ffmpeg call with params: " + buff.toString());
             
 			try {
 				Process convertProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 				
-		        DataInputStream grabProcessOut = new DataInputStream(convertProcess.getErrorStream());
+		        BufferedReader grabProcessOut = new BufferedReader(new InputStreamReader(convertProcess.getErrorStream()));
 		        
 		        String outLine = null;
 		        
 		        while ((outLine = grabProcessOut.readLine()) != null) {
-		        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-		                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-		        	}
+		            logger.debug("ffmpeg output: " + outLine);
 		        }
 				
 				int convertResult = convertProcess.waitFor();
@@ -112,15 +109,13 @@ public class VideoAddSilentAudioThread extends Thread {
 				if (convertResult == 0) {
 					File resultFile = new File(targetFilePath);
 					if (!resultFile.exists()) {
-	                    Logger.getLogger(getClass()).error("result file from ffmpeg add silent audio not found: " + targetFilePath);
+	                    logger.error("result file from ffmpeg add silent audio not found: " + targetFilePath);
 					}
 				} else {
-					Logger.getLogger(getClass()).warn("ffmpeg returned error " + convertResult);
+					logger.warn("ffmpeg returned error " + convertResult);
 				}
-			} catch (IOException ioex) {
-				Logger.getLogger(getClass()).error("failed to add silent audio to video " + videoFilePath, ioex);
-			} catch (InterruptedException iex) {
-				Logger.getLogger(getClass()).error("failed to add silent audio to video " + videoFilePath, iex);
+			} catch (IOException | InterruptedException ioex) {
+				logger.error("failed to add silent audio to video " + videoFilePath, ioex);
 			}
         }
     }

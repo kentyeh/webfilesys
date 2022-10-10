@@ -9,17 +9,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CompareImageRequestHandler extends MultiImageRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(CompareImageRequestHandler.class);
 	public CompareImageRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -30,6 +32,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String actPath = getCwd();
@@ -82,7 +85,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 			{
 				int newScreenWidth = Integer.parseInt(screenWidthParm);
 
-				session.setAttribute("screenWidth", new Integer(newScreenWidth));
+				session.setAttribute("screenWidth", newScreenWidth);
 			}
 			catch (NumberFormatException nfex)
 			{
@@ -95,7 +98,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 			{
 				int newScreenHeight = Integer.parseInt(screenHeightParm);
 
-				session.setAttribute("screenHeight", new Integer(newScreenHeight));
+				session.setAttribute("screenHeight", newScreenHeight);
 			}
 			catch (NumberFormatException nfex)
 			{
@@ -108,7 +111,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 		
 		if (screenWidth != null)
 		{
-			displayWidth = screenWidth.intValue() - 28;
+			displayWidth = screenWidth - 28;
 		}
 		
 		int displayHeight = 520;
@@ -117,7 +120,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 		
 		if (screenHeight != null)
 		{
-			displayHeight = screenHeight.intValue() - 130;
+			displayHeight = screenHeight - 130;
 		}
 
 		int fileNum = selectedFiles.size();
@@ -142,7 +145,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 			}
 			catch (IOException io1)
 			{
-				Logger.getLogger(getClass()).error(io1);
+				logger.error(io1);
 			}
 		}
 
@@ -177,7 +180,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 			}
 			catch (IOException io1)
 			{
-				Logger.getLogger(getClass()).error(io1);
+				logger.error(io1);
 				output.println("</body></html>");
 				output.flush();
 				return;

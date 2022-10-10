@@ -13,13 +13,14 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.log4j.Logger;
 
 import com.ctc.wstx.exc.WstxParsingException;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.user.UserRequestHandler;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * GPS track file viewer.
@@ -27,6 +28,7 @@ import de.webfilesys.util.CommonUtils;
  * @author Frank Hoehnel
  */
 public class GPXViewHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(GPXViewHandler.class);
 	private static final String STYLESHEET_REF = "<?xml-stylesheet type=\"text/xsl\" href=\"/webfilesys/xsl/gpxViewer.xsl\"?>";
 
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>";
@@ -116,17 +118,17 @@ public class GPXViewHandler extends UserRequestHandler {
 						// System.out.println("unhandled event: " + event);
 					}
 				} catch (WstxParsingException epex) {
-					Logger.getLogger(getClass()).warn("GPX parsing error", epex);
+					logger.warn("GPX parsing error", epex);
 				}
 			}
 
 			output.flush();
 		} catch (IOException e) {
-			Logger.getLogger(getClass()).error("failed to read GPX file", e);
+			logger.error("failed to read GPX file", e);
 		} catch (XMLStreamException xmlEx) {
-			Logger.getLogger(getClass()).error("error parsing XML stream", xmlEx);
+			logger.error("error parsing XML stream", xmlEx);
 		} catch (Exception e) {
-			Logger.getLogger(getClass()).error("failed to transform GPX file", e);
+			logger.error("failed to transform GPX file", e);
 		} finally {
 			if (gpxReader != null) {
 				try {

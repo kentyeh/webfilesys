@@ -10,13 +10,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class GUnzipRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(GUnzipRequestHandler.class);
 	public GUnzipRequestHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -27,6 +29,7 @@ public class GUnzipRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String gzipFileName=getParameter("filename");
@@ -52,12 +55,9 @@ public class GUnzipRequestHandler extends UserRequestHandler
 
 		String destFileName=gzipFileName.substring(0,extIdx);
 
-		try
+		try (GZIPInputStream zipIn=new GZIPInputStream(new FileInputStream(gzipFileName));
+                        FileOutputStream destFile=new FileOutputStream(destFileName))
 		{
-			GZIPInputStream zipIn=new GZIPInputStream(new FileInputStream(gzipFileName));
-
-			FileOutputStream destFile=new FileOutputStream(destFileName);
-
 			byte buff[]=new byte[4096];
 
 			int bytesRead=0;
@@ -67,14 +67,11 @@ public class GUnzipRequestHandler extends UserRequestHandler
 				destFile.write(buff,0,bytesRead);
 			}
 
-			zipIn.close();
-
-			destFile.close();
 		}
 		catch (IOException ioex)
 		{
-			System.out.println("gunzipFile: " + ioex);
-			Logger.getLogger(getClass()).warn(ioex.toString());
+			logger.error("gunzipFile: " + ioex);
+			logger.warn(ioex.toString());
 			return(false);
 		}
 

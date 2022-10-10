@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.ClipBoard;
@@ -17,17 +16,21 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.VideoAudioMixerThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AddAudioToVideoHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(AddAudioToVideoHandler.class);
     
 	public AddAudioToVideoHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
 			PrintWriter output, String uid) {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -36,7 +39,7 @@ public class AddAudioToVideoHandler extends XmlRequestHandlerBase {
         String ffmpegExePath = WebFileSys.getInstance().getFfmpegExePath();
         
         if (CommonUtils.isEmpty(ffmpegExePath)) {
-        	Logger.getLogger(getClass()).warn("ffmpeg not configured");
+        	logger.warn("ffmpeg not configured");
         	return;
         }		
 		
@@ -50,7 +53,7 @@ public class AddAudioToVideoHandler extends XmlRequestHandlerBase {
 		    String errorMsg = getResource("errorMissingAudioInClipboard", "missing audio file in clipboard");
 			XmlUtil.setChildText(resultElement, "error", errorMsg);
 		} else {
-			ArrayList<String> audioFiles = new ArrayList<String>();
+			ArrayList<String> audioFiles = new ArrayList<>();
 			for (String clipFile : clipBoard.getAllFiles()) {
 				if (isAudioFile(clipFile)) {
 					audioFiles.add(clipFile);

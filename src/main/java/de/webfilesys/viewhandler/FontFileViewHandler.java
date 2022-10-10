@@ -7,10 +7,11 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.ViewHandlerConfig;
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * View the content of a font file (WOFF, TTF, EOT).
@@ -18,11 +19,12 @@ import de.webfilesys.util.UTF8URLEncoder;
  * @author Frank Hoehnel
  */
 public class FontFileViewHandler implements ViewHandler {
-	
+	private static final Logger logger = LogManager.getLogger(FontFileViewHandler.class);
 	private static final int START_IDX = 0x0000;
 
 	private static final int END_IDX = 0xffff;
 
+        @Override
 	public void process(String filePath, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req,
 			HttpServletResponse resp) {
 		
@@ -108,7 +110,7 @@ public class FontFileViewHandler implements ViewHandler {
 
 			output.flush();
 		} catch (IOException ex) {
-			Logger.getLogger(getClass()).error("Font file viewer exception: " + ex);
+			logger.error("Font file viewer exception: " + ex);
 		}
 	}
 
@@ -125,6 +127,7 @@ public class FontFileViewHandler implements ViewHandler {
 	 * @param resp
 	 *            the servlet response
 	 */
+	@Override
 	public void processZipContent(String zipFilePath, InputStream zipIn, ViewHandlerConfig viewHandlerConfig,
 			HttpServletRequest req, HttpServletResponse resp) {
 		// not supported
@@ -136,6 +139,7 @@ public class FontFileViewHandler implements ViewHandler {
 	 * 
 	 * @return true if reading from ZIP archive is supported, otherwise false
 	 */
+	@Override
 	public boolean supportsZipContent() {
 		return false;
 	}

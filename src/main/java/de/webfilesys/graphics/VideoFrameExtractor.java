@@ -1,18 +1,21 @@
 package de.webfilesys.graphics;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VideoFrameExtractor extends Thread
 {
-	public static final String FRAME_TARGET_DIR = "_frames"; 
+    private static final Logger logger = LogManager.getLogger(VideoFrameExtractor.class);
+
+    public static final String FRAME_TARGET_DIR = "_frames"; 
 	
     String videoFilePath;
     String frameGrabTime;
@@ -28,10 +31,9 @@ public class VideoFrameExtractor extends Thread
     	height = videoHeight;
     }
 
+        @Override
     public void run() {
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            Logger.getLogger(getClass()).debug("starting video frame extractor thread for video file " + videoFilePath);
-        }
+        logger.debug("starting video frame extractor thread for video file " + videoFilePath);
         
         String ffmpegExePath = WebFileSys.getInstance().getFfmpegExePath();
         
@@ -41,7 +43,7 @@ public class VideoFrameExtractor extends Thread
             File frameDirFile = new File(videoFramePath);
             if (!frameDirFile.exists()) {
                 if (!frameDirFile.mkdir()) {
-                    Logger.getLogger(getClass()).error("failed to create video frame directory " + videoFramePath);
+                    logger.error("failed to create video frame directory " + videoFramePath);
                 }
             }
             
@@ -53,7 +55,7 @@ public class VideoFrameExtractor extends Thread
             	scaleFilter = "scale=-1:" + frameSize;
             }
             
-            ArrayList<String> progNameAndParams = new ArrayList<String>();
+            ArrayList<String> progNameAndParams = new ArrayList<>();
             progNameAndParams.add(ffmpegExePath);
             progNameAndParams.add("-i");
             progNameAndParams.add(videoFilePath);
@@ -67,26 +69,22 @@ public class VideoFrameExtractor extends Thread
             
         	// String progNameAndParams = ffmpegExePath + " -i " + videoFilePath + " -ss " + frameGrabTime + " -filter:v " + scaleFilter + " -vframes 1 " + getFfmpegOutputFileSpec(videoFilePath);
 
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            	StringBuilder buff = new StringBuilder();
-                for (String cmdToken : progNameAndParams) {
-                	buff.append(cmdToken);
-                	buff.append(' ');
-                }
-                Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+            StringBuilder buff = new StringBuilder();
+            for (String cmdToken : progNameAndParams) {
+                buff.append(cmdToken);
+                buff.append(' ');
             }
+            logger.debug("ffmpeg call with params: " + buff.toString());
         	
 			try {
 				Process grabProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 				
-		        DataInputStream grabProcessOut = new DataInputStream(grabProcess.getErrorStream());
+		        BufferedReader grabProcessOut = new BufferedReader(new InputStreamReader(grabProcess.getErrorStream()));
 		        
 		        String outLine = null;
 		        
 		        while ((outLine = grabProcessOut.readLine()) != null) {
-		        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-		                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-		        	}
+		            logger.debug("ffmpeg output: " + outLine);
 		        }
 				
 				int grabResult = grabProcess.waitFor();
@@ -99,18 +97,16 @@ public class VideoFrameExtractor extends Thread
 					    File frameFile = new File(getFrameTargetPath(videoFilePath));
 					    
 					    if (!resultFile.renameTo(frameFile)) {
-			                Logger.getLogger(getClass()).error("failed to rename result file for video frame grabbing from video " + videoFilePath);
+			                logger.error("failed to rename result file for video frame grabbing from video " + videoFilePath);
 					    }
 					} else {
-	                    Logger.getLogger(getClass()).error("result file from ffmpeg video frame grabbing not found: " + getFfmpegResultFilePath(videoFilePath));
+	                    logger.error("result file from ffmpeg video frame grabbing not found: " + getFfmpegResultFilePath(videoFilePath));
 					}
 				} else {
-					Logger.getLogger(getClass()).warn("ffmpeg returned error " + grabResult);
+					logger.warn("ffmpeg returned error " + grabResult);
 				}
-			} catch (IOException ioex) {
-				Logger.getLogger(getClass()).error("failed to grab frame from video " + videoFilePath, ioex);
-			} catch (InterruptedException iex) {
-				Logger.getLogger(getClass()).error("failed to grab frame from video " + videoFilePath, iex);
+			} catch (IOException | InterruptedException ioex) {
+				logger.error("failed to grab frame from video " + videoFilePath, ioex);
 			}
         }
     }
@@ -144,7 +140,7 @@ public class VideoFrameExtractor extends Thread
         int sepIdx = videoPath.lastIndexOf(File.separator);
 
         if (sepIdx < 0) {
-            Logger.getLogger(VideoThumbnailCreator.class).error("incorrect video file path: " + videoPath);
+            logger.error("incorrect video file path: " + videoPath);
             return(null); 
         }
 
@@ -157,7 +153,7 @@ public class VideoFrameExtractor extends Thread
         int sepIdx = videoPath.lastIndexOf(File.separator);
 
         if (sepIdx < 0) {
-            Logger.getLogger(VideoThumbnailCreator.class).error("incorrect video file path: " + videoPath);
+            logger.error("incorrect video file path: " + videoPath);
             return(null); 
         }
 

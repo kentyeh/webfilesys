@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Category;
@@ -19,11 +18,14 @@ import de.webfilesys.graphics.AutoThumbnailCreator;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class RenamePictureHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(RenamePictureHandler.class);
 	boolean fileNameKnown = false;
 
 	public RenamePictureHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session, PrintWriter output,
@@ -31,6 +33,7 @@ public class RenamePictureHandler extends XmlRequestHandlerBase {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -39,14 +42,14 @@ public class RenamePictureHandler extends XmlRequestHandlerBase {
 		String newFileName = getParameter("newFileName");
 
 		if (CommonUtils.isEmpty(newFileName)) {
-			Logger.getLogger(getClass()).error("required parameter newFileName missing");
+			logger.error("required parameter newFileName missing");
 			return;
 		}
 
 		String oldFileName = getParameter("imageFile");
 
 		if (CommonUtils.isEmpty(oldFileName)) {
-			Logger.getLogger(getClass()).error("required parameter oldFileName missing");
+			logger.error("required parameter oldFileName missing");
 			return;
 		}
 		
@@ -67,7 +70,7 @@ public class RenamePictureHandler extends XmlRequestHandlerBase {
 
 		boolean success = false;
 		
-		if ((newFileName.indexOf("..") < 0) && (source.renameTo(dest))) {
+		if ((!newFileName.contains("..")) && (source.renameTo(dest))) {
 			
 			MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 
@@ -111,7 +114,7 @@ public class RenamePictureHandler extends XmlRequestHandlerBase {
 
 			if (thumbnailFile.exists()) {
 				if (!thumbnailFile.delete()) {
-					Logger.getLogger(getClass()).debug("cannot remove thumbnail file " + thumbnailPath);
+					logger.debug("cannot remove thumbnail file " + thumbnailPath);
 				}
 			}
 

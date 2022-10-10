@@ -21,10 +21,10 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This UserManager implementation stores the webfilesys user data in a cached XML file but authenticates users against an LDAP server.
@@ -49,7 +49,7 @@ import de.webfilesys.util.CommonUtils;
  * https://tools.ietf.org/html/rfc2798
  */
 public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
-	private static Logger LOG = Logger.getLogger(LdapAuthenticatedXmlUserManager.class);
+	private static final Logger logger = LogManager.getLogger(LdapAuthenticatedXmlUserManager.class);
 	
 	private static final String DEFAULT_CSS = "fmweb";
 	
@@ -123,9 +123,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 	protected void initLdap() {
 		File ldapConfigFile =  new File(WebFileSys.getInstance().getConfigBaseDir(), LDAP_CONFIG_FILE);
 		
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("ldapConfigFile: " + ldapConfigFile);
-		}
+		logger.debug("ldapConfigFile: " + ldapConfigFile);
 		
 		if (ldapConfigFile.exists() && ldapConfigFile.isFile() && ldapConfigFile.canRead()) {
 			
@@ -137,21 +135,17 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 			    
 			    ldapUsersBaseDN = ldapConfigProps.getProperty(PROP_LDAP_USERS_BASE_DN);
 			    if (CommonUtils.isEmpty(ldapUsersBaseDN)) {
-			    	LOG.error("LDAP configuration error: missing property " + PROP_LDAP_USERS_BASE_DN);
+			    	logger.error("LDAP configuration error: missing property " + PROP_LDAP_USERS_BASE_DN);
 			    }
 			    
 			    ldapSSLSocketFactory = ldapConfigProps.getProperty(PROP_LDAP_SSL_SOCKET_FACTORY);
 			    if (!CommonUtils.isEmpty(ldapSSLSocketFactory)) {
-			    	if (LOG.isInfoEnabled()) {
-			    		LOG.info("using alternative SSL socket factory " + ldapSSLSocketFactory);
-			    	}
+			    	logger.info("using alternative SSL socket factory " + ldapSSLSocketFactory);
 			    }
 			    
 			    ldapUserGroup = ldapConfigProps.getProperty(PROP_LDAP_USER_GROUP);
 			    if (!CommonUtils.isEmpty(ldapUserGroup)) {
-			    	if (LOG.isDebugEnabled()) {
-			    		LOG.debug("LDAP user group for WebFileSys users: " + ldapUserGroup);
-			    	}
+			    	logger.debug("LDAP user group for WebFileSys users: " + ldapUserGroup);
 			    	
 			    	ldapGroupBaseDN = ldapConfigProps.getProperty(PROP_LDAP_GROUP_BASE_DN);
 			    	
@@ -163,24 +157,24 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 			    searchControls.setTimeLimit(30000);
 			    
 			} catch (IOException ioex) {
-				LOG.error("failed to load LADP configuration from " + ldapConfigFile.getAbsolutePath());
+				logger.error("failed to load LADP configuration from " + ldapConfigFile.getAbsolutePath());
 			} finally {
 				if (fin != null) {
 					try {
 						fin.close();
-					} catch (Exception ex) {
+					} catch (IOException ex) {
 					}
 				}
 			}
 		} else {
-			LOG.error("LDAP config file is not a readable file: " + ldapConfigFile.getAbsolutePath());
+			logger.error("LDAP config file is not a readable file: " + ldapConfigFile.getAbsolutePath());
 		}
 		
 		fillUserAttribSet();
 	}
 	
 	private Hashtable<String, String> getBasicLdapEnv() {
-		Hashtable<String, String> ldapEnv = new Hashtable<String, String>();
+		Hashtable<String, String> ldapEnv = new Hashtable<>();
 		ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
 		ldapEnv.put(Context.PROVIDER_URL, ldapConfigProps.getProperty(PROP_LDAP_SERVER_URL));
 		ldapEnv.put(Context.SECURITY_AUTHENTICATION, ldapConfigProps.getProperty(PROP_LDAP_AUTH_TYPE));
@@ -216,14 +210,12 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 		try {
 			ldapManagerCtx = new InitialDirContext(ldapEnv);
 		    if (ldapManagerCtx != null) {
-		    	if (LOG.isDebugEnabled()) {
-		    		LOG.debug("DirContext created for " + ldapConfigProps.getProperty(PROP_LDAP_BIND_USER));
-		    	}
+		    	logger.debug("DirContext created for " + ldapConfigProps.getProperty(PROP_LDAP_BIND_USER));
 		    } 
 		} catch (AuthenticationException authEx) {
-			LOG.error("LDAP Authentication failed for bind user " + ldapConfigProps.getProperty(PROP_LDAP_BIND_USER), authEx);
+			logger.error("LDAP Authentication failed for bind user " + ldapConfigProps.getProperty(PROP_LDAP_BIND_USER), authEx);
 		} catch (NamingException ex) {
-			LOG.error("failed to get LDAP initial context for user " + ldapConfigProps.getProperty(PROP_LDAP_BIND_USER), ex);
+			logger.error("failed to get LDAP initial context for user " + ldapConfigProps.getProperty(PROP_LDAP_BIND_USER), ex);
 		}
 	}
 	
@@ -238,13 +230,9 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
         
 		try {
 			ctx = new InitialDirContext(ldapEnv);
-	    	if (LOG.isDebugEnabled()) {
-	    		LOG.debug("DirContext created for " + userId);
-	    	}
+	    	logger.debug("DirContext created for " + userId);
 		} catch (NamingException ex) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("failed to get initial context in usersBaseDN for LDAP user " + userId);
-			}
+			logger.debug("failed to get initial context in usersBaseDN for LDAP user " + userId);
 			
 			if (this.ldapManagerCtx == null) {
 				return false;
@@ -259,14 +247,10 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 
 				try {
 					ctx = new InitialDirContext(ldapEnv);
-			    	if (LOG.isDebugEnabled()) {
-			    		LOG.debug("DirContext created for " + userObjectPath);
-			    	}
+			    	logger.debug("DirContext created for " + userObjectPath);
 			    	searchPath = userObjectPath.substring(userObjectPath.indexOf(',') + 1);
 				} catch (NamingException ex) {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("failed to get initial context for LDAP user " + userObjectPath);
-					}
+					logger.debug("failed to get initial context for LDAP user " + userObjectPath);
 				}
 			}
 		}
@@ -274,9 +258,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 		if (ctx != null) {
 			try {
 				if ((ldapUserGroup != null) && (!isMemberOfGroup(userId, ldapUserGroup)) && (!isPrimaryGroup(userId, searchPath, ldapUserGroup))) {
-			    	if (LOG.isDebugEnabled()) {
-			    		LOG.debug("user " + userId + " is not a member of the required LDAP group " + ldapUserGroup);
-			    	}
+			    	logger.debug("user " + userId + " is not a member of the required LDAP group " + ldapUserGroup);
 			    	ctx.close();
 			    	return false;
 		    	}
@@ -291,7 +273,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 		    	ctx.close();
 		    	return true;
 			} catch (NamingException ex) {
-				LOG.error("failed to close LDAP context", ex);
+				logger.error("failed to close LDAP context", ex);
 			}
 		}
 		
@@ -304,29 +286,25 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 			try {
 				answer = ldapManagerCtx.search(ldapUsersBaseDN, "(uid=" + userId + ")", searchControls);
 			} catch (CommunicationException ex) {
-			    LOG.warn("LDAP communication error - trying to reconnect", ex);
+			    logger.warn("LDAP communication error - trying to reconnect", ex);
 			    getLdapManagerCtx();
 			    try {
 					answer = ldapManagerCtx.search(ldapUsersBaseDN, "(uid=" + userId + ")", searchControls);
 			    } catch (Exception ex2) {
-					LOG.error("LDAP search for user " + userId + " failed", ex2);
+					logger.error("LDAP search for user " + userId + " failed", ex2);
 					return null;
 			    }
 			}
 			
 			if (answer.hasMoreElements()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("user " + userId + " found in tree");
-				}
+				logger.debug("user " + userId + " found in tree");
 				SearchResult searchResult = (SearchResult) answer.nextElement();
 				return searchResult.getNameInNamespace();
 			} else {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("user " + userId + " NOT found in tree");
-				}
+				logger.debug("user " + userId + " NOT found in tree");
 			}
 		} catch (NamingException ex) {
-			LOG.error("LDAP search for user " + userId + " failed", ex);
+			logger.error("LDAP search for user " + userId + " failed", ex);
 		}
 		
 		return null;
@@ -341,9 +319,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 			NamingEnumeration answer = ctx.search(searchPath, matchAttrs);
 			
 			if (answer.hasMoreElements()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("LDAP user found: " + userId);
-				}
+				logger.debug("LDAP user found: " + userId);
 				
 				user = new TransientUser();
 				
@@ -364,7 +340,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 				user.setLastLogin(new Date());
 				
 				if (CommonUtils.isEmpty(WebFileSys.getInstance().getUserDocRoot())) {
-					LOG.error("no UserDocumentRoot configured but required to copy LDAP users");
+					logger.error("no UserDocumentRoot configured but required to copy LDAP users");
 					return false;
 				}
 				
@@ -374,7 +350,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 				File docRootDir = new File(homeDir);
 				if (!docRootDir.exists()) {
 					if (!docRootDir.mkdirs()) {
-						LOG.error("failed to create home dir " + homeDir + " for user copied from LDAP " + userId);
+						logger.error("failed to create home dir " + homeDir + " for user copied from LDAP " + userId);
 						return false;
 					}
 				}
@@ -384,26 +360,24 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 				}
 				
 				if (CommonUtils.isEmpty(user.getEmail())) {
-					LOG.error("failed to create user " + userId + ": e-mail address could not be read from LDAP");
+					logger.error("failed to create user " + userId + ": e-mail address could not be read from LDAP");
 					return false;
 				} else {
 					try {
 						createUser(user);
-						if (LOG.isInfoEnabled()) {
-							LOG.info("user data for new user " + userId + " successfully copied from LDAP");
-							return true;
-						}
+						logger.info("user data for new user " + userId + " successfully copied from LDAP");
+						return true;
 					} catch (UserMgmtException ex) {
-	                    LOG.error("failed to create user " + userId + " from LADP data", ex);
+	                    logger.error("failed to create user " + userId + " from LADP data", ex);
 						return false;
 					}
 				}
 			} else {
-                LOG.error("failed to create user " + userId + " from LADP data: LDAP search answer is empty");
+                logger.error("failed to create user " + userId + " from LADP data: LDAP search answer is empty");
 				return false;
 			}
 		} catch (NamingException ex) {
-            LOG.error("failed to create user " + userId + " from LADP data: LDAP search error", ex);
+            logger.error("failed to create user " + userId + " from LADP data: LDAP search error", ex);
 		}
 
 		return false;
@@ -441,7 +415,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 		        }
 		    }
 		} catch (NamingException ex) {
-			LOG.error("failed to fill user attribs from LDAP", ex);
+			logger.error("failed to fill user attribs from LDAP", ex);
 		}
 	}
 	
@@ -465,13 +439,9 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 			NamingEnumeration answer = ldapManagerCtx.search(ldapGroupBaseDN, matchAttrs);
 			
 			if (answer.hasMoreElements()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("group " + groupId + " found");
-				}
+				logger.debug("group " + groupId + " found");
 			} else {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("group " + groupId + " NOT found");
-				}
+				logger.debug("group " + groupId + " NOT found");
 			}
 			
 			while (answer.hasMoreElements()) {
@@ -487,13 +457,11 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 						}
 					}
 				} else {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("Attribute " + LDAP_ATTR_GROUP_MEMBER + " not found for group " + groupId);
-					}
+					logger.debug("Attribute " + LDAP_ATTR_GROUP_MEMBER + " not found for group " + groupId);
 				}
 			}
 		} catch (NamingException ex) {
-			LOG.error("failed to check group membership", ex);
+			logger.error("failed to check group membership", ex);
 		}
 		return false;
 	}
@@ -512,10 +480,8 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
         	return false;
         }
         
-        if (LOG.isDebugEnabled()) {
-        	if (groupGidNumber.equals(userGidNumber)) {
-            	LOG.debug(groupId + " is the primary group of user " + userId);
-        	}
+        if (groupGidNumber.equals(userGidNumber)) {
+            logger.debug(groupId + " is the primary group of user " + userId);
         }
         
         return (groupGidNumber.equals(userGidNumber));
@@ -528,13 +494,9 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 			NamingEnumeration answer = ldapManagerCtx.search(searchPath, matchAttrs);
 			
 			if (answer.hasMoreElements()) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("LDAP principal " + pricipalId + " found");
-				}
+				logger.debug("LDAP principal " + pricipalId + " found");
 			} else {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("LDAP principal " + pricipalId + " NOT found");
-				}
+				logger.debug("LDAP principal " + pricipalId + " NOT found");
 			}
 			
 			while (answer.hasMoreElements()) {
@@ -545,23 +507,17 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 					NamingEnumeration values = attr.getAll();
 					if (values.hasMore()) {
 						String attribValue = (String) values.next();
-						if (LOG.isDebugEnabled()) {
-							LOG.debug("Attribute " + attribName + " for principal " + pricipalId + ": " + attribValue);
-						}
+						logger.debug("Attribute " + attribName + " for principal " + pricipalId + ": " + attribValue);
 						return attribValue;
 					} else {
-						if (LOG.isDebugEnabled()) {
-							LOG.debug("Attribute " + attribName + " not found for principal " + pricipalId);
-						}
+						logger.debug("Attribute " + attribName + " not found for principal " + pricipalId);
 					}
 				} else {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("Attribute " + attribName + " not found for principal " + pricipalId);
-					}
+					logger.debug("Attribute " + attribName + " not found for principal " + pricipalId);
 				}
 			}
 		} catch (NamingException ex) {
-			LOG.error("failed to get single LDAP attribute", ex);
+			logger.error("failed to get single LDAP attribute", ex);
 		}
 		return null;
 	}

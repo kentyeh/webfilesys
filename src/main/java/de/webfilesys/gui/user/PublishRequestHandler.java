@@ -39,6 +39,7 @@ public class PublishRequestHandler extends UserRequestHandler
 		serverPort = req.getServerPort();
 	}
 
+        @Override
 	protected void process()
 	{
 		String expiration=getParameter("expiration");
@@ -131,7 +132,7 @@ public class PublishRequestHandler extends UserRequestHandler
 			userMgr.setPassword(virtualUser, accessCode);
 		}
 
-		StringBuffer secretURL=new StringBuffer();
+		StringBuilder secretURL=new StringBuilder();
 
 		if (ssl)
 		{
@@ -339,7 +340,8 @@ public class PublishRequestHandler extends UserRequestHandler
 		{
 			 output.print(" checked");
 		}
-		// output.print(" onclick=\"setRelatedCheckbox(this, document.form1.includeSub)\"");		output.print(">");
+		// output.print(" onclick=\"setRelatedCheckbox(this, document.form1.includeSub)\"");
+		output.print(">");
 		output.println(getResource("label.publishTypeAlbum", "picture album"));
 		output.println("</td>");
 		output.println("</tr>");
@@ -388,19 +390,14 @@ public class PublishRequestHandler extends UserRequestHandler
 				output.print("<option>" + LanguageManager.DEFAULT_LANGUAGE + "</option>");
 			}
 
-			for (int i=0;i<languages.size();i++)
-			{
-				String lang=(String) languages.get(i);
-
-				output.print("<option");
-
-				if (lang.equals(userLanguage))
-				{
-					output.print(" selected=\"true\"");
-				}
-
-				output.println(">" + lang + "</option>");
-			}
+                    for (String lang : languages) {
+                        output.print("<option");
+                        if (lang.equals(userLanguage))
+                        {
+                            output.print(" selected=\"true\"");
+                        }
+                        output.println(">" + lang + "</option>");
+                    }
 			output.println("</select>");
 		}
 

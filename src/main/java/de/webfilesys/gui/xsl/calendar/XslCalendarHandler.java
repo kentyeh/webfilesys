@@ -8,17 +8,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslCalendarHandler extends XslCalendarHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslCalendarHandler.class);
 	public XslCalendarHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -49,7 +51,7 @@ public class XslCalendarHandler extends XslCalendarHandlerBase
 			}
 			catch (NumberFormatException numEx)
 			{
-				Logger.getLogger(getClass()).error("invalid parameter year: " + yearParam);
+				logger.error("invalid parameter year: " + yearParam);
 				year = nowCal.get(Calendar.YEAR);
 			}
 		}

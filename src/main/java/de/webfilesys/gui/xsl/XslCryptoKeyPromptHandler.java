@@ -7,17 +7,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslCryptoKeyPromptHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslCryptoKeyPromptHandler.class);
 	public XslCryptoKeyPromptHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -39,7 +41,7 @@ public class XslCryptoKeyPromptHandler extends XslRequestHandlerBase
 		
 		if ((fileName == null) || (fileName.trim().length() == 0))
 		{
-			Logger.getLogger(getClass()).error("required parameter fileName missing");
+			logger.error("required parameter fileName missing");
 			
 			return;
 		}

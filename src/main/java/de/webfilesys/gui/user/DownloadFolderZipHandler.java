@@ -5,7 +5,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -13,14 +12,16 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class DownloadFolderZipHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(DownloadFolderZipHandler.class);
 	public DownloadFolderZipHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -31,6 +32,7 @@ public class DownloadFolderZipHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String path = getParameter("path");
@@ -69,13 +71,12 @@ public class DownloadFolderZipHandler extends UserRequestHandler
         
         if (errorMsg != null)
         {
-        	Logger.getLogger(getClass()).warn(errorMsg);
+        	logger.warn(errorMsg);
         	
             resp.setStatus(404);
 
-            try
+            try(PrintWriter output = new PrintWriter(resp.getWriter()))
     		{
-    			PrintWriter output = new PrintWriter(resp.getWriter());
     			
     			output.println(errorMsg);
     			
@@ -85,7 +86,7 @@ public class DownloadFolderZipHandler extends UserRequestHandler
     		}
             catch (IOException ioEx)
             {
-            	Logger.getLogger(getClass()).warn(ioEx);
+            	logger.warn(ioEx);
             }
         }
 
@@ -93,39 +94,16 @@ public class DownloadFolderZipHandler extends UserRequestHandler
 
         resp.setHeader("Content-Disposition", "attachment; filename=" + dirName + ".zip");
 
-        BufferedOutputStream buffOut = null;
-        ZipOutputStream zipOut = null;
-        
-		try
+		try(BufferedOutputStream buffOut = new BufferedOutputStream(resp.getOutputStream());
+                        ZipOutputStream zipOut = new ZipOutputStream(buffOut))
 		{
-			buffOut = new BufferedOutputStream(resp.getOutputStream());
-			
-			zipOut =  new ZipOutputStream(buffOut);
-			
 			zipFolderTree(path, "", zipOut);
 			
 			buffOut.flush();
 		}
         catch (IOException ioEx)
         {
-        	Logger.getLogger(getClass()).warn(ioEx);
-        }
-        finally
-        {
-            try
-            {
-                if (zipOut != null) 
-                {
-                    zipOut.close();
-                }
-                if (buffOut != null) 
-                {
-                	buffOut.close();
-                }
-            }
-            catch (Exception ex)
-            {
-            }
+        	logger.warn(ioEx);
         }
 	}
 	
@@ -142,65 +120,40 @@ public class DownloadFolderZipHandler extends UserRequestHandler
 
         byte buff[] = new byte[4096];
 
-        for (int i = 0; i < fileList.length; i++)
-        {
-            File tempFile = new File(actPath + File.separator + fileList[i]);
-
-            if (tempFile.isDirectory())
-            {
-                zipFolderTree(actPath + File.separator + fileList[i],
-                                   relativePath + fileList[i] + "/",
-                                   zipOut);
-            }
-            else
-            {
-                String fullFileName = actPath + File.separator + fileList[i];
-                String relativeFileName = relativePath + fileList[i];
-
-                try
-                {
-                    ZipEntry newZipEntry = new ZipEntry(relativeFileName);
-
-                    zipOut.putNextEntry(newZipEntry);
-
-                    BufferedInputStream inStream = null;
-
+            for (String fileList1 : fileList) {
+                File tempFile = new File(actPath + File.separator + fileList1);
+                if (tempFile.isDirectory()) {
+                    zipFolderTree(actPath + File.separator + fileList1, relativePath + fileList1 + "/", zipOut);
+                } else {
+                    String fullFileName = actPath + File.separator + fileList1;
+                    String relativeFileName = relativePath + fileList1;
                     try
                     {
-                        File originalFile = new File(fullFileName);
-
-                        inStream = new BufferedInputStream(new FileInputStream(originalFile));
-
-                        int count;
-
-                        while ((count = inStream.read(buff)) >= 0)
+                        ZipEntry newZipEntry = new ZipEntry(relativeFileName);
+                        
+                        zipOut.putNextEntry(newZipEntry);
+                        
+                        try(BufferedInputStream inStream = new BufferedInputStream(
+                                new FileInputStream(new File(fullFileName))))
                         {
-                            zipOut.write(buff,0,count);
-                        }
-                    }
-                    catch (Exception zioe)
-                    {
-                        Logger.getLogger(getClass()).warn("failed to zip file " + fullFileName, zioe);
-                    }
-                    finally
-                    {
-                        if (inStream != null)
-                        {
-                            try
+                            
+                            int count;
+                            
+                            while ((count = inStream.read(buff)) >= 0)
                             {
-                                inStream.close();
-                            }
-                            catch (Exception ex)
-                            {
+                                zipOut.write(buff,0,count);
                             }
                         }
+                        catch (Exception zioe)
+                        {
+                            logger.warn("failed to zip file " + fullFileName, zioe);
+                        }
                     }
-                }
-                catch (IOException ioex)
-                {
-                    Logger.getLogger(getClass()).error("failed to zip file " + fullFileName, ioex);
+                    catch (IOException ioex)
+                    {
+                        logger.error("failed to zip file " + fullFileName, ioex);
+                    }
                 }
             }
-        }
     }
 }

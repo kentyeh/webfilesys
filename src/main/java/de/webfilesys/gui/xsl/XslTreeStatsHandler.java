@@ -51,7 +51,7 @@ public class XslTreeStatsHandler extends XslRequestHandlerBase
         
         int filesInFirstLevel = 0;
         
-        ArrayList<String> folders = new ArrayList<String>();
+        ArrayList<String> folders = new ArrayList<>();
         
         File dirFile = new File(currentPath);
         
@@ -59,24 +59,19 @@ public class XslTreeStatsHandler extends XslRequestHandlerBase
 
         if (fileList != null)
         {
-            for (int i = 0; i < fileList.length; i++)
-            {
-                 File tempFile = new File(currentPath, fileList[i]);
-                 
-                 if (tempFile.isDirectory())
-                 {
-                     folders.add(fileList[i]);
-                 }
-                 else
-                 {
-                     if (tempFile.isFile())
-                     {
-                         bytesInFirstLevel += tempFile.length();
-
-                         filesInFirstLevel++;
-                     }
-                 }
-            }
+                    for (String fileList1 : fileList) {
+                        File tempFile = new File(currentPath, fileList1);
+                        if (tempFile.isDirectory()) {
+                            folders.add(fileList1);
+                        } else {
+                            if (tempFile.isFile())
+                            {
+                                bytesInFirstLevel += tempFile.length();
+                                
+                                filesInFirstLevel++;
+                            }
+                        }
+                    }
             
             if (folders.size() > 1)
             {

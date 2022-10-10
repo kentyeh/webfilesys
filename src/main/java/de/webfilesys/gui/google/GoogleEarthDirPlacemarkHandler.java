@@ -36,6 +36,7 @@ public class GoogleEarthDirPlacemarkHandler extends GoogleEarthHandlerBase
     /**
      * @return List of placemark Element objects
      */
+        @Override
 	protected ArrayList createPlacemarkXml() 
 	{
         String path = getCwd();
@@ -50,14 +51,9 @@ public class GoogleEarthDirPlacemarkHandler extends GoogleEarthHandlerBase
         
         if (selectedFiles != null)
         {
-            for (int i = 0; i < selectedFiles.size(); i++)
-            {
-                FileContainer fileCont = (FileContainer) selectedFiles.get(i);
-                
+            for (FileContainer fileCont : selectedFiles) {
                 File imgFile = fileCont.getRealFile();
-                
                 Element placemarkElement = createPlacemark(imgFile.getAbsolutePath());
-                
                 if (placemarkElement != null)
                 {
                     placemarkList.add(placemarkElement);

@@ -24,6 +24,7 @@ public class FileContainerComparator implements Comparator
 		this.sortBy=sortBy;
 	}
 
+        @Override
 	public int compare(Object o1,Object o2)
 	{
 		if (!o2.getClass().equals(o1.getClass()))

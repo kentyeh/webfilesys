@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Category;
 import de.webfilesys.Constants;
@@ -24,12 +23,15 @@ import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.PatternComparator;
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class SearchRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(SearchRequestHandler.class);
 	int file_find_num;
 
 	MetaInfManager metaInfMgr = null;
@@ -72,12 +74,12 @@ public class SearchRequestHandler extends UserRequestHandler
 		StringBuilder searchTextBuff = new StringBuilder();
 		String[] searchArguments = req.getParameterValues("searchText");
 		
-		for (int i = 0; i < searchArguments.length; i++) {
-			if (!CommonUtils.isEmpty(searchArguments[i])) {
-				searchTextBuff.append(searchArguments[i]);
-				searchTextBuff.append(" ");
-			}
-		}
+            for (String searchArgument : searchArguments) {
+                if (!CommonUtils.isEmpty(searchArgument)) {
+                    searchTextBuff.append(searchArgument);
+                    searchTextBuff.append(" ");
+                }
+            }
 		String searchText = searchTextBuff.toString();
 
 		String includeSubdirs = getParameter("includeSubdirs");
@@ -121,7 +123,7 @@ public class SearchRequestHandler extends UserRequestHandler
                 toDate.setSeconds(59);
 			}
 		} catch (Exception ex) {
-			Logger.getLogger(getClass()).warn("invalid date format in search date range", ex);
+			logger.warn("invalid date format in search date range", ex);
 		}
 
 		session.removeAttribute("searchCanceled");
@@ -254,11 +256,11 @@ public class SearchRequestHandler extends UserRequestHandler
         
 			if (!searchResultDirFile.mkdirs())
 			{
-				Logger.getLogger(getClass()).error("cannot create search result directory " + searchResultDir);
+				logger.error("cannot create search result directory " + searchResultDir);
 			}
 			else
 			{
-				StringBuffer searchArgText = new StringBuffer();
+				StringBuilder searchArgText = new StringBuilder();
 
 				searchArgText.append(getResource("label.searchresults","Search Results"));
 
@@ -370,86 +372,56 @@ public class SearchRequestHandler extends UserRequestHandler
 
 		if (file_list!=null)
 		{
-			for (int i = 0; i < file_list.length; i++)
-			{
+            for (String file_list1 : file_list) {
                 File temp_file = null;
-
-                if (act_path.endsWith(File.separator))
-				{
-					temp_file = new File(act_path + file_list[i]);
-				}
-				else
-				{
-					temp_file = new File(act_path + File.separator + file_list[i]);
-				}
-
-				if (temp_file.isDirectory())
-				{
-					if (includeSubdirs)
-					{
-						if (!dirIsLink(temp_file))
-						{
-							if (!file_list[i].equals(ThumbnailThread.THUMBNAIL_SUBDIR))
-							{
+                if (act_path.endsWith(File.separator)) {
+                    temp_file = new File(act_path + file_list1);
+                } else {
+                    temp_file = new File(act_path + File.separator + file_list1);
+                }
+                if (temp_file.isDirectory()) {
+                    if (includeSubdirs) {
+                        if (!dirIsLink(temp_file)) {
+                            if (!file_list1.equals(ThumbnailThread.THUMBNAIL_SUBDIR)) {
                                 String sub_dir = null;
-
-								if (act_path.endsWith(File.separator))
-								{
-									sub_dir = act_path + file_list[i];
-								}
-								else
-								{
-									sub_dir = act_path + File.separator + file_list[i];
-								}
-									
-								findFile(sub_dir, file_mask, includeSubdirs, fromDate, toDate, category);
-							}
-						}
-					}
-				}
-				else
-				{
-					if (PatternComparator.patternMatch(file_list[i],file_mask))
-					{
-						if (filePatternGiven || (!file_list[i].equals(MetaInfManager.METAINF_FILE)))
-						{
-							// if any file with given date range is searched, ignore the metainf files
-							
-							if ((temp_file.lastModified()>=fromDate) && 
-									(temp_file.lastModified()<=toDate))
-								{
-									if ((category == null) || metaInfMgr.isCategoryAssigned(act_path, file_list[i], category))
-									{
-										String viewLink = "/webfilesys/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(temp_file.getAbsolutePath());
-										
-						                String iconImg = "doc.gif";
-
-						                if (WebFileSys.getInstance().isShowAssignedIcons())
-						                {
-						                    iconImg = IconManager.getInstance().getIconForFileName(file_list[i]);
-						                }
-										
-										output.print("<a class=\"fn\" href=\"" + viewLink + "\" target=\"_blank\"><img border=\"0\" src=\"icons/" + iconImg + "\" align=\"absbottom\"> " + getHeadlinePath(temp_file.getAbsolutePath()) + "</a><br>");
-										output.flush();
-										file_find_num++;
-										
-										if (!readonly)
-										{
-											try
-											{
-												metaInfMgr.createLink(searchResultDir, new FileLink(file_list[i], temp_file.getAbsolutePath(), uid));
+                                if (act_path.endsWith(File.separator)) {
+                                    sub_dir = act_path + file_list1;
+                                } else {
+                                    sub_dir = act_path + File.separator + file_list1;
+                                }
+                                findFile(sub_dir, file_mask, includeSubdirs, fromDate, toDate, category);
+                            }
+                        }
+                    }
+                } else {
+                    if (PatternComparator.patternMatch(file_list1, file_mask)) {
+                        if (filePatternGiven || (!file_list1.equals(MetaInfManager.METAINF_FILE))) {
+                            // if any file with given date range is searched, ignore the metainf files
+                            if ((temp_file.lastModified()>=fromDate) && 
+                                    (temp_file.lastModified()<=toDate)) {
+                                if ((category == null) || metaInfMgr.isCategoryAssigned(act_path, file_list1, category)) {
+                                    String viewLink = "/webfilesys/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(temp_file.getAbsolutePath());
+                                    String iconImg = "doc.gif";
+                                    if (WebFileSys.getInstance().isShowAssignedIcons()) {
+                                        iconImg = IconManager.getInstance().getIconForFileName(file_list1);
+                                    }
+                                    output.print("<a class=\"fn\" href=\"" + viewLink + "\" target=\"_blank\"><img border=\"0\" src=\"icons/" + iconImg + "\" align=\"absbottom\"> " + getHeadlinePath(temp_file.getAbsolutePath()) + "</a><br>");
+                                    output.flush();
+                                    file_find_num++;
+                                    if (!readonly) {
+                                        try {
+                                            metaInfMgr.createLink(searchResultDir, new FileLink(file_list1, temp_file.getAbsolutePath(), uid));
+                                        }catch (FileNotFoundException nfex)
+                                        {
+                                            logger.error(nfex);
 											}
-											catch (FileNotFoundException nfex)
-											{
-												Logger.getLogger(getClass()).error(nfex);
-											}
-										}
-									}
-								}
-						}
-					}
-				}
-			}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 			
             if (category != null)
             {

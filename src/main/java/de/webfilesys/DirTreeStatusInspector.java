@@ -3,12 +3,13 @@ package de.webfilesys;
 import java.io.File;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.graphics.ThumbnailThread;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DirTreeStatusInspector extends Thread {
-	
+	private static final Logger logger = LogManager.getLogger(DirTreeStatusInspector.class);
+
 	DirTreeStatus dirTreeStatus;
 	
 	public DirTreeStatusInspector(DirTreeStatus dirTreeStatus) {
@@ -52,9 +53,7 @@ public class DirTreeStatusInspector extends Thread {
 					long currentNameLengthSum = getSubdirNameLengthSum(folderFile);
 					if (lastKnownNameLengthSum != currentNameLengthSum) {
 					    
-					    if (Logger.getLogger(getClass()).isDebugEnabled()) {
-					        Logger.getLogger(getClass()).debug("folder tree changed: " + path);
-					    }
+					    logger.debug("folder tree changed: " + path);
 					    
 						return true;
 					}

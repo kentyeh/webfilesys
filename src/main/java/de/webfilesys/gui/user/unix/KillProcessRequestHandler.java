@@ -6,17 +6,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.user.UserRequestHandler;
 import de.webfilesys.user.UserManager;
+import java.io.IOException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class KillProcessRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(KillProcessRequestHandler.class);
 	public KillProcessRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -51,16 +54,16 @@ public class KillProcessRequestHandler extends UserRequestHandler
 		if (WebFileSys.getInstance().getOpSysType() == WebFileSys.OS_AIX)
 		{
 			prog_name_parms=new String[2];
-			prog_name_parms[0]=new String("/bin/sh");
-			prog_name_parms[1]=new String("kill -9 " + pid);
+			prog_name_parms[0]="/bin/sh";
+			prog_name_parms[1]="kill -9 " + pid;
 
 		}
 		else
 		{
 			prog_name_parms=new String[3];
-			prog_name_parms[0]=new String("/bin/sh");
-			prog_name_parms[1]=new String("-c");
-			prog_name_parms[2]=new String("kill -9 " + pid);
+			prog_name_parms[0]="/bin/sh";
+			prog_name_parms[1]="-c";
+			prog_name_parms[2]="kill -9 " + pid;
 		}
 
 		Runtime rt=Runtime.getRuntime();
@@ -69,13 +72,13 @@ public class KillProcessRequestHandler extends UserRequestHandler
 		{
 			rt.exec(prog_name_parms);
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
-			Logger.getLogger(getClass()).warn(e);
+			logger.warn(e);
 			return;
 		}
 
-		Logger.getLogger(getClass()).debug("killing process " + pid);
+		logger.debug("killing process " + pid);
 
 		output.print("<HTML>");
 		output.print("<HEAD>");

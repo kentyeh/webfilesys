@@ -1,6 +1,5 @@
 package de.webfilesys.gui.ajax;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,21 +12,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.WebFileSys;
-import de.webfilesys.graphics.VideoDeshaker;
 import de.webfilesys.graphics.VideoInfo;
 import de.webfilesys.graphics.VideoInfoExtractor;
 import de.webfilesys.util.XmlUtil;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
 	
-	private static Logger LOG = Logger.getLogger(MultiVideoConcatHandler.class);
+	private static final Logger logger = LogManager.getLogger(MultiVideoConcatHandler.class);
 	
 	private static final String FFMPEG_INPUT_LIST_FILE_NAME = "ffmpegInputFileList.txt";
 	
@@ -43,6 +44,7 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -68,61 +70,48 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
 		try {
 	        ffmpegInputFileListFile = new PrintWriter(new OutputStreamWriter(new FileOutputStream(ffmpegFileListFile), "UTF-8"));
 	        
-	        for (int i = 0; i < selectedFiles.size(); i++) {
-	            String filePath = null;
-
-	            if (currentPath.endsWith(File.separator)) {
-	                filePath = currentPath + selectedFiles.get(i);
-	            } else {
-	                filePath = currentPath + File.separator + selectedFiles.get(i);
-	            }
-	            
-		        VideoInfoExtractor videoInfoExtractor = new VideoInfoExtractor();
-		        
-	            VideoInfo videoInfo = videoInfoExtractor.getVideoInfo(filePath);
-	            
-	            if (codec == null) {
-	            	codec = videoInfo.getCodec();
-	            } else {
-	            	if (!videoInfo.getCodec().equals(codec)) {
-	            		videoParameterMissmatch = true;
-	            		errorCode = ERROR_CODE_CODEC_MISSMATCH;
-	            	}
-	            }
-	            
-	            if (frameRate == 0) {
-	            	frameRate = videoInfo.getFrameRate();
-	            } else {
-	            	if (videoInfo.getFrameRate() != frameRate) {
-	            		videoParameterMissmatch = true;
-	            		errorCode = ERROR_CODE_FRAMERATE_MISSMATCH;
-	            	}
-	            }
-	            
-	            if (videoWidth == 0) {
-	            	videoWidth = videoInfo.getWidth();
-	            } else {
-	            	if (videoInfo.getWidth() != videoWidth) {
-	            		videoParameterMissmatch = true;
-	            		errorCode = ERROR_CODE_RESOLUTION_MISSMATCH;
-	            	}
-	            }
-
-	            if (videoHeight == 0) {
-	            	videoHeight = videoInfo.getHeight();
+                    for (String selectedFile : selectedFiles) {
+                        String filePath = null;
+                        if (currentPath.endsWith(File.separator)) {
+                            filePath = currentPath + selectedFile;
+                        } else {
+                            filePath = currentPath + File.separator + selectedFile;
+                        }
+                        VideoInfoExtractor videoInfoExtractor = new VideoInfoExtractor();
+                        VideoInfo videoInfo = videoInfoExtractor.getVideoInfo(filePath);
+                        if (codec == null) {
+                            codec = videoInfo.getCodec();
+                        } else {
+                            if (!videoInfo.getCodec().equals(codec)) {
+                                videoParameterMissmatch = true;
+                                errorCode = ERROR_CODE_CODEC_MISSMATCH;
+                            }
+                        }   if (frameRate == 0) {
+                            frameRate = videoInfo.getFrameRate();
+                        } else {
+                            if (videoInfo.getFrameRate() != frameRate) {
+                                videoParameterMissmatch = true;
+                                errorCode = ERROR_CODE_FRAMERATE_MISSMATCH;
+                            }
+                        }   if (videoWidth == 0) {
+                            videoWidth = videoInfo.getWidth();
+                        } else {
+                            if (videoInfo.getWidth() != videoWidth) {
+                                videoParameterMissmatch = true;
+                                errorCode = ERROR_CODE_RESOLUTION_MISSMATCH;
+                            }
+                        }   if (videoHeight == 0) {
+                            videoHeight = videoInfo.getHeight();
 	            } else {
 	            	if (videoInfo.getHeight() != videoHeight) {
 	            		videoParameterMissmatch = true;
-	            		errorCode = ERROR_CODE_RESOLUTION_MISSMATCH;
-	            	}
-	            }
-	            
-	            LOG.debug("video file to concatenate: " + filePath + ": codec=" + videoInfo.getCodec() + " width: " + videoInfo.getWidth() + " height: " + videoInfo.getHeight() + " fps=" + videoInfo.getFrameRate() + " duration=" + videoInfo.getDuration());
-	        
-	            ffmpegInputFileListFile.println("file " + '\'' +  filePath + '\'');
-	        }
+                                errorCode = ERROR_CODE_RESOLUTION_MISSMATCH;
+                        }
+                        }   logger.debug("video file to concatenate: " + filePath + ": codec=" + videoInfo.getCodec() + " width: " + videoInfo.getWidth() + " height: " + videoInfo.getHeight() + " fps=" + videoInfo.getFrameRate() + " duration=" + videoInfo.getDuration());
+                        ffmpegInputFileListFile.println("file " + '\'' +  filePath + '\'');
+                    }
 		} catch (IOException ioex) {
-		    LOG.error("failed to write ffmpeg input list file for video concatenation", ioex);
+		    logger.error("failed to write ffmpeg input list file for video concatenation", ioex);
 		} finally {
 		    if (ffmpegInputFileListFile != null) {
 		        try {
@@ -147,7 +136,7 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
             File targetDirFile = new File(targetPath);
             if (!targetDirFile.exists()) {
                 if (!targetDirFile.mkdir()) {
-                    Logger.getLogger(getClass()).error("failed to create target folder for video conversion: " + targetPath);
+                    logger.error("failed to create target folder for video conversion: " + targetPath);
                     return;
                 }
             }
@@ -175,7 +164,7 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
 			
         	// String progNameAndParams = ffmpegExePath + " -f concat -safe 0 -i " + ffmpegFileListFile.getAbsolutePath() + " -c copy " + targetFilePath;
             
-            ArrayList<String> progNameAndParams = new ArrayList<String>();
+            ArrayList<String> progNameAndParams = new ArrayList<>();
             progNameAndParams.add(ffmpegExePath);
             progNameAndParams.add("-f");
             progNameAndParams.add("concat");
@@ -187,26 +176,22 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
             progNameAndParams.add("copy");
             progNameAndParams.add(targetFilePath);
             
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            	StringBuilder buff = new StringBuilder();
-                for (String cmdToken : progNameAndParams) {
-                	buff.append(cmdToken);
-                	buff.append(' ');
-                }
-                Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+            StringBuilder buff = new StringBuilder();
+            for (String cmdToken : progNameAndParams) {
+                buff.append(cmdToken);
+                buff.append(' ');
             }
+            logger.debug("ffmpeg call with params: " + buff.toString());
             
 			try {
 				Process convertProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 				
-		        DataInputStream grabProcessOut = new DataInputStream(convertProcess.getErrorStream());
+		        BufferedReader grabProcessOut = new BufferedReader(new InputStreamReader(convertProcess.getErrorStream()));
 		        
 		        String outLine = null;
 		        
 		        while ((outLine = grabProcessOut.readLine()) != null) {
-		        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-		                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-		        	}
+		            logger.debug("ffmpeg output: " + outLine);
 		        }
 				
 				int convertResult = convertProcess.waitFor();
@@ -215,20 +200,17 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
 					File resultFile = new File(targetFilePath);
 					
 					if (!resultFile.exists()) {
-	                    Logger.getLogger(getClass()).error("result file from ffmpeg video conversion not found: " + targetFilePath);
+	                    logger.error("result file from ffmpeg video conversion not found: " + targetFilePath);
 					}
 				} else {
-					Logger.getLogger(getClass()).warn("ffmpeg returned error " + convertResult);
+					logger.warn("ffmpeg returned error " + convertResult);
 				}
 				
 				if (!ffmpegFileListFile.delete()) {
-					Logger.getLogger(getClass()).warn("failed to delete ffmpeg input file list file");
+					logger.warn("failed to delete ffmpeg input file list file");
 				}
-			} catch (IOException ioex) {
-				Logger.getLogger(getClass()).error("failed to concatente videos", ioex);
-				errorCode = ERROR_CODE_CONVERSION_FAILED;
-			} catch (InterruptedException iex) {
-				Logger.getLogger(getClass()).error("failed to concatente videos", iex);
+			} catch (IOException | InterruptedException ioex) {
+				logger.error("failed to concatente videos", ioex);
 				errorCode = ERROR_CODE_CONVERSION_FAILED;
 			}
 		}

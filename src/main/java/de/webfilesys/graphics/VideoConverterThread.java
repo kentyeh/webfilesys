@@ -1,18 +1,21 @@
 package de.webfilesys.graphics;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.SubdirExistCache;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VideoConverterThread extends Thread {
+    private static final Logger logger = LogManager.getLogger(VideoConverterThread.class);
+
     private String videoFilePath;
     
     private String newSize;
@@ -33,7 +36,7 @@ public class VideoConverterThread extends Thread {
     private static HashMap<String, String> videoFileExtensions;
     
     static {
-    	videoFileExtensions = new HashMap<String, String>(5);
+    	videoFileExtensions = new HashMap<>(5);
     	videoFileExtensions.put("h264", "mp4");
     	videoFileExtensions.put("mpeg2video", "mpeg");
     	videoFileExtensions.put("mp4", "mp4");
@@ -80,10 +83,9 @@ public class VideoConverterThread extends Thread {
     	return reencode;
     }
     
+    @Override
     public void run() {
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            Logger.getLogger(getClass()).debug("starting video conversion thread for video file " + videoFilePath);
-        }
+        logger.debug("starting video conversion thread for video file " + videoFilePath);
         
         Thread.currentThread().setPriority(1);
 
@@ -110,7 +112,7 @@ public class VideoConverterThread extends Thread {
                 File targetDirFile = new File(targetPath);
                 if (!targetDirFile.exists()) {
                     if (!targetDirFile.mkdir()) {
-                        Logger.getLogger(getClass()).error("failed to create target folder for video conversion: " + targetPath);
+                        logger.error("failed to create target folder for video conversion: " + targetPath);
                     }
                 }
                 
@@ -138,7 +140,7 @@ public class VideoConverterThread extends Thread {
                     }
                 } while (!targetFileNameOk);
                 
-                ArrayList<String> progNameAndParams = new ArrayList<String>();
+                ArrayList<String> progNameAndParams = new ArrayList<>();
                 progNameAndParams.add(ffmpegExePath);
                 progNameAndParams.add("-i");
                 progNameAndParams.add(videoFilePath);
@@ -216,28 +218,24 @@ public class VideoConverterThread extends Thread {
                 
                 progNameAndParams.add(targetFilePath);
                 
-                if (Logger.getLogger(getClass()).isDebugEnabled()) {
-                	StringBuilder buff = new StringBuilder();
-                    for (String cmdToken : progNameAndParams) {
-                    	buff.append(cmdToken);
-                    	buff.append(' ');
-                    }
-                    Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+                StringBuilder buff = new StringBuilder();
+                for (String cmdToken : progNameAndParams) {
+                    buff.append(cmdToken);
+                    buff.append(' ');
                 }
+                logger.debug("ffmpeg call with params: " + buff.toString());
                 
             	// String progNameAndParams = ffmpegExePath + " -i " + videoFilePath + timeRangeParam + scaleFilter + codecFilter + frameRateFilter + addParams + " "  + targetFilePath;
                 
     			try {
     				Process convertProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
     				
-    		        DataInputStream grabProcessOut = new DataInputStream(convertProcess.getErrorStream());
+    		        BufferedReader grabProcessOut = new BufferedReader(new InputStreamReader(convertProcess.getErrorStream()));
     		        
     		        String outLine = null;
     		        
     		        while ((outLine = grabProcessOut.readLine()) != null) {
-    		        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-    		                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-    		        	}
+    		            logger.debug("ffmpeg output: " + outLine);
     		        }
     				
     				int convertResult = convertProcess.waitFor();
@@ -245,16 +243,14 @@ public class VideoConverterThread extends Thread {
     				if (convertResult == 0) {
     					File resultFile = new File(targetFilePath);
     					if (!resultFile.exists()) {
-    	                    Logger.getLogger(getClass()).error("result file from ffmpeg video conversion not found: " + targetFilePath);
+    	                    logger.error("result file from ffmpeg video conversion not found: " + targetFilePath);
     					}
-    					SubdirExistCache.getInstance().setExistsSubdir(sourcePath, new Integer(1));
+    					SubdirExistCache.getInstance().setExistsSubdir(sourcePath, 1);
     				} else {
-    					Logger.getLogger(getClass()).warn("ffmpeg returned error " + convertResult);
+    					logger.warn("ffmpeg returned error " + convertResult);
     				}
-    			} catch (IOException ioex) {
-    				Logger.getLogger(getClass()).error("failed to convert video " + videoFilePath, ioex);
-    			} catch (InterruptedException iex) {
-    				Logger.getLogger(getClass()).error("failed to convert video " + videoFilePath, iex);
+    			} catch (IOException | InterruptedException ioex) {
+    				logger.error("failed to convert video " + videoFilePath, ioex);
     			}
             }
         }

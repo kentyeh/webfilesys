@@ -48,7 +48,7 @@ public class SlideShowHandlerBase extends UserRequestHandler
 		ArrayList<String> imageTree = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER);
 		if (imageTree == null)
 		{
-			imageTree = new ArrayList<String>();
+			imageTree = new ArrayList<>();
 			session.setAttribute(SessionKey.SLIDESHOW_BUFFER, imageTree);
 		}
 

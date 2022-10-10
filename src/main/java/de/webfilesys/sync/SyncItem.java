@@ -66,9 +66,10 @@ public class SyncItem
         return diffType;
     }
     
+    @Override
     public String toString()
     {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         
         buff.append("SyncItem [id=");
         buff.append(id);
@@ -90,45 +91,39 @@ public class SyncItem
     
     public String getDisplayString()
     {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
 
         if (diffType == DIFF_TYPE_MISSING_TARGET_FILE)
         {
-            buff.append("target file missing: " + source.getPath());
+            buff.append("target file missing: ").append(source.getPath());
         }
         else if (diffType == DIFF_TYPE_MISSING_SOURCE_FILE)
         {
-            buff.append("source file missing: " + target.getPath());
+            buff.append("source file missing: ").append(target.getPath());
         }
         else if (diffType == DIFF_TYPE_MISSING_TARGET_DIR)
         {
-            buff.append("target folder missing: " + source.getPath());
+            buff.append("target folder missing: ").append(source.getPath());
         }
         else if (diffType == DIFF_TYPE_MISSING_SOURCE_DIR)
         {
-            buff.append("source folder missing: " + target.getPath());
+            buff.append("source folder missing: ").append(target.getPath());
         }
         else if (diffType == DIFF_TYPE_SIZE)
         {
-            buff.append("different size: " + source.getPath() + " source: " + getSource().getSize() + " target: " + getTarget().getSize());
+            buff.append("different size: ").append(source.getPath()).append(" source: ").append(getSource().getSize()).append(" target: ").append(getTarget().getSize());
         }
         else if (diffType == DIFF_TYPE_MODIFICATION_TIME)
         {
-            buff.append("different modification time: " + source.getPath() 
-                        + " source: " + new Date(getSource().getModificationTime()) 
-                        + " target: " + new Date(getTarget().getModificationTime()));
+            buff.append("different modification time: ").append(source.getPath()).append(" source: ").append(new Date(getSource().getModificationTime())).append(" target: ").append(new Date(getTarget().getModificationTime()));
         }
         else if (diffType == DIFF_TYPE_SIZE_TIME)
         {
-            buff.append("different size and modification time: " + source.getPath() 
-                        + " source: " + getSource().getSize() + " target: " + getTarget().getSize() 
-                        + " source: " + new Date(getSource().getModificationTime()) + " target: " + new Date(getTarget().getModificationTime()));
+            buff.append("different size and modification time: ").append(source.getPath()).append(" source: ").append(getSource().getSize()).append(" target: ").append(getTarget().getSize()).append(" source: ").append(new Date(getSource().getModificationTime())).append(" target: ").append(new Date(getTarget().getModificationTime()));
         }
         else if (diffType == DIFF_TYPE_ACCESS_RIGHTS)
         {
-            buff.append("different access rights: " + source.getPath() 
-                        + " source: " + source.getCanRead() + "," + source.getCanWrite() 
-                        + " target: " + target.getCanRead() + "," + target.getCanWrite());
+            buff.append("different access rights: ").append(source.getPath()).append(" source: ").append(source.getCanRead()).append(",").append(source.getCanWrite()).append(" target: ").append(target.getCanRead()).append(",").append(target.getCanWrite());
         }
         
         return buff.toString();

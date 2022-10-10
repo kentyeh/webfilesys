@@ -12,17 +12,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MultiZipRequestHandler extends MultiFileRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(MultiZipRequestHandler.class);
 	public MultiZipRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -85,13 +87,13 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 
 		ZipOutputStream zip_out=null;
 
-		try
+		try 
 		{
 			zip_out = new ZipOutputStream(new FileOutputStream(zipDestFile));
 		}
 		catch (IOException ioex)
 		{
-			System.out.println(ioex);
+			logger.error(ioex);
 			output.println("<script language=\"javascript\">");
 			output.println("alert('The destination file\\n" + insertDoubleBackslash(zip_dest) + "\\n cannot be opened!');");
 			
@@ -167,7 +169,7 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 			}
 			catch (Exception zioe)
 			{
-                Logger.getLogger(getClass()).error(zioe);
+                logger.error(zioe);
 				javascriptAlert(zioe.toString());
 				return;
 			}
@@ -179,7 +181,7 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 			    }
                 catch (Exception ex)
                 {
-                    Logger.getLogger(getClass()).error(ex);
+                    logger.error(ex);
                 }
 			}
 		}
@@ -190,7 +192,7 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 		}
 		catch (IOException io4)
 		{
-			Logger.getLogger(getClass()).error(io4);
+			logger.error(io4);
 		}
 
         for (String selectedFile : selectedFiles) 
@@ -207,7 +209,7 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 			}
 			else
 			{
-			    Logger.getLogger(getClass()).error("failed to delete file " + temp_file.getAbsolutePath() + " after adding to ZIP archive");
+			    logger.error("failed to delete file " + temp_file.getAbsolutePath() + " after adding to ZIP archive");
 			}
 			
 		}

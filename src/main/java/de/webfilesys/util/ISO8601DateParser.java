@@ -25,8 +25,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 
 /**
@@ -38,6 +39,7 @@ import org.apache.log4j.Logger;
  */
 public class ISO8601DateParser {
 
+    private static final Logger logger = LogManager.getLogger(ISO8601DateParser.class);
     // 2004-06-14T19:GMT20:30Z
     // 2004-06-20T06:GMT22:01Z
 
@@ -102,7 +104,7 @@ public class ISO8601DateParser {
             int inset = 6;
         
             if (input.length() - inset <= 0) {
-            	Logger.getLogger(ISO8601DateParser.class).warn("ISO8601DateParser invalid Date: " + input);
+            	logger.warn("ISO8601DateParser invalid Date: " + input);
             	return new Date(0l);
             }
             
@@ -115,7 +117,7 @@ public class ISO8601DateParser {
         try {
             return df.parse( input );
         } catch (ParseException pex) {
-            Logger.getLogger(ISO8601DateParser.class).warn("error parsing GPX date " + input, pex);
+            logger.warn("error parsing GPX date " + input, pex);
         }
         return new Date(0l);
     }

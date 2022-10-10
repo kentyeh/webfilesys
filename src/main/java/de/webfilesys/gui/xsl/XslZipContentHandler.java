@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -24,13 +23,16 @@ import de.webfilesys.IconManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslZipContentHandler extends XslRequestHandlerBase
 {
-    private DecimalFormat numFormat = new DecimalFormat("#,###,###,###,###");
+    private static final Logger logger = LogManager.getLogger(XslZipContentHandler.class);
+    private final DecimalFormat numFormat = new DecimalFormat("#,###,###,###,###");
 
 	public XslZipContentHandler(
     		HttpServletRequest req, 
@@ -42,6 +44,7 @@ public class XslZipContentHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	
+	@Override
 	protected void process()
 	{
 		String filePath = getParameter("filePath");
@@ -95,12 +98,12 @@ public class XslZipContentHandler extends XslRequestHandlerBase
 		}
 		catch (ZipException zipEx)
 		{
-			Logger.getLogger(getClass()).error("cannot open ZIP file: " + zipEx);
+			logger.error("cannot open ZIP file: " + zipEx);
 			return;
 		}
 		catch (IOException ioex)
 		{
-			Logger.getLogger(getClass()).error("cannot open ZIP file: " + ioex);
+			logger.error("cannot open ZIP file: " + ioex);
 			return;
 		}
 		

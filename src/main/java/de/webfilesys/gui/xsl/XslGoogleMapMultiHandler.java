@@ -6,15 +6,7 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -24,12 +16,14 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslGoogleMapMultiHandler extends XslRequestHandlerBase {
-	private static final Logger LOG = Logger.getLogger(XslGoogleMapMultiHandler.class);
+	private static final Logger logger = LogManager.getLogger(XslGoogleMapMultiHandler.class);
 	
 	private static final int INFO_TEXT_FROM_DESCR_MAX_LENGTH = 80;
 	
@@ -42,6 +36,7 @@ public class XslGoogleMapMultiHandler extends XslRequestHandlerBase {
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process() {
 		String path = getParameter("path");
 		
@@ -50,14 +45,14 @@ public class XslGoogleMapMultiHandler extends XslRequestHandlerBase {
 		}
 
 		if (!accessAllowed(path)) {
-			LOG.warn("user " + uid + " tried to access folder outside of his document root: " + path);
+			logger.warn("user " + uid + " tried to access folder outside of his document root: " + path);
 			return;
 		}
 		
 		File folderFile = new File(path);
 		
 		if ((!folderFile.exists()) || (!folderFile.isDirectory())) {
-			LOG.error("folder not found or not readable: " + path);
+			logger.error("folder not found or not readable: " + path);
 			return;
 		}
 		
@@ -198,7 +193,7 @@ public class XslGoogleMapMultiHandler extends XslRequestHandlerBase {
 			return infoText;
 		}
 		
-		StringBuffer buff = new StringBuffer(infoText.length());
+		StringBuilder buff = new StringBuilder(infoText.length());
 		
 		boolean ignore = false;
 		

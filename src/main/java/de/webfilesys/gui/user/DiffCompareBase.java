@@ -19,12 +19,14 @@ import name.fraser.neil.plaintext.diff_match_patch;
 import name.fraser.neil.plaintext.diff_match_patch.Diff;
 import name.fraser.neil.plaintext.diff_match_patch.Operation;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DiffCompareBase extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(DiffCompareBase.class);
     private static final long MAX_COMPARE_FILE_SIZE = 200 * 1024L;
     
     public DiffCompareBase(
@@ -37,6 +39,7 @@ public class DiffCompareBase extends UserRequestHandler
         super(req, resp, session, output, uid);
     }
 
+    @Override
     protected void process()
     {
         String file1Path = getParameter("file1Path");
@@ -44,7 +47,7 @@ public class DiffCompareBase extends UserRequestHandler
 
         if ((file1Path == null) || (file2Path == null))
         {
-            Logger.getLogger(getClass()).error("missing file path for diff");
+            logger.error("missing file path for diff");
         }
         
         if ((!checkAccess(file1Path)) || (!checkAccess(file2Path)))
@@ -296,7 +299,7 @@ public class DiffCompareBase extends UserRequestHandler
             return encodeSpecialChars(diffText);
         }
         
-        StringBuffer highlightBuff = new StringBuffer(diffText.length() + 1);
+        StringBuilder highlightBuff = new StringBuilder(diffText.length() + 1);
         
         boolean noneLinefeedChar = false;
         
@@ -356,10 +359,10 @@ public class DiffCompareBase extends UserRequestHandler
         String fileEncoding = guessFileEncoding(file.getAbsolutePath());
         
         if (fileEncoding != null) {
-            Logger.getLogger(getClass()).debug("reading diff file " + file.getAbsolutePath() + " with character encoding " + fileEncoding);
+            logger.debug("reading diff file " + file.getAbsolutePath() + " with character encoding " + fileEncoding);
         }
         
-        StringBuffer buff = new StringBuffer();     
+        StringBuilder buff = new StringBuilder();     
         
         BufferedReader fileIn = null;
         
@@ -404,7 +407,7 @@ public class DiffCompareBase extends UserRequestHandler
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error(ioex);
+            logger.error(ioex);
         }
         finally
         {
@@ -417,7 +420,7 @@ public class DiffCompareBase extends UserRequestHandler
             }
             catch (Exception ex)
             {
-                Logger.getLogger(getClass()).error(ex);
+                logger.error(ex);
             }
         }
         
@@ -426,7 +429,7 @@ public class DiffCompareBase extends UserRequestHandler
     
     private String encodeSpecialChars(String line)
     {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
 
         for (int i = 0; i < line.length(); i++)
         {
@@ -466,7 +469,7 @@ public class DiffCompareBase extends UserRequestHandler
     
     private String newLineToHTML(String line)
     {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
 
         for (int i = 0; i < line.length(); i++)
         {

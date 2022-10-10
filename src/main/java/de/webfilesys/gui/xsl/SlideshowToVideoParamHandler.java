@@ -11,12 +11,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
 import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
@@ -25,7 +26,7 @@ public class SlideshowToVideoParamHandler extends XslRequestHandlerBase {
 	
 	public static final String SESSION_KEY_SELECTED_SLIDESHOW_VIDEO_FILES = "slideshowVideoSelectedFiles";
 	
-    private static final Logger LOG = Logger.getLogger(SlideshowToVideoParamHandler.class);
+    private static final Logger logger = LogManager.getLogger(SlideshowToVideoParamHandler.class);
 
 	public static final String LIST_PREFIX = "list-";
 	
@@ -94,7 +95,7 @@ public class SlideshowToVideoParamHandler extends XslRequestHandlerBase {
 	            }
 	        }
 		} catch (IOException ioex) {
-		    LOG.error("failed to get picture dimensions of pictures selected for slideshow video", ioex);
+		    logger.error("failed to get picture dimensions of pictures selected for slideshow video", ioex);
 		}
 		
 		Element videoParamsElem = doc.createElement("videoParams");

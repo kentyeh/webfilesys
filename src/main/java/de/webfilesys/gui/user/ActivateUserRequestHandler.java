@@ -1,24 +1,23 @@
 package de.webfilesys.gui.user;
 
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
 import de.webfilesys.user.UserManager;
 import de.webfilesys.user.UserMgmtException;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class ActivateUserRequestHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(ActivateUserRequestHandler.class);
     protected HttpServletRequest req = null;
 
     protected HttpServletResponse resp = null;
@@ -34,7 +33,7 @@ public class ActivateUserRequestHandler extends UserRequestHandler {
         String activationCode = getParameter("code");
 
         if (CommonUtils.isEmpty(activationCode)) {
-            Logger.getLogger(getClass()).warn("missing activation code");
+            logger.warn("missing activation code");
             return;
         }
         
@@ -59,12 +58,12 @@ public class ActivateUserRequestHandler extends UserRequestHandler {
             try {
                 resp.sendRedirect(req.getContextPath() + "/servlet?command=loginForm&activationSuccess=true");
             } catch (IOException ex) {
-                Logger.getLogger(getClass()).warn("failed to redirect to blog handler", ex);
+                logger.warn("failed to redirect to blog handler", ex);
             }
 
             // TODO
         } catch (UserMgmtException ex) {
-            Logger.getLogger(getClass()).warn("user activation attempt failed", ex);
+            logger.warn("user activation attempt failed", ex);
 
             /*
             try {
@@ -78,7 +77,7 @@ public class ActivateUserRequestHandler extends UserRequestHandler {
             try {
                 resp.sendRedirect(redirectUrl);
             } catch (IOException ex2) {
-                Logger.getLogger(getClass()).warn("redirect failed", ex2);
+                logger.warn("redirect failed", ex2);
             }
             
         }

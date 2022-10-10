@@ -44,6 +44,7 @@ public class Appointment extends Note
         init();
     }
 
+    @Override
     protected void init()
     {
         eventTime=null;

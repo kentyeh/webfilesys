@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -32,17 +31,21 @@ import de.webfilesys.gui.xsl.XslRequestHandlerBase;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslPictureAlbumHandler extends XslRequestHandlerBase {
 
+    private static final Logger logger = LogManager.getLogger(XslPictureAlbumHandler.class);
     public XslPictureAlbumHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
             PrintWriter output, String uid) {
         super(req, resp, session, output, uid);
     }
 
+    @Override
     protected void process() {
         MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 
@@ -98,11 +101,11 @@ public class XslPictureAlbumHandler extends XslRequestHandlerBase {
 
         if (showDeatailsParm != null) {
             showDetails = Boolean.valueOf(showDeatailsParm);
-            session.setAttribute("showDetails", new Boolean(showDetails));
+            session.setAttribute("showDetails", showDetails);
         } else {
             Boolean showDetailsFromSession = (Boolean) session.getAttribute("showDetails");
             if (showDetailsFromSession != null) {
-                showDetails = showDetailsFromSession.booleanValue();
+                showDetails = showDetailsFromSession;
             }
         }
 
@@ -160,14 +163,14 @@ public class XslPictureAlbumHandler extends XslRequestHandlerBase {
             try {
                 sortBy = Integer.parseInt(temp);
 
-                session.setAttribute("sortField", new Integer(sortBy));
+                session.setAttribute("sortField", sortBy);
             } catch (NumberFormatException nfe) {
             }
         } else {
             Integer sortField = (Integer) session.getAttribute("sortField");
 
             if (sortField != null) {
-                sortBy = sortField.intValue();
+                sortBy = sortField;
             } else {
                 sortBy = FileComparator.SORT_BY_FILENAME;
             }
@@ -187,14 +190,14 @@ public class XslPictureAlbumHandler extends XslRequestHandlerBase {
             try {
                 rating = Integer.parseInt(temp);
 
-                session.setAttribute("rating", new Integer(rating));
+                session.setAttribute("rating", rating);
             } catch (NumberFormatException nfe) {
             }
         } else {
             Integer sessionRating = (Integer) session.getAttribute("rating");
 
             if (sessionRating != null) {
-                rating = sessionRating.intValue();
+                rating = sessionRating;
             }
         }
 
@@ -224,7 +227,7 @@ public class XslPictureAlbumHandler extends XslRequestHandlerBase {
 
         StringTokenizer pathParser = new StringTokenizer(relativePath, File.separator);
 
-        StringBuffer partialPath = new StringBuffer();
+        StringBuilder partialPath = new StringBuilder();
 
         while (pathParser.hasMoreTokens()) {
             String partOfPath = pathParser.nextToken();
@@ -259,14 +262,14 @@ public class XslPictureAlbumHandler extends XslRequestHandlerBase {
         File dirFile = new File(actPath);
 
         if ((!dirFile.exists()) || (!dirFile.isDirectory()) || (!dirFile.canRead())) {
-            Logger.getLogger(getClass()).error("folder is not a readable directory: " + actPath);
+            logger.error("folder is not a readable directory: " + actPath);
             return;
         }
         
         File[] fileList = dirFile.listFiles();
         
         if (fileList != null) {
-            ArrayList<String> subFolders = new ArrayList<String>();
+            ArrayList<String> subFolders = new ArrayList<>();
 
             for (File file : fileList) {
                 if (file.isDirectory() && file.canRead()) {

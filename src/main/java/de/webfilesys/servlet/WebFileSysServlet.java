@@ -34,8 +34,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.CategoryManager;
 import de.webfilesys.Constants;
 import de.webfilesys.ResourceBundleHandler;
@@ -303,6 +301,8 @@ import de.webfilesys.mail.SmtpEmail;
 import de.webfilesys.user.UserManager;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLDecoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The main servlet class.
@@ -315,14 +315,18 @@ public class WebFileSysServlet extends ServletBase
 	// we are open source now!
 	// private static char lic[] = {'l','i','c','e','n','s','e','.','t','x','t'};
 
+        private static final long serialVersionUID = -5820876809731776379L;
+        private static final Logger logger = LogManager.getLogger(WebFileSysServlet.class);
+                
 	private static final int MIN_SCREEN_WIDTH_FOR_DESKTOP_VERSION = 1024;
 	
 	private Properties configProperties = null;
 	
 	static boolean initialized = false;
 	
-	private static int REQUEST_PATH_LENGTH = "/webfilesys/servlet".length();
+	private static final int REQUEST_PATH_LENGTH = "/webfilesys/servlet".length();
 	
+    @Override
     public void init(ServletConfig config)
     throws ServletException
     {
@@ -342,7 +346,7 @@ public class WebFileSysServlet extends ServletBase
 
 		if ((configFileName == null) || (configFileName.trim().length() == 0))
 		{
-			Logger.getLogger(getClass()).fatal("config file not specified in web.xml");
+			logger.fatal("config file not specified in web.xml");
 			throw new ServletException ("config file not specified in web.xml");
 		}
 
@@ -350,7 +354,7 @@ public class WebFileSysServlet extends ServletBase
 		
 		if ((configPath == null) || (configPath.length() == 0))
 		{
-			Logger.getLogger(getClass()).fatal("cannot determine real path of config file " + configFileName);
+			logger.fatal("cannot determine real path of config file " + configFileName);
 			throw new ServletException ("cannot determine real path of config file " + configFileName);
 		}
 
@@ -363,39 +367,22 @@ public class WebFileSysServlet extends ServletBase
 		
 		if ((!configFile.isFile()) || (!configFile.canRead()))
 		{
-			Logger.getLogger(getClass()).fatal(configPath + " is not a readable file");
+			logger.fatal(configPath + " is not a readable file");
 			throw new ServletException (configPath + " is not a readable file");
 		}
 		
 		configProperties = new Properties();
 		
-		FileInputStream propFile = null;
-		
-		try
+		try (FileInputStream propFile = new FileInputStream(configFile))
 		{
-			propFile = new FileInputStream(configFile);
-			
 			configProperties.load(propFile);
 			
-			Logger.getLogger(getClass()).info("properties loaded from " + configFile);
+			logger.info("properties loaded from " + configFile);
 		}
 		catch (IOException ioEx)
 		{
-			Logger.getLogger(getClass()).fatal("error reading config file: " + ioEx);
+			logger.fatal("error reading config file: " + ioEx);
 			throw new ServletException ("error reading config file: " + ioEx);
-		}
-		finally
-		{
-			if (propFile != null) 
-			{
-				try 
-				{
-					propFile.close();
-				}
-				catch (IOException ex)
-				{
-				}
-			}
 		}
 
 		String webAppRootDir = context.getRealPath("/");
@@ -415,11 +402,13 @@ public class WebFileSysServlet extends ServletBase
 		initialized = true;
     }
 
+    @Override
     public void destroy ()
     {
         super.destroy ();
     }
 
+    @Override
     public void doGet (HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, java.io.IOException
     {
@@ -441,7 +430,7 @@ public class WebFileSysServlet extends ServletBase
 				}
 				else
 				{
-					Logger.getLogger(getClass()).warn("invalid request path: " + requestPath);
+					logger.warn("invalid request path: " + requestPath);
 				}
 			}
 			else
@@ -469,7 +458,7 @@ public class WebFileSysServlet extends ServletBase
 		
         String clientIP = req.getRemoteAddr();
         
-        StringBuffer logEntry = new StringBuffer();
+        StringBuilder logEntry = new StringBuilder();
         
         logEntry.append(clientIP);
         logEntry.append(' ');
@@ -481,7 +470,7 @@ public class WebFileSysServlet extends ServletBase
         String queryString = req.getQueryString();
         if (queryString != null)
         {
-        	if (queryString.indexOf("silentLogin") < 0)
+        	if (!queryString.contains("silentLogin"))
         	{
                 logEntry.append('?');
                 logEntry.append(queryString);
@@ -492,7 +481,7 @@ public class WebFileSysServlet extends ServletBase
         logEntry.append(req.getProtocol());
         logEntry.append(')');
 
-        Logger.getLogger(getClass()).info(logEntry.toString());
+        logger.info(logEntry.toString());
         
         String localIP = WebFileSys.getInstance().getLocalIPAddress();
 		
@@ -585,9 +574,9 @@ public class WebFileSysServlet extends ServletBase
 			output.flush();
 		}
 
-		return;
     }
 
+    @Override
     public void doPost ( HttpServletRequest req, HttpServletResponse resp )
     throws ServletException, java.io.IOException
     {
@@ -732,7 +721,7 @@ public class WebFileSysServlet extends ServletBase
 			    
 			    if (sessionViewMode != null)
 			    {
-			    	viewMode = sessionViewMode.intValue();
+			    	viewMode = sessionViewMode;
 			    }
             }
         	
@@ -2514,7 +2503,7 @@ public class WebFileSysServlet extends ServletBase
         		{
         			viewMode = Integer.parseInt(viewModeParm);
         			
-        			session.setAttribute("viewMode" , new Integer(viewMode));
+        			session.setAttribute("viewMode" , viewMode);
         		}
         		catch (NumberFormatException numEx)
         		{
@@ -2578,7 +2567,7 @@ public class WebFileSysServlet extends ServletBase
             logoutPage = WebFileSys.getInstance().getLogoutURL();
         }
 
-        Logger.getLogger(getClass()).info(req.getRemoteAddr() + ": logout user " + userid);
+        logger.info(req.getRemoteAddr() + ": logout user " + userid);
         
         try
         {
@@ -2586,7 +2575,7 @@ public class WebFileSysServlet extends ServletBase
         }
         catch (IOException ioex)
         {
-        	Logger.getLogger(getClass()).warn(ioex);
+        	logger.warn(ioex);
         }
     }
     
@@ -2610,7 +2599,7 @@ public class WebFileSysServlet extends ServletBase
             {
             	session = req.getSession(false);
             	if (session != null) {
-            		Logger.getLogger(getClass()).debug("destroying existing session");
+            		logger.debug("destroying existing session");
             		session.invalidate();
             	}
             	
@@ -2662,7 +2651,7 @@ public class WebFileSysServlet extends ServletBase
     				logEntry = logEntry + " [" + browserType + "]";
     			}
     			
-                Logger.getLogger(getClass()).info(logEntry);
+                logger.info(logEntry);
 
                 if ((WebFileSys.getInstance().getMailHost() != null) && WebFileSys.getInstance().isMailNotifyLogin())
                 {
@@ -2680,7 +2669,7 @@ public class WebFileSysServlet extends ServletBase
             {
             	session = req.getSession(false);
             	if (session != null) {
-            		Logger.getLogger(getClass()).debug("destroying existing session");
+            		logger.debug("destroying existing session");
             		session.invalidate();
             	}
             	
@@ -2715,7 +2704,7 @@ public class WebFileSysServlet extends ServletBase
     				logEntry = logEntry + " [" + browserType + "]";
     			}
 
-                Logger.getLogger(getClass()).info(logEntry);
+                logger.info(logEntry);
 
                 if ((WebFileSys.getInstance().getMailHost() != null) && WebFileSys.getInstance().isMailNotifyLogin())
                 {
@@ -2731,7 +2720,7 @@ public class WebFileSysServlet extends ServletBase
         }
 
         logEntry = clientIP + ": login failed for user " + userid;
-        Logger.getLogger(getClass()).warn(logEntry);
+        logger.warn(logEntry);
 
         if ((WebFileSys.getInstance().getMailHost() != null) && WebFileSys.getInstance().isMailNotifyLogin())
         {
@@ -2750,7 +2739,7 @@ public class WebFileSysServlet extends ServletBase
         	}
         	catch (IOException ioex)
         	{
-        		Logger.getLogger(getClass()).warn(ioex);
+        		logger.warn(ioex);
         	}
         	
             return;
@@ -2791,7 +2780,7 @@ public class WebFileSysServlet extends ServletBase
     		password = parmParser.nextToken();
     	}
 
-    	StringBuffer executeOnLoginCmd = new StringBuffer();
+    	StringBuilder executeOnLoginCmd = new StringBuilder();
 
     	StringBuffer redirectURL = new StringBuffer();
 
@@ -2845,7 +2834,7 @@ public class WebFileSysServlet extends ServletBase
             {
             	session = req.getSession(false);
             	if (session != null) {
-            		Logger.getLogger(getClass()).debug("destroying existing session");
+            		logger.debug("destroying existing session");
             		session.invalidate();
             	}
             	
@@ -2872,7 +2861,7 @@ public class WebFileSysServlet extends ServletBase
     				logEntry = logEntry + " [" + browserType + "]";
     			}
     			
-                Logger.getLogger(getClass()).info(logEntry);
+                logger.info(logEntry);
 
                 if ((WebFileSys.getInstance().getMailHost() != null) && WebFileSys.getInstance().isMailNotifyLogin())
                 {
@@ -2893,7 +2882,7 @@ public class WebFileSysServlet extends ServletBase
                 	}
                 	catch (IOException ioex)
                 	{
-                		Logger.getLogger(getClass()).error(ioex);
+                		logger.error(ioex);
                 	}
                 }
                 
@@ -2934,7 +2923,7 @@ public class WebFileSysServlet extends ServletBase
     				logEntry = logEntry + " [" + browserType + "]";
     			}
 
-                Logger.getLogger(getClass()).info(logEntry);
+                logger.info(logEntry);
 
                 if ((WebFileSys.getInstance().getMailHost() != null) && WebFileSys.getInstance().isMailNotifyLogin())
                 {
@@ -2955,7 +2944,7 @@ public class WebFileSysServlet extends ServletBase
                 	}
                 	catch (IOException ioex)
                 	{
-                		Logger.getLogger(getClass()).error(ioex);
+                		logger.error(ioex);
                 	}
                 }
                 
@@ -2975,7 +2964,7 @@ public class WebFileSysServlet extends ServletBase
         }
 
         logEntry = clientIP + ": silent login failed for user " + userid;
-        Logger.getLogger(getClass()).warn(logEntry);
+        logger.warn(logEntry);
 
         if ((WebFileSys.getInstance().getMailHost() != null) && WebFileSys.getInstance().isMailNotifyLogin())
         {
@@ -2994,7 +2983,7 @@ public class WebFileSysServlet extends ServletBase
         	}
         	catch (IOException ioex)
         	{
-        		Logger.getLogger(getClass()).warn(ioex);
+        		logger.warn(ioex);
         	}
         	
             return;
@@ -3025,7 +3014,7 @@ public class WebFileSysServlet extends ServletBase
         if (browserType == null) {
             return false;
         }
-        return (browserType.indexOf("Android") >= 0);
+        return (browserType.contains("Android"));
     }
 }
 

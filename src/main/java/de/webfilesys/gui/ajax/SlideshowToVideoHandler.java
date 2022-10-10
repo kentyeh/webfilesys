@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Constants;
@@ -19,13 +18,15 @@ import de.webfilesys.graphics.SlideshowToVideoThread;
 import de.webfilesys.gui.xsl.SlideshowToVideoParamHandler;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 	
-	private static Logger LOG = Logger.getLogger(SlideshowToVideoHandler.class);
+	private static final Logger logger = LogManager.getLogger(SlideshowToVideoHandler.class);
 	
 	public static final String LIST_PREFIX = "list-";
 	
@@ -44,6 +45,7 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -57,7 +59,7 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 				(ArrayList<String>) req.getSession().getAttribute(SlideshowToVideoParamHandler.SESSION_KEY_SELECTED_SLIDESHOW_VIDEO_FILES);
 
 		if (selectedFiles == null) {
-			LOG.error("missing selected picture files in session");
+			logger.error("missing selected picture files in session");
 			return;
 		}
 		
@@ -71,7 +73,7 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 		try {
 			duration = Integer.parseInt(delay);
 		} catch (NumberFormatException numEx) {
-			LOG.warn("invalid slideshow picture duration value");
+			logger.warn("invalid slideshow picture duration value");
 		}
 		
 		int videoResolutionWidth = 640;
@@ -85,7 +87,7 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 				videoResolutionWidth = Integer.parseInt(params[0]);
 				videoResolutionHeight = Integer.parseInt(params[1]);
 			} catch (NumberFormatException ex) {
-				LOG.warn("invalid target video dimension " + params[0] + " " + params[1]);
+				logger.warn("invalid target video dimension " + params[0] + " " + params[1]);
 			}
 		}
 		
@@ -107,9 +109,7 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 	                filePath = currentPath + File.separator + selectedFiles.get(i);
 	            }
 	            
-	            if (LOG.isDebugEnabled()) {
-		            LOG.debug("picture file to add to video: " + filePath);
-	            }
+		        logger.debug("picture file to add to video: " + filePath);
 	        
 	            ffmpegInputFileListFile.println("file " + '\'' +  filePath.replace('\\',  '/') + '\'');
 	            if (i < selectedFiles.size() - 1) {
@@ -117,7 +117,7 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 	            }
 	        }
 		} catch (IOException ioex) {
-		    LOG.error("failed to write ffmpeg input list file for slideshow video", ioex);
+		    logger.error("failed to write ffmpeg input list file for slideshow video", ioex);
     		errorCode = ERROR_CODE_PROCESSING_FAILED;
 		} finally {
 		    if (ffmpegInputFileListFile != null) {
@@ -143,7 +143,7 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 
 			XmlUtil.setChildText(resultElement, "targetPath", targetPath);
 			
-			session.setAttribute("viewMode", new Integer(Constants.VIEW_MODE_VIDEO));
+			session.setAttribute("viewMode", Constants.VIEW_MODE_VIDEO);
 		}
 		
 		doc.appendChild(resultElement);

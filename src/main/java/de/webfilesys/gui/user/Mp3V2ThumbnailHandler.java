@@ -8,8 +8,9 @@ import java.util.Iterator;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 import org.farng.mp3.MP3File;
 import org.farng.mp3.TagException;
 import org.farng.mp3.id3.AbstractID3v2;
@@ -21,6 +22,7 @@ import org.farng.mp3.id3.ID3v2_2Frame;
  */
 public class Mp3V2ThumbnailHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(Mp3V2ThumbnailHandler.class);
 	protected HttpServletResponse resp = null;
 	
 	public Mp3V2ThumbnailHandler(
@@ -54,7 +56,7 @@ public class Mp3V2ThumbnailHandler extends UserRequestHandler
             
             if (!mp3File.hasID3v2Tag())
             {
-                Logger.getLogger(getClass()).warn("no ID3V2 tag found in MP3 file " + mp3FilePath);
+                logger.warn("no ID3V2 tag found in MP3 file " + mp3FilePath);
                 return;
             }
 
@@ -91,12 +93,12 @@ public class Mp3V2ThumbnailHandler extends UserRequestHandler
         }
         catch (IOException nfex)
         {
-            Logger.getLogger(getClass()).error("cannot read MP3 file: " + nfex);
+            logger.error("cannot read MP3 file: " + nfex);
             return;
         }
         catch (TagException tagEx)
         {
-            Logger.getLogger(getClass()).error(tagEx);
+            logger.error(tagEx);
             return;
         }
         
@@ -114,7 +116,7 @@ public class Mp3V2ThumbnailHandler extends UserRequestHandler
 		}
         catch (IOException ioEx)
         {
-        	Logger.getLogger(getClass()).warn(ioEx);
+        	logger.warn(ioEx);
         }
 	}
 }

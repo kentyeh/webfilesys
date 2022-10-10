@@ -9,13 +9,14 @@ import javax.servlet.http.HttpSession;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.user.UserRequestHandler;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
@@ -23,6 +24,7 @@ import de.webfilesys.util.XmlUtil;
  */
 public class XmlRequestHandlerBase extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(XmlRequestHandlerBase.class);
 	protected Document doc;
 
 	private DocumentBuilder builder;
@@ -54,8 +56,8 @@ public class XmlRequestHandlerBase extends UserRequestHandler
 		}
 		catch (ParserConfigurationException pcex)
 		{
-			Logger.getLogger(getClass()).error(pcex.toString());
-			System.out.println(pcex.toString());
+			logger.error(pcex.toString());
+			logger.error(pcex.toString());
 		}
 	}
 

@@ -1,11 +1,12 @@
 package de.webfilesys;
 
 import java.io.File;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class WinDiskUsage
 {
+    private static final Logger logger = LogManager.getLogger(WinDiskUsage.class);
     String path=null;
 
     public WinDiskUsage(String path)
@@ -34,7 +35,7 @@ public class WinDiskUsage
 
         if (!validDrive)
         {
-            Logger.getLogger(getClass()).error("failed to determine disk free space - invalid path: " + path);
+            logger.error("failed to determine disk free space - invalid path: " + path);
             return(0L);
         }
 
@@ -43,7 +44,7 @@ public class WinDiskUsage
         File driveFile = new File(driveString);
         
         if (!driveFile.exists()) {
-            Logger.getLogger(getClass()).error("failed to determine disk free space - file does not exist: " + path);
+            logger.error("failed to determine disk free space - file does not exist: " + path);
             return(0L);
         }
         
@@ -71,7 +72,7 @@ public class WinDiskUsage
 
         if (!validDrive)
         {
-            Logger.getLogger(getClass()).error("failed to determine total disk space - invalid path: " + path);
+            logger.error("failed to determine total disk space - invalid path: " + path);
             return(0L);
         }
 
@@ -80,7 +81,7 @@ public class WinDiskUsage
         File driveFile = new File(driveString);
         
         if (!driveFile.exists()) {
-            Logger.getLogger(getClass()).error("failed to determine total disk space - file does not exist: " + path);
+            logger.error("failed to determine total disk space - file does not exist: " + path);
             return(0L);
         }
         

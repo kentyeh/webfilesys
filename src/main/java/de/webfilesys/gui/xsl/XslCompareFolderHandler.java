@@ -43,6 +43,7 @@ public class XslCompareFolderHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
         String compSourcePath = (String) session.getAttribute(XmlSelectCompFolderHandler.SESSION_ATTRIB_COMP_SOURCE);
@@ -169,7 +170,7 @@ public class XslCompareFolderHandler extends XslRequestHandlerBase
             return path;
         }
         
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         
         String restOfPath = path;
         

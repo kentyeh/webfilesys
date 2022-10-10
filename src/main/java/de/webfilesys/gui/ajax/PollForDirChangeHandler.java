@@ -1,12 +1,10 @@
 package de.webfilesys.gui.ajax;
 
-import java.io.File;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Constants;
@@ -15,12 +13,15 @@ import de.webfilesys.FileLinkSelector;
 import de.webfilesys.FileSelectionStatus;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class PollForDirChangeHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(PollForDirChangeHandler.class);
 	public PollForDirChangeHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -43,8 +44,8 @@ public class PollForDirChangeHandler extends XmlRequestHandlerBase
         	// lastDirStatusTime = Long.parseLong(lastDirStatusTimeParam);
         	lastSizeSum = Long.parseLong(lastSizeSumParam);
         } catch (NumberFormatException numEx) {
-            // Logger.getLogger(getClass()).error("invalid parameter: lastDirStatusTime: " + lastDirStatusTimeParam + " lastSizeSum: " + lastSizeSumParam);
-            Logger.getLogger(getClass()).error("invalid parameter: lastSizeSum: " + lastSizeSumParam);
+            // logger.error("invalid parameter: lastDirStatusTime: " + lastDirStatusTimeParam + " lastSizeSum: " + lastSizeSumParam);
+            logger.error("invalid parameter: lastSizeSum: " + lastSizeSumParam);
             return;
         }
         

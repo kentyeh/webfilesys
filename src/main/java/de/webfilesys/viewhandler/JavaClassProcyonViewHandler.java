@@ -9,13 +9,14 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 
 import com.strobel.decompiler.Decompiler;
 import com.strobel.decompiler.DecompilerSettings;
 import com.strobel.decompiler.PlainTextOutput;
 
 import de.webfilesys.ViewHandlerConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Decompiles Java class files and forwards the generated Java source code to
@@ -24,6 +25,8 @@ import de.webfilesys.ViewHandlerConfig;
  * @author Frank Hoehnel
  */
 public class JavaClassProcyonViewHandler implements ViewHandler {
+    private static final Logger logger = LogManager.getLogger(JavaClassProcyonViewHandler.class);
+        @Override
 	public void process(String filePath, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req,
 			HttpServletResponse resp) {
 		try {
@@ -43,8 +46,7 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 
 			String javaSourcePath = tempDir + File.separator + javaFileName;
 
-			try {
-				FileWriter javaSourceOut = new FileWriter(javaSourcePath);
+			try (FileWriter javaSourceOut = new FileWriter(javaSourcePath)){
 
 				PlainTextOutput out = new PlainTextOutput(javaSourceOut);
 
@@ -54,9 +56,8 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 
 				javaSourceOut.flush();
 
-				javaSourceOut.close();
 			} catch (Exception ex) {
-				Logger.getLogger(getClass()).error(ex);
+				logger.error(ex);
 			}
 
 			(new JavaSourceViewHandler()).process(javaSourcePath, viewHandlerConfig, req, resp);
@@ -69,7 +70,7 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 				javaSourceTempFile.delete();
 			}
 		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error(ioex);
+			logger.error(ioex);
 		}
 	}
 
@@ -82,6 +83,7 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 	 * @param req         the servlet request
 	 * @param resp        the servlet response
 	 */
+        @Override
 	public void processZipContent(String zipFilePath, InputStream zipIn, ViewHandlerConfig viewHandlerConfig,
 			HttpServletRequest req, HttpServletResponse resp) {
 		try {
@@ -101,7 +103,7 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 
 			String classTempFilePath = classTempFile.getAbsolutePath();
 
-			FileOutputStream classTempOut = new FileOutputStream(classTempFile);
+			try(FileOutputStream classTempOut = new FileOutputStream(classTempFile)){
 
 			byte[] buff = new byte[4096];
 
@@ -111,12 +113,11 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 				classTempOut.write(buff, 0, bytesRead);
 			}
 
-			classTempOut.close();
+                        }
 
 			String javaSourcePath = tempDir + File.separator + fileName + ".java";
 
-			try {
-				FileWriter javaSourceOut = new FileWriter(javaSourcePath);
+			try (FileWriter javaSourceOut = new FileWriter(javaSourcePath)){
 
 				PlainTextOutput out = new PlainTextOutput(javaSourceOut);
 
@@ -128,7 +129,7 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 
 				javaSourceOut.close();
 			} catch (Exception ex) {
-				Logger.getLogger(getClass()).error(ex);
+				logger.error(ex);
 			}
 
 			(new JavaSourceViewHandler()).process(javaSourcePath, viewHandlerConfig, req, resp);
@@ -143,7 +144,7 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 
 			tempFile.delete();
 		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error(ioex);
+			logger.error(ioex);
 		}
 	}
 
@@ -153,6 +154,7 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 	 * 
 	 * @return true if reading from ZIP archive is supported, otherwise false
 	 */
+        @Override
 	public boolean supportsZipContent() {
 		return true;
 	}

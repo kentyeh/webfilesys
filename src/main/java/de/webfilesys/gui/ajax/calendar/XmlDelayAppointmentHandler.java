@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.calendar.AlarmEntry;
@@ -16,8 +15,11 @@ import de.webfilesys.calendar.AppointmentManager;
 import de.webfilesys.gui.ajax.XmlRequestHandlerBase;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class XmlDelayAppointmentHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(XmlDelayAppointmentHandler.class);
 	public XmlDelayAppointmentHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -37,13 +39,13 @@ public class XmlDelayAppointmentHandler extends XmlRequestHandlerBase {
 
 		String eventId = getParameter("eventId");
 		if (CommonUtils.isEmpty(eventId)) {
-			Logger.getLogger(getClass()).warn("missing parameter eventId");
+			logger.warn("missing parameter eventId");
 			return;
 		}
 
 		String delayMinutesParm = getParameter("delayMinutes");
 		if (CommonUtils.isEmpty(delayMinutesParm)) {
-			Logger.getLogger(getClass()).warn("missing parameter delayMinutes");
+			logger.warn("missing parameter delayMinutes");
 			return;
 		}
 
@@ -54,7 +56,7 @@ public class XmlDelayAppointmentHandler extends XmlRequestHandlerBase {
 		}
 		catch (NumberFormatException numEx)
 		{
-			Logger.getLogger(getClass()).warn("invalid parameter delayMinutes: " + delayMinutesParm);
+			logger.warn("invalid parameter delayMinutes: " + delayMinutesParm);
 			return;
 		}
 		
@@ -72,9 +74,9 @@ public class XmlDelayAppointmentHandler extends XmlRequestHandlerBase {
 			
 			clone.setCloned(true);
 
-			if (Logger.getLogger(getClass()).isDebugEnabled())
+			if (logger.isDebugEnabled())
 			{
-				Logger.getLogger(getClass()).debug("created AlarmEntry clone for delayed alarm: " + clone);
+				logger.debug("created AlarmEntry clone for delayed alarm: " + clone);
 			}
 		}
 		

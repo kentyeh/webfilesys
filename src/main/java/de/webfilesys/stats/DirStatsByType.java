@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 public class DirStatsByType {
 	
-	private HashMap typeMap = null;
+	private HashMap<String,TypeCategory> typeMap = null;
 	
 	private long filesInTree = 0L;
 	
@@ -20,7 +20,7 @@ public class DirStatsByType {
 	
 	public DirStatsByType(String rootPath) 
 	{
-		typeMap = new HashMap();
+		typeMap = new HashMap<>();
 		
 	    fileNumCategoryMax = 0L;
 
@@ -47,18 +47,18 @@ public class DirStatsByType {
 			return;
 		}
 		
-		for (int i = 0; i < fileList.length; i++) {
-			if (fileList[i].isDirectory()) {
-				walkThroughFolderTree(fileList[i].getAbsolutePath());
-			} else {
-				if (fileList[i].isFile()) {
-					String fileExt = getFileExt(fileList[i].getName());
-					addToStats(fileExt.toLowerCase(), fileList[i].length());
-					filesInTree++;
-					treeFileSize += fileList[i].length();
-				}
-			}
-		}
+            for (File fileList1 : fileList) {
+                if (fileList1.isDirectory()) {
+                    walkThroughFolderTree(fileList1.getAbsolutePath());
+                } else {
+                    if (fileList1.isFile()) {
+                        String fileExt = getFileExt(fileList1.getName());
+                        addToStats(fileExt.toLowerCase(), fileList1.length());
+                        filesInTree++;
+                        treeFileSize += fileList1.length();
+                    }
+                }
+            }
 	}
 	
 	private String getFileExt(String fileName) {
@@ -72,7 +72,7 @@ public class DirStatsByType {
 	}
 	
 	private void addToStats(String fileExt, long fileSize) {
-		TypeCategory typeCat = (TypeCategory) typeMap.get(fileExt);
+		TypeCategory typeCat = typeMap.get(fileExt);
 		
 		if (typeCat == null) {
 			typeCat = new TypeCategory(fileExt);
@@ -83,10 +83,10 @@ public class DirStatsByType {
 	}
 	
 	private void calculatePercentage() {
-		Iterator iter = typeMap.values().iterator();
+		Iterator<TypeCategory> iter = typeMap.values().iterator();
 		
 		while (iter.hasNext()) {
-            TypeCategory typeCat = (TypeCategory) iter.next();		
+            TypeCategory typeCat = iter.next();		
             typeCat.setFileNumPercent((int) (typeCat.getFileNum() * 100L / filesInTree));
 			typeCat.setSizePercent(treeFileSize);
 			

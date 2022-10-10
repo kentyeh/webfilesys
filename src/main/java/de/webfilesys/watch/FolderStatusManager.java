@@ -12,7 +12,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -23,9 +22,13 @@ import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.ThumbnailCreatorBase;
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FolderStatusManager
 {
+    private static final Logger logger = LogManager.getLogger(FolderStatusManager.class);
     private static FolderStatusManager statusMgr = null;
 
     public static final int CHANGE_TYPE_NEW_FILE = 1;
@@ -34,7 +37,7 @@ public class FolderStatusManager
     public static final int CHANGE_TYPE_DATE = 4;
     public static final int CHANGE_TYPE_SIZE = 5;
     
-    Element folderStatusElement = null;
+    private final ReentrantLock lock = new ReentrantLock();
 
     private FolderStatusManager()
     {
@@ -92,7 +95,7 @@ public class FolderStatusManager
         }
         catch (ParserConfigurationException pcex)
         {
-            Logger.getLogger(getClass()).error(pcex.toString());
+            logger.error(pcex.toString());
         }
         
         return statusFileName;
@@ -126,14 +129,14 @@ public class FolderStatusManager
 
         if (statusFile.exists() && (!statusFile.canWrite()))
         {
-            Logger.getLogger(getClass()).error(
+            logger.error(
                     "cannot write folder status file "
                             + statusFile.getAbsolutePath());
             return;
         }
 
-        synchronized (folderStatusElem)
-        {
+        try {
+            this.lock.lock();
             OutputStreamWriter xmlOutFile = null;
 
             try
@@ -142,9 +145,9 @@ public class FolderStatusManager
 
                 xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
 
-                if (Logger.getLogger(getClass()).isDebugEnabled())
+                if (logger.isDebugEnabled())
                 {
-                    Logger.getLogger(getClass()).debug(
+                    logger.debug(
                             "Saving folder status to file "
                                     + statusFile.getAbsolutePath());
                 }
@@ -155,7 +158,7 @@ public class FolderStatusManager
             }
             catch (IOException ioEx)
             {
-                Logger.getLogger(getClass()).error(
+                logger.error(
                         "error saving folder status file "
                                 + statusFile.getAbsolutePath(), ioEx);
             }
@@ -167,11 +170,13 @@ public class FolderStatusManager
                     {
                         xmlOutFile.close();
                     }
-                    catch (Exception ex)
+                    catch (IOException ex)
                     {
                     }
                 }
             }
+        } finally {
+            this.lock.unlock();
         }
     }
 
@@ -214,10 +219,7 @@ public class FolderStatusManager
         
         File[] fileList = folder.listFiles();
         
-        for (int i = 0; i < fileList.length; i++)
-        {
-            File file = fileList[i];
-            
+        for (File file : fileList) {
             Element savedStatusElem = (Element) fileCache.get(file.getName());
             
             if (savedStatusElem != null)
@@ -231,12 +233,12 @@ public class FolderStatusManager
                         String savedModified = XmlUtil.getChildText(savedStatusElem, "modified");
                         if (!savedModified.equals(Long.toString(file.lastModified())))
                         {
-                            changes.put(file.getName(), new Integer(CHANGE_TYPE_DATE));
+                            changes.put(file.getName(), CHANGE_TYPE_DATE);
                         }
                         String savedSize = XmlUtil.getChildText(savedStatusElem, "size");
                         if (!savedSize.equals(Long.toString(file.length())))
                         {
-                            changes.put(file.getName(), new Integer(CHANGE_TYPE_SIZE));
+                            changes.put(file.getName(), CHANGE_TYPE_SIZE);
                         }
                     }
                 } 
@@ -247,7 +249,7 @@ public class FolderStatusManager
                         String savedModified = XmlUtil.getChildText(savedStatusElem, "modified");
                         if (!savedModified.equals(Long.toString(file.lastModified())))
                         {
-                            changes.put(file.getName(), new Integer(CHANGE_TYPE_DATE));
+                            changes.put(file.getName(), CHANGE_TYPE_DATE);
                         }
                     }
                 }
@@ -258,12 +260,12 @@ public class FolderStatusManager
                 {
                     if (!file.getName().equals(MetaInfManager.METAINF_FILE))
                     {
-                        changes.put(file.getName(), new Integer(CHANGE_TYPE_NEW_FILE));
+                        changes.put(file.getName(), CHANGE_TYPE_NEW_FILE);
                     }
                 }
                 else if (file.isDirectory())
                 {
-                    changes.put(file.getName(), new Integer(CHANGE_TYPE_NEW_DIR));
+                    changes.put(file.getName(), CHANGE_TYPE_NEW_DIR);
                 }
             }
         }
@@ -280,7 +282,7 @@ public class FolderStatusManager
             
             if ((modificationChecked == null) || (modificationChecked.length() == 0))
             {
-                changes.put(fileDirName, new Integer(CHANGE_TYPE_REMOVED));
+                changes.put(fileDirName, CHANGE_TYPE_REMOVED);
             }
         }
         
@@ -309,10 +311,7 @@ public class FolderStatusManager
         {
             File[] fileList = folder.listFiles();
             
-            for (int i = 0; i < fileList.length; i++)
-            {
-                File file = fileList[i];
-                
+            for (File file : fileList) {
                 if (file.isFile())
                 {
                     Element fileElem = folderStatusElem.getOwnerDocument().createElement("file");
@@ -342,10 +341,7 @@ public class FolderStatusManager
         {
             File[] fileList = folder.listFiles();
             
-            for (int i = 0; i < fileList.length; i++)
-            {
-                File file = fileList[i];
-                
+            for (File file : fileList) {
                 if (file.isFile())
                 {
                     if (!file.getName().equals(MetaInfManager.METAINF_FILE))
@@ -387,20 +383,16 @@ public class FolderStatusManager
 
         if ((!folderStatusFile.exists()) || (!folderStatusFile.canRead()))
         {
-            Logger.getLogger(getClass()).warn("Folder status file does not exist or is not readable: " + statusFilePath);
+            logger.warn("Folder status file does not exist or is not readable: " + statusFilePath);
             return (null);
         }
         
-        FileInputStream fis = null;
-
         Document doc = null;
         
-        try
+        try (FileInputStream fis = new FileInputStream(folderStatusFile))
         {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-
-            fis = new FileInputStream(folderStatusFile);
 
             InputSource inputSource = new InputSource(fis);
 
@@ -408,34 +400,15 @@ public class FolderStatusManager
 
             doc = builder.parse(inputSource);
         }
-        catch (SAXException saxex)
+        catch (SAXException | IOException saxex)
         {
-            Logger.getLogger(getClass()).error(
+            logger.error(
                     "failed to load folder status file : "
                             + folderStatusFile.getAbsolutePath(), saxex);
         }
-        catch (IOException ioex)
-        {
-            Logger.getLogger(getClass()).error(
-                    "failed to load folder status file : "
-                            + folderStatusFile.getAbsolutePath(), ioex);
-        }
         catch (ParserConfigurationException pcex)
         {
-            Logger.getLogger(getClass()).error(pcex.toString());
-        }
-        finally
-        {
-            if (fis != null)
-            {
-                try
-                {
-                    fis.close();
-                }
-                catch (Exception ex)
-                {
-                }
-            }
+            logger.error(pcex.toString());
         }
 
         if (doc == null)

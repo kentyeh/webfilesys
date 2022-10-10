@@ -13,7 +13,6 @@ import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 
 import sun.io.MalformedInputException;
 import de.webfilesys.ViewHandlerConfig;

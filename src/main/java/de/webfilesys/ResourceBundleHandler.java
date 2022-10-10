@@ -28,6 +28,7 @@ public class ResourceBundleHandler extends UserRequestHandler{
 		super(req, resp, null, output, null);
 	}
 	
+        @Override
 	protected void process()
 	{
         String bundleLang = language;

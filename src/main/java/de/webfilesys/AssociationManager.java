@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.util.PatternComparator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Handles associations of application programs to file types.
@@ -16,7 +16,8 @@ import de.webfilesys.util.PatternComparator;
  */
 public class AssociationManager {
     public static final String ASSOCIATION_CONFIG_FILE = "fileTypeAssociations.conf";    
-	
+	private static final Logger logger = LogManager.getLogger(AssociationManager.class);
+
 	private static AssociationManager assocMgr = null;
 	
 	private Properties associationMap;
@@ -32,11 +33,9 @@ public class AssociationManager {
             	
             	associationMap.load(fin);
             	
-            	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            		Logger.getLogger(getClass()).debug("filetype associations loaded from " + ASSOCIATION_CONFIG_FILE);
-            	}
-            } catch (Exception e) {
-                Logger.getLogger(getClass()).error("cannot load filetype associations from " + ASSOCIATION_CONFIG_FILE, e);
+            	logger.debug("filetype associations loaded from " + ASSOCIATION_CONFIG_FILE);
+            } catch (IOException e) {
+                logger.error("cannot load filetype associations from " + ASSOCIATION_CONFIG_FILE, e);
             } finally {
      			if (fin != null) {
      				try {
@@ -46,7 +45,7 @@ public class AssociationManager {
      			}
      		 }
         } else {
-            Logger.getLogger(getClass()).error("cannot load filetype associations from " + ASSOCIATION_CONFIG_FILE);
+            logger.error("cannot load filetype associations from " + ASSOCIATION_CONFIG_FILE);
         }
 	}
 	

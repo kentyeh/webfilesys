@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -19,12 +18,15 @@ import de.webfilesys.calendar.Appointment;
 import de.webfilesys.calendar.AppointmentManager;
 import de.webfilesys.gui.ajax.calendar.XmlMoveAppointmentHandler;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslCalendarMonthHandler extends XslCalendarHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslCalendarMonthHandler.class);
 	public XslCalendarMonthHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -35,6 +37,7 @@ public class XslCalendarMonthHandler extends XslCalendarHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+	@Override
 	protected void process()
 	{
 		GregorianCalendar nowCal = new GregorianCalendar();  
@@ -55,7 +58,7 @@ public class XslCalendarMonthHandler extends XslCalendarHandlerBase
 			}
 			catch (NumberFormatException numEx)
 			{
-				Logger.getLogger(getClass()).error("invalid parameter year: " + yearParam);
+				logger.error("invalid parameter year: " + yearParam);
 				year = nowCal.get(Calendar.YEAR);
 			}
 		}
@@ -76,7 +79,7 @@ public class XslCalendarMonthHandler extends XslCalendarHandlerBase
 			}
 			catch (NumberFormatException numEx)
 			{
-				Logger.getLogger(getClass()).error("invalid parameter month: " + monthParam);
+				logger.error("invalid parameter month: " + monthParam);
 				month = nowCal.get(Calendar.MONTH);
 			}
 		}
@@ -334,84 +337,81 @@ public class XslCalendarMonthHandler extends XslCalendarHandlerBase
 		
 		AppointmentManager.getInstance().addRepeatedAppointmentClones(uid, startOfDayTime, endOfDayTime, appointments);
 		
-        if (appointments.size() > 0)
+        if (    !appointments.isEmpty())
         {
         	Calendar appCal = new GregorianCalendar();
         	
     		Element appointmentListElem = doc.createElement("appointmentList");
     		dayElem.appendChild(appointmentListElem);
 
-    		Iterator<Appointment> iter = appointments.iterator();
-        	while (iter.hasNext()) 
-        	{
-        		Appointment appointment = iter.next();
-        		Element appointmentElem = doc.createElement("appointment");
-        		appointmentListElem.appendChild(appointmentElem);
-        		
-        		XmlUtil.setChildText(appointmentElem, "id", appointment.getId());
-
-        		XmlUtil.setChildText(appointmentElem, "eventTime", Long.toString(appointment.getEventTime().getTime()));
-        		XmlUtil.setChildText(appointmentElem, "duration", Long.toString(appointment.getDuration()));
-        		
-        		appCal.setTime(appointment.getEventTime());
-        		// String formattedStartTime = String.format("%2d:%2d", appCal.get(Calendar.HOUR_OF_DAY), appCal.get(Calendar.MINUTE));
-        		String formattedStartTime = String.format("%1$tH:%1$tM", appCal);
-        		XmlUtil.setChildText(appointmentElem, "startTime", formattedStartTime);
-        		
-        		int startTimeMinuteOfDay = appCal.get(Calendar.HOUR_OF_DAY) * 60 + appCal.get(Calendar.MINUTE);
-        		XmlUtil.setChildText(appointmentElem, "startMinuteOfDay", Integer.toString(startTimeMinuteOfDay));
-        		
-        		long appointmentEndTime = appointment.getEventTime().getTime() + appointment.getDuration();
-        		java.util.Date appointmentEndDate = new java.util.Date(appointmentEndTime);
-
-        		appCal.setTime(appointmentEndDate);
-        		
-                /*
-        		String formattedEndTime = String.format("%2d:%2d", appCal.get(Calendar.HOUR_OF_DAY), appCal.get(Calendar.MINUTE));
-                */
-        		String formattedEndTime = String.format("%1$tH:%1$tM", appCal.getTime());
-        		XmlUtil.setChildText(appointmentElem, "endTime", formattedEndTime);
-
-        		int endTimeMinuteOfDay = appCal.get(Calendar.HOUR_OF_DAY) * 60 + appCal.get(Calendar.MINUTE);
-        		XmlUtil.setChildText(appointmentElem, "endMinuteOfDay", Integer.toString(endTimeMinuteOfDay));
-        		
-        		XmlUtil.setChildText(appointmentElem, "startHour", Integer.toString(appointment.getEventTime().getHours()));
-        		
-        		XmlUtil.setChildText(appointmentElem, "endHour", Integer.toString(appointmentEndDate.getHours()));
-
-        		if ((appointment.getSubject() != null) && (appointment.getSubject().length() > 0))
-        		{
-            		XmlUtil.setChildText(appointmentElem, "subject", appointment.getSubject().replaceAll("'", "´"), true);
-        		}
-
-        		XmlUtil.setChildText(appointmentElem, "repeatPeriod", Integer.toString(appointment.getRepeatPeriod()));
-        		XmlUtil.setChildText(appointmentElem, "alarmType", Integer.toString(appointment.getAlarmType()));
-
-        		int alarmAheadHours = 0;
-        		int alarmAheadMinutes = 0;
-        		Date alarmTime = appointment.getAlarmTime();
-        		if (alarmTime != null)
-        		{
-        			long alarmAheadTime = appointment.getEventTime().getTime() - alarmTime.getTime();
-        			alarmAheadHours = (int) (alarmAheadTime / (3600 * 1000));
-        			alarmAheadMinutes = (int) ((alarmAheadTime % (3600 * 1000)) / (60 * 1000));
-        		}
-        		XmlUtil.setChildText(appointmentElem, "alarmAheadHours", Integer.toString(alarmAheadHours));
-        		XmlUtil.setChildText(appointmentElem, "alarmAheadMinutes", Integer.toString(alarmAheadMinutes));
-        		
-        		if ((appointment.getContent() != null) && (appointment.getContent().length() > 0))
-        		{
-            		XmlUtil.setChildText(appointmentElem, "description", replaceLineBreak(appointment.getContent()), true);
-        		}
-        		
-        		if (appointment.isFullday()) 
-        		{
-            		XmlUtil.setChildText(appointmentElem, "fullDay", "true");
-            		XmlUtil.setChildText(appointmentElem, "fullDayNum", Integer.toString(appointment.getFullDayNum()));
-            		XmlUtil.setChildText(appointmentElem, "fullDayTotalNum", Integer.toString(appointment.getFullDayTotalNum()));
-            		XmlUtil.setChildText(appointmentElem, "fullDaysInCurrentMonth", Integer.toString(getFullDayNumInCurrentMonth(appointment)));
-        		}
-        	}
+                    for (Appointment appointment : appointments) {
+                        Element appointmentElem = doc.createElement("appointment");
+                        appointmentListElem.appendChild(appointmentElem);
+                        
+                        XmlUtil.setChildText(appointmentElem, "id", appointment.getId());
+                        
+                        XmlUtil.setChildText(appointmentElem, "eventTime", Long.toString(appointment.getEventTime().getTime()));
+                        XmlUtil.setChildText(appointmentElem, "duration", Long.toString(appointment.getDuration()));
+                        
+                        appCal.setTime(appointment.getEventTime());
+                        // String formattedStartTime = String.format("%2d:%2d", appCal.get(Calendar.HOUR_OF_DAY), appCal.get(Calendar.MINUTE));
+                        String formattedStartTime = String.format("%1$tH:%1$tM", appCal);
+                        XmlUtil.setChildText(appointmentElem, "startTime", formattedStartTime);
+                        
+                        int startTimeMinuteOfDay = appCal.get(Calendar.HOUR_OF_DAY) * 60 + appCal.get(Calendar.MINUTE);
+                        XmlUtil.setChildText(appointmentElem, "startMinuteOfDay", Integer.toString(startTimeMinuteOfDay));
+                        
+                        long appointmentEndTime = appointment.getEventTime().getTime() + appointment.getDuration();
+                        java.util.Date appointmentEndDate = new java.util.Date(appointmentEndTime);
+                        
+                        appCal.setTime(appointmentEndDate);
+                        
+                        /*
+                        String formattedEndTime = String.format("%2d:%2d", appCal.get(Calendar.HOUR_OF_DAY), appCal.get(Calendar.MINUTE));
+                        */
+                        String formattedEndTime = String.format("%1$tH:%1$tM", appCal.getTime());
+                        XmlUtil.setChildText(appointmentElem, "endTime", formattedEndTime);
+                        
+                        int endTimeMinuteOfDay = appCal.get(Calendar.HOUR_OF_DAY) * 60 + appCal.get(Calendar.MINUTE);
+                        XmlUtil.setChildText(appointmentElem, "endMinuteOfDay", Integer.toString(endTimeMinuteOfDay));
+                        
+                        XmlUtil.setChildText(appointmentElem, "startHour", Integer.toString(appointment.getEventTime().getHours()));
+                        
+                        XmlUtil.setChildText(appointmentElem, "endHour", Integer.toString(appointmentEndDate.getHours()));
+                        
+                        if ((appointment.getSubject() != null) && (appointment.getSubject().length() > 0))
+                        {
+                            XmlUtil.setChildText(appointmentElem, "subject", appointment.getSubject().replaceAll("'", "´"), true);
+                        }
+                        
+                        XmlUtil.setChildText(appointmentElem, "repeatPeriod", Integer.toString(appointment.getRepeatPeriod()));
+                        XmlUtil.setChildText(appointmentElem, "alarmType", Integer.toString(appointment.getAlarmType()));
+                        
+                        int alarmAheadHours = 0;
+                        int alarmAheadMinutes = 0;
+                        Date alarmTime = appointment.getAlarmTime();
+                        if (alarmTime != null)
+                        {
+                            long alarmAheadTime = appointment.getEventTime().getTime() - alarmTime.getTime();
+                            alarmAheadHours = (int) (alarmAheadTime / (3600 * 1000));
+                            alarmAheadMinutes = (int) ((alarmAheadTime % (3600 * 1000)) / (60 * 1000));
+                        }
+                        XmlUtil.setChildText(appointmentElem, "alarmAheadHours", Integer.toString(alarmAheadHours));
+                        XmlUtil.setChildText(appointmentElem, "alarmAheadMinutes", Integer.toString(alarmAheadMinutes));
+                        
+                        if ((appointment.getContent() != null) && (appointment.getContent().length() > 0))
+                        {
+                            XmlUtil.setChildText(appointmentElem, "description", replaceLineBreak(appointment.getContent()), true);
+                        }
+                        
+                        if (appointment.isFullday())
+                        {
+                            XmlUtil.setChildText(appointmentElem, "fullDay", "true");
+                            XmlUtil.setChildText(appointmentElem, "fullDayNum", Integer.toString(appointment.getFullDayNum()));
+                            XmlUtil.setChildText(appointmentElem, "fullDayTotalNum", Integer.toString(appointment.getFullDayTotalNum()));
+                            XmlUtil.setChildText(appointmentElem, "fullDaysInCurrentMonth", Integer.toString(getFullDayNumInCurrentMonth(appointment)));
+                        }
+                    }
         }
 	}
 	

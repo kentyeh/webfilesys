@@ -15,8 +15,8 @@ public class CoBrowsingManager {
 	
 	private CoBrowsingManager()
 	{
-        prefetchImageMap = new HashMap<String, String>(5);        
-        currentImageMap = new HashMap<String, String>(5);        
+        prefetchImageMap = new HashMap<>(5);        
+        currentImageMap = new HashMap<>(5);        
 	}
 	
 	public static CoBrowsingManager getInstance()

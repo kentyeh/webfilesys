@@ -7,20 +7,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.SubdirExistCache;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class TestSubdirExistHandler extends XmlRequestHandlerBase {
 	
-    private static final Logger LOG = Logger.getLogger(TestSubdirExistHandler.class);
+    private static final Logger logger = LogManager.getLogger(TestSubdirExistHandler.class);
 	
 	public TestSubdirExistHandler(
     		HttpServletRequest req, 
@@ -31,11 +32,12 @@ public class TestSubdirExistHandler extends XmlRequestHandlerBase {
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process() {
         String path = getParameter("path");
 
         if (CommonUtils.isEmpty(path)) {
-        	LOG.error("parameter path missing");
+        	logger.error("parameter path missing");
         	return;
         }
         
@@ -59,13 +61,13 @@ public class TestSubdirExistHandler extends XmlRequestHandlerBase {
             	}
         	}
         } else {
-        	LOG.warn("folder to check for subdirs is not a readable directory: " + path);
+        	logger.warn("folder to check for subdirs is not a readable directory: " + path);
         }
 
         if (subdirExists) {
-    	    SubdirExistCache.getInstance().setExistsSubdir(folder.getAbsolutePath(), Integer.valueOf(1));
+    	    SubdirExistCache.getInstance().setExistsSubdir(folder.getAbsolutePath(), 1);
         } else {
-    	    SubdirExistCache.getInstance().setExistsSubdir(folder.getAbsolutePath(), Integer.valueOf(0));
+    	    SubdirExistCache.getInstance().setExistsSubdir(folder.getAbsolutePath(), 0);
         }
         
         Element resultElement = doc.createElement("result");

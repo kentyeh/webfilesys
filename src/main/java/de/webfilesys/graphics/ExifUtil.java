@@ -15,13 +15,13 @@ import org.apache.commons.imaging.common.ImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
 import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
-import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import org.apache.commons.imaging.formats.tiff.constants.TiffConstants;
-import org.apache.commons.imaging.formats.tiff.fieldtypes.FieldType;
 import org.apache.commons.imaging.formats.tiff.taginfos.TagInfo;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputField;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Code based on code from bricolsoft consulting 
@@ -30,7 +30,9 @@ import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
  */
 public class ExifUtil {
     public static final int TAG_ORIENTATION = 0x0112;
-	
+
+    private static final Logger logger = LogManager.getLogger(ExifUtil.class);
+
 	public static boolean copyExifData(File sourceFile, File destFile, List<TagInfo> excludedFields) {
 		
 		String tempFileName = destFile.getAbsolutePath() + ".tmp";
@@ -55,33 +57,25 @@ public class ExifUtil {
 			destSet.getOrCreateExifDirectory();
 
 			// Go through the source directories
-			List<?> sourceDirectories = sourceSet.getDirectories();
-			for (int i = 0; i < sourceDirectories.size(); i++) {
-				TiffOutputDirectory sourceDirectory = (TiffOutputDirectory) sourceDirectories.get(i);
-				TiffOutputDirectory destinationDirectory = getOrCreateExifDirectory(destSet, sourceDirectory);
-
-				if (destinationDirectory == null)
-					continue; // failed to create
-
-				// Loop the fields
-				List<?> sourceFields = sourceDirectory.getFields();
-				for (int j = 0; j < sourceFields.size(); j++) {
-					// Get the source field
-					TiffOutputField sourceField = (TiffOutputField) sourceFields.get(j);
-
-					// Check exclusion list
-					if (excludedFields != null && excludedFields.contains(sourceField.tagInfo)) {
-						destinationDirectory.removeField(sourceField.tagInfo);
-						continue;
-					}
-
-					// Remove any existing field
-					destinationDirectory.removeField(sourceField.tagInfo);
-
-					// Add field
-					destinationDirectory.add(sourceField);
-				}
-			}
+			List<TiffOutputDirectory> sourceDirectories = sourceSet.getDirectories();
+                    for (TiffOutputDirectory sourceDirectory : sourceDirectories) {
+                        TiffOutputDirectory destinationDirectory = getOrCreateExifDirectory(destSet, sourceDirectory);
+                        if (destinationDirectory == null)
+                            continue; // failed to create
+                        // Loop the fields
+                        List<TiffOutputField> sourceFields = sourceDirectory.getFields();
+                        for (TiffOutputField sourceField : sourceFields) {
+                            // Check exclusion list
+                            if (excludedFields != null && excludedFields.contains(sourceField.tagInfo)) {
+                                destinationDirectory.removeField(sourceField.tagInfo);
+                                continue;
+                            }
+                            // Remove any existing field
+                            destinationDirectory.removeField(sourceField.tagInfo);
+                            // Add field
+                            destinationDirectory.add(sourceField);
+                            }
+                    }
 
 			// Save data to destination
 			tempStream = new BufferedOutputStream(new FileOutputStream(tempFile));
@@ -94,12 +88,8 @@ public class ExifUtil {
 			}
 
 			return true;
-		} catch (ImageReadException exception) {
-			exception.printStackTrace();
-		} catch (ImageWriteException exception) {
-			exception.printStackTrace();
-		} catch (IOException exception) {
-			exception.printStackTrace();
+		} catch (ImageReadException | ImageWriteException | IOException exception) {
+                        logger.error(exception);
 		} finally {
 			if (tempStream != null) {
 				try {
@@ -157,12 +147,8 @@ public class ExifUtil {
 			}
 
 			return true;
-		} catch (ImageReadException exception) {
-			exception.printStackTrace();
-		} catch (ImageWriteException exception) {
-			exception.printStackTrace();
-		} catch (IOException exception) {
-			exception.printStackTrace();
+		} catch (ImageReadException | ImageWriteException | IOException exception) {
+			logger.error(exception);
 		} finally {
 			if (tempStream != null) {
 				try {

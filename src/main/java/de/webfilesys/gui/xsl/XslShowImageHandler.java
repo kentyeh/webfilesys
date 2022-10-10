@@ -1,7 +1,6 @@
 package de.webfilesys.gui.xsl;
 
 import java.io.PrintWriter;
-import java.util.Hashtable;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,6 +18,7 @@ import de.webfilesys.graphics.ImageUtils;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Frank Hoehnel
@@ -35,6 +35,7 @@ public class XslShowImageHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String imgPath = getParameter("imgname");
@@ -114,7 +115,7 @@ public class XslShowImageHandler extends XslRequestHandlerBase
 		
 		boolean alreadyRated = false;
 		
-		Hashtable ratedPictures = (Hashtable) session.getAttribute("ratedPictures");
+		ConcurrentHashMap<String,Boolean> ratedPictures = (ConcurrentHashMap<String,Boolean>) session.getAttribute("ratedPictures");
 		
 		if (ratedPictures != null)
 		{

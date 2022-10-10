@@ -6,19 +6,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
 import de.webfilesys.watch.FolderWatchManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslWatchFolderHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslWatchFolderHandler.class);
 	public XslWatchFolderHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -40,7 +42,7 @@ public class XslWatchFolderHandler extends XmlRequestHandlerBase
 
 		if (!accessAllowed(path))
 		{
-			Logger.getLogger(getClass()).warn("user " + uid + " tried to access folder outside of his document root: " + path);
+			logger.warn("user " + uid + " tried to access folder outside of his document root: " + path);
 			
 			return;
 		}

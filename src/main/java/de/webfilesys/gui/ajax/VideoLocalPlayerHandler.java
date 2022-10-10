@@ -1,6 +1,5 @@
 package de.webfilesys.gui.ajax;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -9,18 +8,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class VideoLocalPlayerHandler extends XmlRequestHandlerBase {
-	
+	private static final Logger logger = LogManager.getLogger(VideoLocalPlayerHandler.class);
 	private boolean clientIsLocal = false;
 	
 	public VideoLocalPlayerHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
@@ -30,9 +33,10 @@ public class VideoLocalPlayerHandler extends XmlRequestHandlerBase {
 		clientIsLocal = requestIsLocal;
 	}
 
+        @Override
 	protected void process() {
 		if (!clientIsLocal) {
-			Logger.getLogger(getClass()).warn("remote user tried to start local video player");
+			logger.warn("remote user tried to start local video player");
 			return;
 		}
 		
@@ -61,46 +65,38 @@ public class VideoLocalPlayerHandler extends XmlRequestHandlerBase {
         }
 
         try {
-            ArrayList<String> progNameAndParams = new ArrayList<String>();
+            ArrayList<String> progNameAndParams = new ArrayList<>();
             progNameAndParams.add(videoPlayerExePath);
         	
         	String addParams = WebFileSys.getInstance().getVideoPlayerAddParams();
             if (addParams != null) {
             	String[] params = addParams.split(" ");
-            	for (String param : params) {
-                    progNameAndParams.add(param);
-            	}
+                progNameAndParams.addAll(Arrays.asList(params));
             }
             
             progNameAndParams.add(videoFilePath);
 
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            	StringBuilder buff = new StringBuilder();
-                for (String cmdToken : progNameAndParams) {
+            StringBuilder buff = new StringBuilder();
+            for (String cmdToken : progNameAndParams) {
                 	buff.append(cmdToken);
                 	buff.append(' ');
-                }
-                Logger.getLogger(getClass()).debug("ffplay call with params: " + buff.toString());
-            }
+             }
+             logger.debug("ffplay call with params: " + buff.toString());
         	
 			Process ffplayProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 			
-	        DataInputStream ffplayOut = new DataInputStream(ffplayProcess.getErrorStream());
+	        BufferedReader ffplayOut = new BufferedReader(new InputStreamReader(ffplayProcess.getErrorStream()));
 	        
 	        String outLine = null;
 	        
 	        while ((outLine = ffplayOut.readLine()) != null) {
-                if (Logger.getLogger(getClass()).isDebugEnabled()) {
-                    Logger.getLogger(getClass()).debug("video player output: " + outLine);
-                }
+	            logger.debug("video player output: " + outLine);
 	        }
 			
 			int ffplayResult = ffplayProcess.waitFor();
 			return ffplayResult;
-		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error("failed to play video " + videoFilePath, ioex);
-		} catch (InterruptedException iex) {
-			Logger.getLogger(getClass()).error("failed to play video " + videoFilePath, iex);
+		} catch (IOException | InterruptedException ioex) {
+			logger.error("failed to play video " + videoFilePath, ioex);
 		}
 
         return -1;

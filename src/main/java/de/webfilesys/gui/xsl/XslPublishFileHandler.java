@@ -51,6 +51,7 @@ public class XslPublishFileHandler extends XslRequestHandlerBase
 		serverPort = req.getServerPort();
 	}
 	  
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -132,7 +133,7 @@ public class XslPublishFileHandler extends XslRequestHandlerBase
 								{
 									if (mailReceivers == null)
 									{
-										mailReceivers = new ArrayList<String>();
+										mailReceivers = new ArrayList<>();
 									}
 								
 									mailReceivers.add(email);
@@ -227,7 +228,7 @@ public class XslPublishFileHandler extends XslRequestHandlerBase
     private void publishSecretURL(String path, String publishPath, String accessCode, String sendMail,
                                   ArrayList<String> mailReceivers, String subject, String msgText)
     {
-		StringBuffer secretURL=new StringBuffer();
+		StringBuilder secretURL=new StringBuilder();
 
 		
 		
@@ -258,7 +259,7 @@ public class XslPublishFileHandler extends XslRequestHandlerBase
 
 		if (sendMail != null)
 		{
-			StringBuffer content = new StringBuffer(msgText);
+			StringBuilder content = new StringBuilder(msgText);
 			content.append("\r\n\r\n");
 
 			content.append(secretURL.toString());
@@ -267,7 +268,7 @@ public class XslPublishFileHandler extends XslRequestHandlerBase
 
 			SmtpEmail message = new SmtpEmail(mailReceivers, subject, content.toString());
 
-			StringBuffer mailSenderName=new StringBuffer();
+			StringBuilder mailSenderName=new StringBuilder();
 
 			String firstName = userMgr.getFirstName(uid);
 			String lastName = userMgr.getLastName(uid);

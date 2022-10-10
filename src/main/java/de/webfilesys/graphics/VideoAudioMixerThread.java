@@ -1,15 +1,18 @@
 package de.webfilesys.graphics;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VideoAudioMixerThread extends Thread {
+    private static final Logger logger = LogManager.getLogger(VideoAudioMixerThread.class);
     private String videoFilePath;
     
     ArrayList<String> audioFiles;
@@ -22,10 +25,9 @@ public class VideoAudioMixerThread extends Thread {
     	audioFiles = newList;
     }
     
+    @Override
     public void run() {
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            Logger.getLogger(getClass()).debug("starting video/audio mixer thread for video file " + videoFilePath);
-        }
+        logger.debug("starting video/audio mixer thread for video file " + videoFilePath);
         
         Thread.currentThread().setPriority(1);
         
@@ -39,7 +41,7 @@ public class VideoAudioMixerThread extends Thread {
         File targetDirFile = new File(targetPath);
         if (!targetDirFile.exists()) {
             if (!targetDirFile.mkdir()) {
-                Logger.getLogger(getClass()).error("failed to create target folder for video conversion: " + targetPath);
+                logger.error("failed to create target folder for video conversion: " + targetPath);
                 return;
             }
         }
@@ -60,7 +62,7 @@ public class VideoAudioMixerThread extends Thread {
         
         if (!CommonUtils.isEmpty(ffmpegExePath)) {
             
-            ArrayList<String> progNameAndParams = new ArrayList<String>();
+            ArrayList<String> progNameAndParams = new ArrayList<>();
             progNameAndParams.add(ffmpegExePath);
             progNameAndParams.add("-y");
             progNameAndParams.add("-i");
@@ -78,26 +80,22 @@ public class VideoAudioMixerThread extends Thread {
             progNameAndParams.add("-shortest");
             progNameAndParams.add(targetFilePath);
             
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            	StringBuilder buff = new StringBuilder();
-                for (String cmdToken : progNameAndParams) {
-                	buff.append(cmdToken);
-                	buff.append(' ');
-                }
-                Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+            StringBuilder buff = new StringBuilder();
+            for (String cmdToken : progNameAndParams) {
+                buff.append(cmdToken);
+                buff.append(' ');
             }
+            logger.debug("ffmpeg call with params: " + buff.toString());
             
 			try {
 				Process convertProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 				
-		        DataInputStream convertProcessOut = new DataInputStream(convertProcess.getErrorStream());
+		        BufferedReader convertProcessOut = new BufferedReader(new InputStreamReader(convertProcess.getErrorStream()));
 		        
 		        String outLine = null;
 		        
 		        while ((outLine = convertProcessOut.readLine()) != null) {
-		        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-		                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-		        	}
+		            logger.debug("ffmpeg output: " + outLine);
 		        }
 				
 				int convertResult = convertProcess.waitFor();
@@ -106,22 +104,20 @@ public class VideoAudioMixerThread extends Thread {
 					File resultFile = new File(targetFilePath);
 					
 					if (!resultFile.exists()) {
-	                    Logger.getLogger(getClass()).error("result file from ffmpeg video conversion not found: " + targetFilePath);
+	                    logger.error("result file from ffmpeg video conversion not found: " + targetFilePath);
 					}
 				} else {
-					Logger.getLogger(getClass()).warn("ffmpeg returned error " + convertResult);
+					logger.warn("ffmpeg returned error " + convertResult);
 				}
-			} catch (IOException ioex) {
-				Logger.getLogger(getClass()).error("failed to convert video " + videoFilePath, ioex);
-			} catch (InterruptedException iex) {
-				Logger.getLogger(getClass()).error("failed to convert video " + videoFilePath, iex);
+			} catch (IOException | InterruptedException ioex) {
+				logger.error("failed to convert video " + videoFilePath, ioex);
 			}
         }
         
         if (audioFiles.size() > 1) {
         	File combinedAudioFile = new File(audioFilePath);
         	if (!combinedAudioFile.delete()) {
-        		Logger.getLogger(getClass()).warn("failed to delete temporary combined audio file " + audioFilePath);
+        		logger.warn("failed to delete temporary combined audio file " + audioFilePath);
         	}
         }
     }
@@ -130,7 +126,7 @@ public class VideoAudioMixerThread extends Thread {
     	
         String combinedAudioFilePath = targetPath + File.separator + "combinedAudio.mp3";
         
-        ArrayList<String> progNameAndParams = new ArrayList<String>();
+        ArrayList<String> progNameAndParams = new ArrayList<>();
         progNameAndParams.add(ffmpegExePath);
         progNameAndParams.add("-y");
         
@@ -146,7 +142,7 @@ public class VideoAudioMixerThread extends Thread {
         }
         int i = 0;
     	for (String audioFile: audioFiles) {
-    		buff.append("[" + i + ":a:0]");
+    		buff.append("[").append(i).append(":a:0]");
     		i++;
     	}
     	buff.append("concat=n=");
@@ -167,26 +163,22 @@ public class VideoAudioMixerThread extends Thread {
         
         progNameAndParams.add(combinedAudioFilePath);
         
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-        	buff = new StringBuilder();
-            for (String cmdToken : progNameAndParams) {
-            	buff.append(cmdToken);
-            	buff.append(' ');
-            }
-            Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+        buff = new StringBuilder();
+        for (String cmdToken : progNameAndParams) {
+            buff.append(cmdToken);
+            buff.append(' ');
         }
+        logger.debug("ffmpeg call with params: " + buff.toString());
         
 		try {
 			Process convertProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 			
-	        DataInputStream convertProcessOut = new DataInputStream(convertProcess.getErrorStream());
+	        BufferedReader convertProcessOut = new BufferedReader(new InputStreamReader(convertProcess.getErrorStream()));
 	        
 	        String outLine = null;
 	        
 	        while ((outLine = convertProcessOut.readLine()) != null) {
-	        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-	                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-	        	}
+	            logger.debug("ffmpeg output: " + outLine);
 	        }
 			
 			int convertResult = convertProcess.waitFor();
@@ -195,17 +187,15 @@ public class VideoAudioMixerThread extends Thread {
 				File resultFile = new File(combinedAudioFilePath);
 				
 				if (!resultFile.exists()) {
-                    Logger.getLogger(getClass()).error("result file from ffmpeg audio concatenation not found: " + combinedAudioFilePath);
+                    logger.error("result file from ffmpeg audio concatenation not found: " + combinedAudioFilePath);
 				} else {
 					return combinedAudioFilePath;
 				}
 			} else {
-				Logger.getLogger(getClass()).warn("ffmpeg returned error " + convertResult);
+				logger.warn("ffmpeg returned error " + convertResult);
 			}
-		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error("failed to concatenate audio files", ioex);
-		} catch (InterruptedException iex) {
-			Logger.getLogger(getClass()).error("failed to concatenate audio files", iex);
+		} catch (IOException | InterruptedException ioex) {
+			logger.error("failed to concatenate audio files", ioex);
 		}
 		
 		return null;

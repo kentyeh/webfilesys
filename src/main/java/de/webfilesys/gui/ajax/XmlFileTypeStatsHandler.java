@@ -30,13 +30,14 @@ public class XmlFileTypeStatsHandler extends XmlRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String currentPath = getParameter("actpath");
 
 		DirStatsByType dirStats = new DirStatsByType(currentPath);
 		
-		ArrayList statisticResults = dirStats.getResults();
+		ArrayList<TypeCategory> statisticResults = dirStats.getResults();
 		
 		Element treeStatsElement = doc.createElement("treeStats");
 			
@@ -65,19 +66,17 @@ public class XmlFileTypeStatsHandler extends XmlRequestHandlerBase
         
         long sizeSumCategoryMax = dirStats.getSizeSumCategoryMax();
         
-        for (int i = 0; i < statisticResults.size(); i++) {
-            TypeCategory typeCat = (TypeCategory) statisticResults.get(i);
-
-            Element clusterElem = doc.createElement("cluster");
-            XmlUtil.setChildText(clusterElem, "fileType", CommonUtils.shortName(typeCat.getFileExt(), 16));
-            XmlUtil.setChildText(clusterElem, "fileNum", numFormat.format(typeCat.getFileNum()));
-            XmlUtil.setChildText(clusterElem, "sizeSum", numFormat.format(typeCat.getSizeSum()));
-            XmlUtil.setChildText(clusterElem, "numberPercent", Integer.toString(typeCat.getFileNumPercent()));
-            XmlUtil.setChildText(clusterElem, "sizePercent", Integer.toString(typeCat.getSizePercent()));
-            XmlUtil.setChildText(clusterElem, "fileNumPercentOfMax", Long.toString((typeCat.getFileNum() * 100L) / fileNumCategoryMax));
-            XmlUtil.setChildText(clusterElem, "sizeSumPercentOfMax", Long.toString((typeCat.getSizeSum() * 100L) / sizeSumCategoryMax));
-            sizeStatsElem.appendChild(clusterElem);
-        }
+            for (TypeCategory typeCat : statisticResults) {
+                Element clusterElem = doc.createElement("cluster");
+                XmlUtil.setChildText(clusterElem, "fileType", CommonUtils.shortName(typeCat.getFileExt(), 16));
+                XmlUtil.setChildText(clusterElem, "fileNum", numFormat.format(typeCat.getFileNum()));
+                XmlUtil.setChildText(clusterElem, "sizeSum", numFormat.format(typeCat.getSizeSum()));
+                XmlUtil.setChildText(clusterElem, "numberPercent", Integer.toString(typeCat.getFileNumPercent()));
+                XmlUtil.setChildText(clusterElem, "sizePercent", Integer.toString(typeCat.getSizePercent()));
+                XmlUtil.setChildText(clusterElem, "fileNumPercentOfMax", Long.toString((typeCat.getFileNum() * 100L) / fileNumCategoryMax));
+                XmlUtil.setChildText(clusterElem, "sizeSumPercentOfMax", Long.toString((typeCat.getSizeSum() * 100L) / sizeSumCategoryMax));
+                sizeStatsElem.appendChild(clusterElem);
+            }
 		
         processResponse();
     }

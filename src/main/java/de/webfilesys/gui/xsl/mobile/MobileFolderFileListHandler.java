@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -34,12 +33,15 @@ import de.webfilesys.gui.xsl.XslRequestHandlerBase;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MobileFolderFileListHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(MobileFolderFileListHandler.class);
 	private static final int MOBILE_FILE_PAGE_SIZE = 2048;
 	
 	private static final int MAX_FILENAME_DISPLAY_LENGTH = 26;
@@ -56,6 +58,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		// session.setViewMode(Constants.VIEW_MODE_THUMBS);
@@ -234,7 +237,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
         {
         	startIdx = 0;
         	
-			session.setAttribute("startIdx", new Integer(startIdx));
+			session.setAttribute("startIdx", startIdx);
         }
         else
         {
@@ -246,7 +249,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
 				{
 					startIdx = Integer.parseInt(startIdxParm);
 
-					session.setAttribute("startIdx",new Integer(startIdx));
+					session.setAttribute("startIdx", startIdx);
 				}
 				catch (NumberFormatException nfex)
 				{
@@ -259,7 +262,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
 			
 				if (startIdxFromSession != null)
 				{
-					startIdx = startIdxFromSession.intValue();
+					startIdx = startIdxFromSession;
 				}
 			}
 		
@@ -278,7 +281,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
 			{
 				sortBy=Integer.parseInt(temp);
 
-				session.setAttribute("sortField", new Integer(sortBy));
+				session.setAttribute("sortField", sortBy);
 			}
 			catch (NumberFormatException nfe)
 			{
@@ -290,7 +293,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
 			
 			if (sortField != null)
 			{
-				sortBy = sortField.intValue();
+				sortBy = sortField;
 			}
 			else
 			{
@@ -360,7 +363,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
 		
 		StringTokenizer pathParser = new StringTokenizer(relativePath, File.separator);
 		
-		StringBuffer partialPath = new StringBuffer();
+		StringBuilder partialPath = new StringBuilder();
 		
 		while (pathParser.hasMoreTokens())
 		{
@@ -477,7 +480,7 @@ public class MobileFolderFileListHandler extends XslRequestHandlerBase
 		
 		if ((!dirFile.exists()) || (!dirFile.isDirectory()) || (!dirFile.canRead()))
 		{
-		    Logger.getLogger(getClass()).error("directory not found or not readable: " + dirFile);
+		    logger.error("directory not found or not readable: " + dirFile);
 			processResponse("mobile/folderFileList.xsl");
 			return; 
 		}

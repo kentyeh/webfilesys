@@ -3,19 +3,21 @@ package de.webfilesys.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CommonUtils
 {
+    private static final Logger logger = LogManager.getLogger(CommonUtils.class);
 	public static String formatNumberSpaces(long number,int width)
 	{
 		char buffer[]=new char[width];
 
-		StringBuffer formattedNumber=new StringBuffer();
+		StringBuilder formattedNumber=new StringBuilder();
 
 		int idx=width-1;
 
@@ -123,7 +125,7 @@ public class CommonUtils
 			return(false);
 		}
 
-		return(elementName.toLowerCase().indexOf(searched.toLowerCase())>=0);
+		return(elementName.toLowerCase().contains(searched.toLowerCase()));
 	}
 	
 	public static String shortName(String longName, int length)
@@ -198,14 +200,14 @@ public class CommonUtils
 		}
 		catch (IOException ioex)
 		{
-			Logger.getLogger(CommonUtils.class).error(ioex);
+			logger.error(ioex);
 			return(false);
 		}
 	}
 	
 	public static String readyForJavascript(String source)
 	{
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		
 		for (int i = 0; i < source.length(); i++)
 		{
@@ -246,30 +248,24 @@ public class CommonUtils
 
 		if (fileList!=null)
 		{
-			for (int i=0; i < fileList.length; i++)
-			{
-				File tempFile = new File(actPath, fileList[i]);
-				
-				if (tempFile.isDirectory())
-				{
-					if (!deleteDirTree(actPath + File.separator + fileList[i]))
-					{
-						delError=true;
-					}
-				}
-				else
-				{
-					if (!tempFile.delete())
-					{
-						delError=true;
-						Logger.getLogger(CommonUtils.class).warn("cannot delete " + tempFile);
-					}
-				}
-			}
+                    for (String fileList1 : fileList) {
+                        File tempFile = new File(actPath, fileList1);
+                        if (tempFile.isDirectory()) {
+                            if (!deleteDirTree(actPath + File.separator + fileList1)) {
+                                delError=true;
+                            }
+                        } else {
+                            if (!tempFile.delete())
+                            {
+                                delError=true;
+                                logger.warn("cannot delete " + tempFile);
+                            }
+                        }
+                    }
 		}
 		else
 		{
-			Logger.getLogger(CommonUtils.class).warn("cannot get dir entries for " + actPath);
+			logger.warn("cannot get dir entries for " + actPath);
 		}
 		
 		fileList=null;
@@ -328,7 +324,7 @@ public class CommonUtils
         
         if (idx != (-1)) 
         {
-            StringBuffer ret = new StringBuffer(source);
+            StringBuilder ret = new StringBuilder(source);
 
             ret.replace(idx, idx + toReplace.length(), replacement);
             
@@ -345,7 +341,7 @@ public class CommonUtils
     
     public static String encodeSpecialChars(String line)
     {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
 
         for (int i = 0; i < line.length(); i++)
         {
@@ -378,7 +374,7 @@ public class CommonUtils
 
     public static final String escapeJSON(String s)
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int n = s.length();
         for (int i = 0; i < n; i++) 
         {
@@ -396,7 +392,7 @@ public class CommonUtils
      }
     
 	public static String escapeForJavascript(String source) {
-		StringBuffer dest = new StringBuffer();
+		StringBuilder dest = new StringBuilder();
 
 		for (int i = 0; i < source.length(); i++) {
 			if (source.charAt(i)=='\\') {
@@ -416,7 +412,7 @@ public class CommonUtils
      * @return the HTML escaped String
      */
     public static final String escapeHTML(String s){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int n = s.length();
         for (int i = 0; i < n; i++) {
            char c = s.charAt(i);
@@ -500,7 +496,7 @@ public class CommonUtils
 	}
 	
     public static String filterForbiddenChars(String text) {
-    	StringBuffer cleanText = new StringBuffer();
+    	StringBuilder cleanText = new StringBuilder();
     	
     	for (int i = 0; i < text.length(); i++) {
     		char c = text.charAt(i);

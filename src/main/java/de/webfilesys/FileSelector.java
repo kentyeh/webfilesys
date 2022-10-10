@@ -51,16 +51,13 @@ public class FileSelector
             return(selectionStatus);
         }
 
-        selectedFiles = new ArrayList<String>();
+        selectedFiles = new ArrayList<>();
 
         int selectedFileNumber=0;
 
-        for (int i=0;i<fileList.length;i++)
-        {
-            String fileName=fileList[i];
-
+        for (String fileName : fileList) {
             if ((!hideMetaInf) || (fileName.charAt(0)!='_') ||
-                (!fileName.equals(MetaInfManager.METAINF_FILE)))
+                    (!fileName.equals(MetaInfManager.METAINF_FILE)))
             {
                 File tempFile=new File(path + File.separator + fileName);
 
@@ -97,7 +94,7 @@ public class FileSelector
 
         String lastFileOfAll=null;
         
-        if (selectedFiles.size()>0)
+        if (!selectedFiles.isEmpty())
         {
             lastFileOfAll=(String) selectedFiles.get(selectedFiles.size()-1);
         }
@@ -107,7 +104,7 @@ public class FileSelector
 
         int i;
         
-        ArrayList<String> filesOnPage = new ArrayList<String>();
+        ArrayList<String> filesOnPage = new ArrayList<>();
 
         if ((afterName==null) && (beforeName==null))
         {

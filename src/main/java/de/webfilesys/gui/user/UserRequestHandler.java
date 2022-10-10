@@ -7,13 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
-import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.CopyStatus;
 import de.webfilesys.LanguageManager;
@@ -25,6 +23,8 @@ import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.FileEncodingMap;
 import de.webfilesys.util.HTTPUtils;
 import de.webfilesys.viewhandler.ViewHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
  
 /**
  * Handles all non-anonymous and non-admin requests.
@@ -32,11 +32,11 @@ import de.webfilesys.viewhandler.ViewHandler;
  */
 public class UserRequestHandler extends ProtectedRequestHandler
 { 
+    private static final Logger logger = LogManager.getLogger(UserRequestHandler.class);
 	protected String language = null;
 	
 	protected boolean readonly = true;
 	
-	private int fileCopyCounter = 0;
 	
     public UserRequestHandler(
     		HttpServletRequest req, 
@@ -64,6 +64,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
         }
     }
 
+    @Override
     public void handleRequest()
     {
         process();
@@ -146,7 +147,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
     	
     	if (sessRO != null)
     	{
-    		sessionReadonly = sessRO.booleanValue();
+    		sessionReadonly = sessRO;
     	}
     	
         boolean readonly =
@@ -157,7 +158,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
             return (true);
         }
 
-        Logger.getLogger(getClass()).warn(
+        logger.warn(
             "read-only user " + uid + " tried write access");
 
         output.print(HTTPUtils.createHTMLHeader());
@@ -195,7 +196,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(UserRequestHandler.class).warn(ioex);
+            logger.warn(ioex);
             return (false);
         }
     }
@@ -212,38 +213,35 @@ public class UserRequestHandler extends ProtectedRequestHandler
         	String formattedTreeFileNum = numFormat.format(copyStatus.getTreeFileNum());
         	String formattedTreeFileSize = numFormat.format(copyStatus.getTreeFileSize());
         	
-            for (int i = 0; i < fileList.length; i++) {
-            	
-                File sourceFile = fileList[i];
-
-            	if (sourceFile.canRead()) {
+            for (File sourceFile : fileList) {
+                if (sourceFile.canRead()) {
                     String destFileName = destPath + File.separator + sourceFile.getName();
 
                     if (sourceFile.isFile()) {
                         if ((copyStatus.getFilesCopied() <= 100) ||
-                            ((copyStatus.getFilesCopied() < 300) && (copyStatus.getFilesCopied() % 5 == 0)) ||
-                            ((copyStatus.getFilesCopied() < 1000) && (copyStatus.getFilesCopied() % 10 == 0)) ||
-                            (copyStatus.getFilesCopied() % 50 == 0)) {
+                                ((copyStatus.getFilesCopied() < 300) && (copyStatus.getFilesCopied() % 5 == 0)) ||
+                                ((copyStatus.getFilesCopied() < 1000) && (copyStatus.getFilesCopied() % 10 == 0)) ||
+                                (copyStatus.getFilesCopied() % 50 == 0)) {
                             output.println("<script language=\"javascript\">");
                             output.println("document.getElementById('currentFile').innerHTML='" + insertDoubleBackslash(CommonUtils.shortName(getHeadlinePath(sourceFile.getAbsolutePath()), 40)) + "';");
                             output.println("</script>");
                             output.flush();
-                        }                    
-
+                        }
+                        
                         if (copyFile(sourceFile.getAbsolutePath(), destFileName)) {
                             copyStatus.setFilesCopied(copyStatus.getFilesCopied() + 1);
                             copyStatus.setBytesCopied(copyStatus.getBytesCopied() + sourceFile.length());
                                     
                             if ((copyStatus.getFilesCopied() <= 100) ||
-                                ((copyStatus.getFilesCopied() < 300) && (copyStatus.getFilesCopied() % 5 == 0)) ||
-                                ((copyStatus.getFilesCopied() < 1000) && (copyStatus.getFilesCopied() % 10 == 0)) ||
-                                (copyStatus.getFilesCopied() % 50 == 0)) {
-                                    	
-                            	long progress = 0;
-                            	if (copyStatus.getTreeFileSize() > 0) {
-                                	progress = copyStatus.getBytesCopied() * 300l / copyStatus.getTreeFileSize();
-                            	}
-                            	
+                                    ((copyStatus.getFilesCopied() < 300) && (copyStatus.getFilesCopied() % 5 == 0)) ||
+                                    ((copyStatus.getFilesCopied() < 1000) && (copyStatus.getFilesCopied() % 10 == 0)) ||
+                                    (copyStatus.getFilesCopied() % 50 == 0)) {
+                                
+                                long progress = 0;
+                                if (copyStatus.getTreeFileSize() > 0) {
+                                    progress = copyStatus.getBytesCopied() * 300l / copyStatus.getTreeFileSize();
+                                }
+                                
                                 output.println("<script language=\"javascript\">");
                                 output.println("document.getElementById('fileCount').innerHTML='" + numFormat.format(copyStatus.getFilesCopied()) + " / " + formattedTreeFileNum +  "';");
                                 output.println("document.getElementById('bytesCopied').innerHTML='" + numFormat.format(copyStatus.getBytesCopied()) + " / " + formattedTreeFileSize +  "';");
@@ -252,7 +250,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
                             }
                             
                             if (sourceFile.getName().equals(MetaInfManager.METAINF_FILE)) {
-                            	MetaInfManager.getInstance().releaseMetaInf(destPath, false);
+                                MetaInfManager.getInstance().releaseMetaInf(destPath, false);
                             }
                         } else {
                             copyError = true;
@@ -262,8 +260,8 @@ public class UserRequestHandler extends ProtectedRequestHandler
 
                         if ((!newDir.mkdir()) && (!ignoreExistingDir)) {
                             javascriptAlert(getResource("alert.mkdirfail", "cannot create directory")
-                                            + "\\n"
-                                            + insertDoubleBackslash(destFileName));
+                                    + "\\n"
+                                    + insertDoubleBackslash(destFileName));
                             copyError = true;
                         } else {
                             if (!copyFolderTreeWithStatus(sourceFile.getAbsolutePath(), destFileName, ignoreExistingDir, copyStatus, numFormat)) {
@@ -271,7 +269,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
                             }
                         }
                     }
-            	}
+                }
             }
             
             if (copyStatus.getFilesCopied() > 100) {
@@ -304,22 +302,19 @@ public class UserRequestHandler extends ProtectedRequestHandler
 
         if (fileList != null)
         {
-            for (int i = 0; i < fileList.length; i++)
-            {
-                File tempFile=new File(path + File.separator + fileList[i]);
-                if (tempFile.isDirectory())
-                {
-                    if (!delDirTree(path + File.separator + fileList[i]))
+            for (String fileList1 : fileList) {
+                File tempFile = new File(path + File.separator + fileList1);
+                if (tempFile.isDirectory()) {
+                    if (!delDirTree(path + File.separator + fileList1)) {
                         deleteError=true;
-                }
-                else
-                {
+                    }
+                } else {
                     String absolutePath = tempFile.getAbsolutePath();
                     
                     if (!tempFile.delete())
                     {
                         deleteError=true;
-                        Logger.getLogger(getClass()).warn("cannot delete " + tempFile);
+                        logger.warn("cannot delete " + tempFile);
                     }
                     else
                     {
@@ -415,7 +410,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
                     .forName(viewHandlerClassName)
                     .newInstance());
 
-            Logger.getLogger(getClass()).debug("ViewHandler instantiated: " + viewHandler.getClass().getName());
+            logger.debug("ViewHandler instantiated: " + viewHandler.getClass().getName());
             
             if (zipIn == null) 
             {
@@ -439,25 +434,19 @@ public class UserRequestHandler extends ProtectedRequestHandler
         }
         catch (ClassNotFoundException cnfex)
         {
-            Logger.getLogger(getClass()).error("Viewhandler class "
+            logger.error("Viewhandler class "
                                          + viewHandlerClassName
                                          + " cannot be found: " + cnfex);
         }
-        catch (InstantiationException instEx)
+        catch (InstantiationException | IllegalAccessException instEx)
         {
-            Logger.getLogger(getClass()).error("Viewhandler class "
+            logger.error("Viewhandler class "
                     + viewHandlerClassName
                     + " cannot be instantiated: " + instEx);
         }
-        catch (IllegalAccessException iaEx)
-        {
-            Logger.getLogger(getClass()).error("Viewhandler class "
-                    + viewHandlerClassName
-                    + " cannot be instantiated: " + iaEx);
-        }
         catch (ClassCastException cex)
         {
-            Logger.getLogger(getClass()).error("Viewhandler class "
+            logger.error("Viewhandler class "
                     + viewHandlerClassName
                     + " does not implement the ViewHandler interface: "
                     + cex);
@@ -472,10 +461,8 @@ public class UserRequestHandler extends ProtectedRequestHandler
      * @return encoding or null, if unknown
      */
     protected String guessFileEncoding(String filePath) {
-        try 
+        try (FileInputStream fin = new FileInputStream(filePath))
         {
-            FileInputStream fin = new FileInputStream(filePath);
-            
             int byte1 = fin.read();
             if (byte1 != (-1)) 
             {
@@ -490,10 +477,8 @@ public class UserRequestHandler extends ProtectedRequestHandler
                     }
                 }
             }
-            fin.close();
-            
         } catch (IOException ioex) {
-            Logger.getLogger(getClass()).warn("cannot determine file encoding for " + filePath);
+            logger.warn("cannot determine file encoding for " + filePath);
         }
 
         return FileEncodingMap.getInstance().getFileEncoding(filePath);
@@ -539,12 +524,8 @@ public class UserRequestHandler extends ProtectedRequestHandler
         
         int byteCounter = 0;
         
-    	BufferedInputStream fin = null;
-    	
-    	try 
+    	try (BufferedInputStream fin = new BufferedInputStream(new FileInputStream(filePath)))
     	{
-        	fin = new BufferedInputStream(new FileInputStream(filePath));
-
         	int bytesWithoutLineBreak = 0;
 
     		int c;
@@ -569,20 +550,7 @@ public class UserRequestHandler extends ProtectedRequestHandler
     	}
     	catch (IOException ioex)
     	{
-    		Logger.getLogger(getClass()).error("failed to check if text file", ioex);
-    	}
-    	finally
-    	{
-    		if (fin != null) 
-    		{
-    			try
-    			{
-    				fin.close();
-    			}
-    			catch (IOException ex)
-    			{
-    			}
-    		}
+    		logger.error("failed to check if text file", ioex);
     	}
 
     	return (!seemsToBeBinary);

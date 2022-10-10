@@ -1,29 +1,34 @@
 package de.webfilesys.unix;
 
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.StringTokenizer;
+import org.apache.logging.log4j.LogManager;
 
 /**
  *  For old Linux (< Suse 6.4) wich does not support ps -eo user,pid,.......
  */
 public class OldLinuxProcessTree extends ProcessTree
 {
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(OldLinuxProcessTree.class);
+
     public OldLinuxProcessTree(String userid)
     {
         super(userid);
     }
 
+    @Override
     protected void readProcessList()
     {
         String prog_name_parms[];
      
         prog_name_parms=new String[3];
 
-        prog_name_parms[0]=new String("/bin/sh");
-        prog_name_parms[1]=new String("-c");
+        prog_name_parms[0]="/bin/sh";
+        prog_name_parms[1]="-c";
 
-        prog_name_parms[2]=new String("ps auxlww --sort=uid,pid" + " 2>&1");
+        prog_name_parms[2]="ps auxlww --sort=uid,pid" + " 2>&1";
 
         Runtime rt=Runtime.getRuntime();
 
@@ -33,12 +38,12 @@ public class OldLinuxProcessTree extends ProcessTree
         {
             dsmc_process=rt.exec(prog_name_parms);
         }
-        catch (Exception e)
+        catch (IOException e)
         {
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
         }
 
-        DataInputStream dsmc_out=new DataInputStream(dsmc_process.getInputStream());
+        try(BufferedReader dsmc_out=new BufferedReader(new InputStreamReader(dsmc_process.getInputStream()))){
         String stdout_line=null;
 
         StringTokenizer proc_parser=null;
@@ -59,14 +64,7 @@ public class OldLinuxProcessTree extends ProcessTree
 
         while (!done)
         {
-            try 
-            {
                 stdout_line = dsmc_out.readLine();
-            }
-            catch (IOException ioe)
-            {
-                System.out.println(ioe);
-            }
               
             if (stdout_line==null)
             {
@@ -115,7 +113,11 @@ public class OldLinuxProcessTree extends ProcessTree
                     }
                 }
             }
-        }     
+        }}
+        catch (IOException ioe)
+        {
+                logger.error(ioe.getMessage(),ioe);
+        }
     }
 
 }

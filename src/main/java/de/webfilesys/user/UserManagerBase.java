@@ -1,6 +1,8 @@
 package de.webfilesys.user;
 
 import java.io.File;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Extend this class to implement your own user manager 
@@ -14,6 +16,7 @@ import java.io.File;
  */
 public abstract class UserManagerBase extends Thread implements UserManager
 {
+    private static final Logger logger = LogManager.getLogger(UserManagerBase.class);
     public boolean readyForShutdown=false;
 
     public String getLowerCaseDocRoot(String userId)
@@ -41,7 +44,7 @@ public abstract class UserManagerBase extends Thread implements UserManager
             File docRootFile=new File(documentRoot);
             if ((!docRootFile.exists()) || (!docRootFile.isDirectory()))
             {
-                System.out.println("*** the document root directory " + documentRoot + " does not exist!");
+                logger.error("*** the document root directory " + documentRoot + " does not exist!");
             }
         }
 
@@ -69,6 +72,7 @@ public abstract class UserManagerBase extends Thread implements UserManager
      * actions periodically and/or before server shutdown.
      * Otherwise leave the default implementation of this method untouched.
      */
+    @Override
     public synchronized void run()
     {
         boolean exitFlag=false;

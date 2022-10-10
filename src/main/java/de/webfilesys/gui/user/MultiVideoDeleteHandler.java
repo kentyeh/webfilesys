@@ -7,16 +7,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.graphics.VideoThumbnailCreator;
 import de.webfilesys.gui.xsl.XslVideoListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MultiVideoDeleteHandler extends MultiImageRequestHandler {
+    private static final Logger logger = LogManager.getLogger(MultiVideoDeleteHandler.class);
 	boolean clientIsLocal = false;
 
 	public MultiVideoDeleteHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
@@ -26,12 +28,13 @@ public class MultiVideoDeleteHandler extends MultiImageRequestHandler {
 		this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
 		}
 
-		StringBuffer errorMsg = new StringBuffer();
+		StringBuilder errorMsg = new StringBuilder();
 
 		MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 
@@ -50,7 +53,7 @@ public class MultiVideoDeleteHandler extends MultiImageRequestHandler {
 				if (errorMsg.length() > 0) {
 					errorMsg.append("<br/>");
 				}
-				errorMsg.append(getResource("alert.delete.failed", "cannot delete file ") + "<br/>" + selectedFile);
+				errorMsg.append(getResource("alert.delete.failed", "cannot delete file ")).append("<br/>").append(selectedFile);
 			} else {
 				metaInfMgr.removeMetaInf(actPath, selectedFile);
 
@@ -60,7 +63,7 @@ public class MultiVideoDeleteHandler extends MultiImageRequestHandler {
 
 				if (thumbnailFile.exists()) {
 					if (!thumbnailFile.delete()) {
-						Logger.getLogger(getClass()).debug("failed to remove video thumbnail file " + thumbnailPath);
+						logger.debug("failed to remove video thumbnail file " + thumbnailPath);
 					}
 				}
 			}

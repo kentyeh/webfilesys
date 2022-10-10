@@ -8,10 +8,11 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.ViewHandlerConfig;
 import de.webfilesys.WebFileSys;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Decompiles Java class files and forwards the generated Java source code 
@@ -21,6 +22,8 @@ import de.webfilesys.WebFileSys;
  */
 public class JavaClassViewHandler implements ViewHandler
 {
+    private static final Logger logger = LogManager.getLogger(JavaClassViewHandler.class);
+    @Override
     public void process(String filePath, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req, HttpServletResponse resp)
     {
         try 
@@ -54,7 +57,7 @@ public class JavaClassViewHandler implements ViewHandler
             }
             catch (Exception e)
             {
-                Logger.getLogger(getClass()).error(e);
+                logger.error(e);
                 return;
             }
 
@@ -64,13 +67,13 @@ public class JavaClassViewHandler implements ViewHandler
             }
             catch (InterruptedException iex)
             {
-                Logger.getLogger(getClass()).error(iex);
+                logger.error(iex);
                 return;
             }
 
             if (decompileProcess.exitValue()!=0)
             {
-                Logger.getLogger(getClass()).error("exit value from jad: " + decompileProcess.exitValue());
+                logger.error("exit value from jad: " + decompileProcess.exitValue());
                 return;
             }
             
@@ -89,7 +92,7 @@ public class JavaClassViewHandler implements ViewHandler
         }
         catch (IOException ioex) 
         {
-            Logger.getLogger(getClass()).error(ioex);
+            logger.error(ioex);
         }
     }
     
@@ -102,6 +105,7 @@ public class JavaClassViewHandler implements ViewHandler
      * @param req the servlet request
      * @param resp the servlet response
      */
+    @Override
     public void processZipContent(String zipFilePath, InputStream zipIn, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req, HttpServletResponse resp)
     {
         try 
@@ -122,7 +126,7 @@ public class JavaClassViewHandler implements ViewHandler
             
             String classTempFilePath = classTempFile.getAbsolutePath();
             
-            FileOutputStream classTempOut = new FileOutputStream(classTempFile);
+            try(FileOutputStream classTempOut = new FileOutputStream(classTempFile)){
             
             byte[] buff = new byte[4096];
             
@@ -133,7 +137,7 @@ public class JavaClassViewHandler implements ViewHandler
                 classTempOut.write(buff, 0, bytesRead);
             }
             
-            classTempOut.close();
+            }
             
             String jadPath = WebFileSys.getInstance().getConfigBaseDir() + File.separator + "jad.exe";
             
@@ -149,7 +153,7 @@ public class JavaClassViewHandler implements ViewHandler
             }
             catch (Exception e)
             {
-                Logger.getLogger(getClass()).error(e);
+                logger.error(e);
                 return;
             }
 
@@ -159,13 +163,13 @@ public class JavaClassViewHandler implements ViewHandler
             }
             catch (InterruptedException iex)
             {
-                Logger.getLogger(getClass()).error(iex);
+                logger.error(iex);
                 return;
             }
 
             if (decompileProcess.exitValue() != 0)
             {
-                Logger.getLogger(getClass()).error("exit value from jad: " + decompileProcess.exitValue());
+                logger.error("exit value from jad: " + decompileProcess.exitValue());
                 return;
             }
             
@@ -186,7 +190,7 @@ public class JavaClassViewHandler implements ViewHandler
         }
         catch (IOException ioex) 
         {
-            Logger.getLogger(getClass()).error(ioex);
+            logger.error(ioex);
         }
     }
     
@@ -194,6 +198,7 @@ public class JavaClassViewHandler implements ViewHandler
      * Does this ViewHandler support reading the file from an input stream of a ZIP archive?
      * @return true if reading from ZIP archive is supported, otherwise false
      */
+    @Override
     public boolean supportsZipContent()
     {
         return true;

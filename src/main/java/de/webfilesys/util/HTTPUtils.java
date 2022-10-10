@@ -49,7 +49,7 @@ public class HTTPUtils
     public static String createHTTPHeader(int responseIdx,String mime_type,int length,
                                           boolean closeConnection)
     {
-    	StringBuffer buff = new StringBuffer();
+    	StringBuilder buff = new StringBuilder();
     	
 		int code = responseCodes[responseIdx];
 		String message = responseMessages[responseIdx];
@@ -59,14 +59,14 @@ public class HTTPUtils
 		SimpleDateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z",Locale.US);
 		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
-		buff.append(HTTP_VERSION + " " + code + " " + message + "\r\n");
+		buff.append(HTTP_VERSION + " ").append(code).append(" ").append(message).append("\r\n");
 		
-		buff.append("Date: " + httpDateFormat.format(today) + "\r\n");
-		buff.append("Content-type: " + mime_type + "\r\n");
+		buff.append("Date: ").append(httpDateFormat.format(today)).append("\r\n");
+		buff.append("Content-type: ").append(mime_type).append("\r\n");
 
 		if (length>=0)
 		{
-		    buff.append("Content-length: " + length + "\r\n");
+		    buff.append("Content-length: ").append(length).append("\r\n");
 		}
 
         if (closeConnection)
@@ -91,19 +91,19 @@ public class HTTPUtils
 		SimpleDateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z",Locale.US);
 		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 
 		buff.append(RESPONSE_OK_HEADER);
 		
-		buff.append("Date: " + httpDateFormat.format(today) + "\r\n");
+		buff.append("Date: ").append(httpDateFormat.format(today)).append("\r\n");
 		
-		buff.append("Content-type: " + mimeType + "\r\n");
+		buff.append("Content-type: ").append(mimeType).append("\r\n");
 		
-		buff.append("Expires: " + httpDateFormat.format(new Date(System.currentTimeMillis() + expMillis)) + "\r\n");
+		buff.append("Expires: ").append(httpDateFormat.format(new Date(System.currentTimeMillis() + expMillis))).append("\r\n");
 
 		if (docLength>=0)
 		{
-			buff.append("Content-length: " + docLength + "\r\n");
+			buff.append("Content-length: ").append(docLength).append("\r\n");
 		}
 
 		// buff.append("Connection: close\r\n");
@@ -117,15 +117,15 @@ public class HTTPUtils
 	{
 		Date   today      = new Date();
 
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 
 		buff.append(RESPONSE_OK_HEADER);
 
-		buff.append("Date: " + today.toString() + "\r\n");
+		buff.append("Date: ").append(today.toString()).append("\r\n");
 
 		buff.append("Content-type: text/html \r\n");
 
-		buff.append("Set-Cookie: fmwebuid=" + sessionId + "; Path=/; Version=1\r\n");
+		buff.append("Set-Cookie: fmwebuid=").append(sessionId).append("; Path=/; Version=1\r\n");
 
 		buff.append("Connection: close\r\n");
 
@@ -138,11 +138,11 @@ public class HTTPUtils
 	{
 		Date today = new Date();
 
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 
 		buff.append(RESPONSE_OK_HEADER);
 
-		buff.append("Date: " + today.toString() + "\r\n");
+		buff.append("Date: ").append(today.toString()).append("\r\n");
 		buff.append("Content-type: text/html\r\n");
 
 		buff.append("Connection: close\r\n");
@@ -156,11 +156,11 @@ public class HTTPUtils
 	{
 		Date today = new Date();
 
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 
 		buff.append(RESPONSE_OK_HEADER);
 
-		buff.append("Date: " + today.toString() + "\r\n");
+		buff.append("Date: ").append(today.toString()).append("\r\n");
 		buff.append("Content-type: text/xml\r\n");
 		buff.append("Expires: 0");
 

@@ -13,16 +13,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class TailRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(TailRequestHandler.class);
     private static final int NUMBER_OF_LINES_TO_PRINT = 40;
     
     private static final String ENCODING_ERROR = "#### failed to read line due to charcater encoding problems";
@@ -42,9 +43,10 @@ public class TailRequestHandler extends UserRequestHandler
 	{
         super(req, resp, session, output, uid);
         
-        lineQueue = new ArrayList<String>();
+        lineQueue = new ArrayList<>();
 	}
 
+        @Override
 	protected void process()
 	{
 		String filePath = getParameter("filePath");
@@ -55,7 +57,7 @@ public class TailRequestHandler extends UserRequestHandler
 		    
 		    if (fileName == null)
 		    {
-		        Logger.getLogger(getClass()).warn("parameters filePath and fileName missing");
+		        logger.warn("parameters filePath and fileName missing");
 		        return;
 		    }
 		    else
@@ -124,13 +126,13 @@ public class TailRequestHandler extends UserRequestHandler
         
         if (!fileToSend.exists())
         {
-        	Logger.getLogger(getClass()).warn("requested file does not exist: " + filePath);
+        	logger.warn("requested file does not exist: " + filePath);
         	
         	error = true;
         }
         else if ((!fileToSend.isFile()) || (!fileToSend.canRead()))
         {
-        	Logger.getLogger(getClass()).warn("requested file is not a readable file: " + filePath);
+        	logger.warn("requested file is not a readable file: " + filePath);
         	
         	error = true;
         }
@@ -148,23 +150,10 @@ public class TailRequestHandler extends UserRequestHandler
 		
         String fileEncoding = guessFileEncoding(filePath);
 		
-        BufferedReader fin = null;
-        FileInputStream fis = null;
         
-        try
+        try (BufferedReader fin = fileEncoding == null?new BufferedReader(new FileReader(filePath))
+                :new BufferedReader(new InputStreamReader(new FileInputStream(filePath), fileEncoding)))
         {
-            if (fileEncoding == null) 
-            {
-                // unknown - use OS default encoding
-                fin = new BufferedReader(new FileReader(filePath));
-            }
-            else 
-            {
-                fis = new FileInputStream(filePath);
-                
-                fin = new BufferedReader(new InputStreamReader(fis, fileEncoding));
-            }
-            
             String line = null;
             
             boolean eof = false;
@@ -188,7 +177,7 @@ public class TailRequestHandler extends UserRequestHandler
                     }
                 } 
                 catch (Exception miEx) {
-                    Logger.getLogger(getClass()).warn("error during reading file for tail", miEx);
+                    logger.warn("error during reading file for tail", miEx);
                     excCounter++;
                     queueLine(ENCODING_ERROR);
                 }
@@ -196,24 +185,7 @@ public class TailRequestHandler extends UserRequestHandler
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error("failed to read file for tail", ioex);
-        }
-        finally
-        {
-            try
-            {
-                if (fin != null)
-                {
-                    fin.close();
-                }
-                if (fis != null)
-                {
-                    fis.close();
-                }
-            }
-            catch (Exception ex)
-            {
-            }
+            logger.error("failed to read file for tail", ioex);
         }
         
         output.println("<HTML>");
@@ -258,9 +230,7 @@ public class TailRequestHandler extends UserRequestHandler
 
         output.println("<pre>");
 
-        for (int i = 0; i < lineQueue.size(); i++)
-        {
-            String line = (String) lineQueue.get(i);
+        for (String line : lineQueue) {
             output.println(CommonUtils.escapeHTML(line));
         }
         

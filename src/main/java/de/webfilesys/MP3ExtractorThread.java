@@ -2,10 +2,13 @@ package de.webfilesys;
 
 import java.io.File;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MP3ExtractorThread extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(MP3ExtractorThread.class);
+
     public String musicFileMasks[]={"*.mp3"};
 
     String basePath=null;
@@ -17,6 +20,7 @@ public class MP3ExtractorThread extends Thread
         basePath=actPath;
     }
 
+    @Override
     public void run()
     {
         setPriority(1);
@@ -29,7 +33,7 @@ public class MP3ExtractorThread extends Thread
         {
             long endTime=System.currentTimeMillis();
 
-            Logger.getLogger(getClass()).debug("MP3ExtractorThread extracted tags from " + numExtracted + " files (" + (endTime-startTime) + " ms)");
+            logger.debug("MP3ExtractorThread extracted tags from " + numExtracted + " files (" + (endTime-startTime) + " ms)");
         }
     }
 
@@ -50,21 +54,17 @@ public class MP3ExtractorThread extends Thread
 
         if ((selectedFiles!=null) && (selectedFiles.size()>0))
         {
-            for (int i=0;i<selectedFiles.size();i++)
-            {
-                String mp3FileName=actPath + (String) selectedFiles.get(i);
-
+            for (String selectedFile : selectedFiles) {
+                String mp3FileName = actPath + (String) selectedFile;
                 MetaInfManager metaInfMgr=MetaInfManager.getInstance();
-                
                 String description=metaInfMgr.getDescription(mp3FileName);
-
                 if ((description==null) || (description.trim().length()==0))
                 {
                     MP3V2Info mp3Info = new MP3V2Info(mp3FileName);
 
                     if (mp3Info.isTagIncluded())
                     {
-                        StringBuffer songInfo=new StringBuffer();
+                        StringBuilder songInfo=new StringBuilder();
 
                         String tmp=mp3Info.getArtist();
 

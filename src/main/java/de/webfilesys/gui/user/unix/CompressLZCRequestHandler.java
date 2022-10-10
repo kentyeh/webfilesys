@@ -10,19 +10,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import com.googlecode.compress_j2me.lzc.LZCInputStream;
 import com.googlecode.compress_j2me.lzc.LZCOutputStream;
 
 import de.webfilesys.gui.user.UserRequestHandler;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CompressLZCRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(CompressLZCRequestHandler.class);
 	public CompressLZCRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -33,6 +35,7 @@ public class CompressLZCRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -93,7 +96,7 @@ public class CompressLZCRequestHandler extends UserRequestHandler
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error("error during compress/uncompress of file " + fileName, ioex);
+            logger.error("error during compress/uncompress of file " + fileName, ioex);
             javascriptAlert(getResource("alert.compresserror","Error during compress/uncompress!"));
         }
         
@@ -142,11 +145,10 @@ public class CompressLZCRequestHandler extends UserRequestHandler
         
         uncompressedFileName = uncompressedFileName + appendix;
         
-        FileOutputStream uncompressedOut = new FileOutputStream(uncompressedFileName);
-	    
-        FileInputStream compressedIn = new FileInputStream(compressedFileName);
+        try(FileOutputStream uncompressedOut = new FileOutputStream(uncompressedFileName);  
+                FileInputStream compressedIn = new FileInputStream(compressedFileName);
+                LZCInputStream lzwIn = new LZCInputStream(compressedIn)){
 
-	    LZCInputStream lzwIn = new LZCInputStream(compressedIn);
 	    byte[] buffer = new byte[128];
 	    int bytesRead;
 	    while ((bytesRead = lzwIn.read(buffer)) >= 0) 
@@ -154,13 +156,9 @@ public class CompressLZCRequestHandler extends UserRequestHandler
 	        uncompressedOut.write(buffer, 0, bytesRead);
 	    }
 	    uncompressedOut.flush();
-
-	    compressedIn.close();
-	    
-	    uncompressedOut.close();
-	    
 	    return uncompressedFileName;
 	}
+        }
 
     private String compress(String uncompressedFileName) 
     throws IOException
@@ -191,11 +189,9 @@ public class CompressLZCRequestHandler extends UserRequestHandler
         
         compressedFileName = compressedFileName + appendix;
         
-        FileInputStream uncompressedIn = new FileInputStream(uncompressedFileName);
-
-        FileOutputStream compressedOut = new FileOutputStream(compressedFileName);
-        
-        LZCOutputStream lzwOut = new LZCOutputStream(compressedOut);
+        try(FileInputStream uncompressedIn = new FileInputStream(uncompressedFileName);
+                FileOutputStream compressedOut = new FileOutputStream(compressedFileName);
+                LZCOutputStream lzwOut = new LZCOutputStream(compressedOut)){
         byte[] buffer = new byte[128];
         int bytesRead;
         while ((bytesRead = uncompressedIn.read(buffer)) >= 0) {
@@ -205,9 +201,7 @@ public class CompressLZCRequestHandler extends UserRequestHandler
         lzwOut.flush();
         lzwOut.end();
 
-        compressedOut.close();
-        uncompressedIn.close();
-        
+        }
         return compressedFileName;
     }
 }

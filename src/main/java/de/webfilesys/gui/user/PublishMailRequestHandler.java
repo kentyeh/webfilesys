@@ -42,6 +42,7 @@ public class PublishMailRequestHandler extends UserRequestHandler
 		serverPort = req.getServerPort();
 	}
 
+        @Override
 	protected void process()
 	{
 		String expiration=getParameter("expiration");
@@ -60,7 +61,7 @@ public class PublishMailRequestHandler extends UserRequestHandler
 			return;
 		}
 
-		StringBuffer errorMsg=new StringBuffer();
+		StringBuilder errorMsg=new StringBuilder();
 
 		String msgText = null;
 		String emailList = null;
@@ -73,7 +74,7 @@ public class PublishMailRequestHandler extends UserRequestHandler
         {
 			msgText=getParameter("msgText");
 
-			mailReceivers = new ArrayList<String>();
+			mailReceivers = new ArrayList<>();
 
 			emailList=getParameter("receiver");
 
@@ -225,7 +226,7 @@ public class PublishMailRequestHandler extends UserRequestHandler
             userMgr.setPassword(virtualUser, accessCode);
 		}
 
-		StringBuffer secretURL=new StringBuffer();
+		StringBuilder secretURL=new StringBuilder();
 
 		if (ssl)
 		{
@@ -291,7 +292,7 @@ public class PublishMailRequestHandler extends UserRequestHandler
 
 			SmtpEmail message=new SmtpEmail(mailReceivers,subject,content.toString());
 
-			StringBuffer mailSenderName=new StringBuffer();
+			StringBuilder mailSenderName=new StringBuilder();
 
 			String firstName=userMgr.getFirstName(uid);
 			String lastName=userMgr.getLastName(uid);
@@ -593,7 +594,8 @@ public class PublishMailRequestHandler extends UserRequestHandler
 		if (invite == null)
 		{
 		    output.print(" disabled=\"true\"");
-		}		output.println(" style=\"width:100%;\">");
+		}
+		output.println(" style=\"width:100%;\">");
 		output.println("</td></tr>");
 
 		output.println("<tr><td colspan=\"2\" class=\"formParm1\">");
@@ -705,19 +707,14 @@ public class PublishMailRequestHandler extends UserRequestHandler
 			output.print("<option>" + LanguageManager.DEFAULT_LANGUAGE + "</option>");
 		}
 
-		for (int i=0;i<languages.size();i++)
-		{
-			String lang=(String) languages.get(i);
-
-			output.print("<option");
-
-			if (lang.equals(userLanguage))
-			{
-				output.print(" selected=\"true\"");
-			}
-
-			output.println(">" + lang + "</option>");
-		}
+            for (String lang : languages) {
+                output.print("<option");
+                if (lang.equals(userLanguage))
+                {
+                    output.print(" selected=\"true\"");
+                }
+                output.println(">" + lang + "</option>");
+            }
         output.println("</select>");
         output.println("</td>");
         output.println("</tr>");

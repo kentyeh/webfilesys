@@ -16,13 +16,16 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.UnsupportedEncodingException;
+import javax.mail.MessagingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SmtpEmail extends Thread {
-	
+	private static final Logger logger = LogManager.getLogger(SmtpEmail.class);
 	private static final String CONTENT_TYPE_PLAINTEXT = "text/plain; charset=ISO-8859-1";
 	
 	private ArrayList<String> receiverList = null;
@@ -44,14 +47,14 @@ public class SmtpEmail extends Thread {
     }
 
     public SmtpEmail(String receiver, String subject, String msgText) {
-    	receiverList = new ArrayList<String>();
+    	receiverList = new ArrayList<>();
         receiverList.add(receiver);
         this.subject = subject;
         this.messageText = msgText;
     }
 
     public SmtpEmail(String receiver, String subject, File attachment) {
-    	receiverList = new ArrayList<String>();
+    	receiverList = new ArrayList<>();
         receiverList.add(receiver);
         this.subject = subject;
         this.attachmentFile = attachment;
@@ -59,7 +62,7 @@ public class SmtpEmail extends Thread {
 
     public SmtpEmail(String receiver, String subject, File attachment, String msgText) {
         this.messageText = msgText;
-    	receiverList = new ArrayList<String>();
+    	receiverList = new ArrayList<>();
         receiverList.add(receiver);
         this.subject = subject;
         this.attachmentFile = attachment;
@@ -101,6 +104,7 @@ public class SmtpEmail extends Thread {
     	this.start();
     }
     
+    @Override
     public synchronized void run() {
         sendInternal();
     }
@@ -165,13 +169,13 @@ public class SmtpEmail extends Thread {
             tr.close();
 
             for (String receiver : receiverList) {
-                Logger.getLogger(getClass()).info("e-mail sent to " + receiver);
+                logger.info("e-mail sent to " + receiver);
             }
             
             return true;
             
-        } catch (Exception ex) {
-            Logger.getLogger(getClass()).error("failed to send mail", ex);
+        } catch (MessagingException | UnsupportedEncodingException ex) {
+            logger.error("failed to send mail", ex);
         	return false;
         }
 	}

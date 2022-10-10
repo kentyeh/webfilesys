@@ -8,14 +8,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.SessionHandler;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
 
 public class SessionListHandler extends AdminRequestHandler
 {
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(SessionListHandler.class);
 	public SessionListHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -26,6 +27,7 @@ public class SessionListHandler extends AdminRequestHandler
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process()
 	{
 		output.println("<HTML>");
@@ -51,7 +53,7 @@ public class SessionListHandler extends AdminRequestHandler
 		output.println("<tr>");
 		output.println("<th class=\"datahead\">user</th><th class=\"datahead\">host/IP</th><th class=\"datahead\">creation time</th><th class=\"datahead\">last active time</th><th class=\"datahead\">inactive (min:sec)</th><th class=\"datahead\">browser</th><th class=\"datahead\">protocol</th></tr>");
 
-		Enumeration sessionList = SessionHandler.getSessions();
+		Enumeration<HttpSession> sessionList = SessionHandler.getSessions();
 
 		if (!sessionList.hasMoreElements()) {
 			output.println("<tr><td colspan=\"7\" class=\"data\">currently there are no active sessions</td></tr>");
@@ -59,7 +61,7 @@ public class SessionListHandler extends AdminRequestHandler
 		
 		while (sessionList.hasMoreElements())
 		{
-			HttpSession session =(HttpSession) sessionList.nextElement();
+			HttpSession session = sessionList.nextElement();
 
 			try
 			{
@@ -158,7 +160,7 @@ public class SessionListHandler extends AdminRequestHandler
 			}
 			catch (IllegalStateException iex)
 			{
-				Logger.getLogger(getClass()).debug(iex);
+				logger.debug(iex);
 			}
 		}
 

@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.ViewHandlerConfig;
@@ -19,12 +18,15 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.FileEncodingMap;
 import de.webfilesys.util.MimeTypeMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class GetFileRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(GetFileRequestHandler.class);
 	public GetFileRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -35,6 +37,7 @@ public class GetFileRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String filePath = getParameter("filePath");
@@ -64,13 +67,13 @@ public class GetFileRequestHandler extends UserRequestHandler
         
         if (!fileToSend.exists())
         {
-        	Logger.getLogger(getClass()).warn("requested file does not exist: " + filePath);
+        	logger.warn("requested file does not exist: " + filePath);
         	
         	error = true;
         }
         else if ((!fileToSend.isFile()) || (!fileToSend.canRead()))
         {
-        	Logger.getLogger(getClass()).warn("requested file is not a readable file: " + filePath);
+        	logger.warn("requested file is not a readable file: " + filePath);
         	
         	error = true;
         }
@@ -79,10 +82,8 @@ public class GetFileRequestHandler extends UserRequestHandler
         {
             resp.setStatus(404);
 
-            try
+            try (PrintWriter output = new PrintWriter(resp.getWriter()))
     		{
-    			PrintWriter output = new PrintWriter(resp.getWriter());
-    			
     			output.println("File not found or not readable: " + filePath);
     			
     			output.flush();
@@ -91,7 +92,7 @@ public class GetFileRequestHandler extends UserRequestHandler
     		}
             catch (IOException ioEx)
             {
-            	Logger.getLogger(getClass()).warn(ioEx);
+            	logger.warn(ioEx);
             }
         }
 
@@ -156,13 +157,9 @@ public class GetFileRequestHandler extends UserRequestHandler
             buffer = new byte[65536];
         }
 		
-		FileInputStream fileInput = null;
-
-		try
+		try (OutputStream byteOut = resp.getOutputStream();
+                        FileInputStream fileInput = new FileInputStream(fileToSend))
 		{
-			OutputStream byteOut = resp.getOutputStream();
-
-			fileInput = new FileInputStream(fileToSend);
 			
 			int count = 0;
 			long bytesWritten = 0;
@@ -176,7 +173,7 @@ public class GetFileRequestHandler extends UserRequestHandler
 
 	        if (bytesWritten != fileSize)
 	        {
-	            Logger.getLogger(getClass()).warn(
+	            logger.warn(
 	                "only " + bytesWritten + " bytes of " + fileSize + " have been written to output");
 	        } 
 
@@ -185,28 +182,15 @@ public class GetFileRequestHandler extends UserRequestHandler
 	        buffer = null;
 
 	        // if (incrDownload)
-			if (WebFileSys.getInstance().isDownloadStatistics() && (filePath.indexOf(ThumbnailThread.THUMBNAIL_SUBDIR) < 0))
+			if (WebFileSys.getInstance().isDownloadStatistics() && (!filePath.contains(ThumbnailThread.THUMBNAIL_SUBDIR)))
 			{
 				MetaInfManager.getInstance().incrementDownloads(filePath);
 			}
 		}
         catch (IOException ioEx)
         {
-        	Logger.getLogger(getClass()).warn(ioEx);
+        	logger.warn(ioEx);
         }
-		finally 
-		{
-			if (fileInput != null) 
-			{
-			    try
-			    {
-		            fileInput.close();
-			    }
-			    catch (Exception ex) 
-			    {
-			    }
-			}
-		}
 	}
 	
 }

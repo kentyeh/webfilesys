@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -25,6 +24,9 @@ import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.PatternComparator;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import java.text.ParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Search for files and present search results as tree.
@@ -33,6 +35,7 @@ import de.webfilesys.util.XmlUtil;
  */
 public class XslFindFileHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslFindFileHandler.class);
 	int filesFoundNum;
 	
 	int docRootTokenCount;
@@ -53,6 +56,7 @@ public class XslFindFileHandler extends XslRequestHandlerBase
 		metaInfMgr = MetaInfManager.getInstance();
 	}
 
+        @Override
 	protected void process()
 	{
 		String actPath = getParameter("actpath");
@@ -98,8 +102,8 @@ public class XslFindFileHandler extends XslRequestHandlerBase
                 toDate.setMinutes(59);
                 toDate.setSeconds(59);
 			}
-		} catch (Exception ex) {
-			Logger.getLogger(getClass()).warn("invalid date format in search date range", ex);
+		} catch (ParseException ex) {
+			logger.warn("invalid date format in search date range", ex);
 		}
 
         Category category = null;
@@ -149,56 +153,37 @@ public class XslFindFileHandler extends XslRequestHandlerBase
 
 		if (fileList != null)
 		{
-			for (int i = 0; i < fileList.length; i++)
-			{
-                File tempFile = new File(actPath, fileList[i]);
-
-				if (tempFile.isDirectory())
-				{
-					if (includeSubdirs)
-					{
-						if (!dirIsLink(tempFile))
-						{
-							if (!fileList[i].equals(ThumbnailThread.THUMBNAIL_SUBDIR))
-							{
-                                String subDir = null;
-
-								if (actPath.endsWith(File.separator))
-								{
-									subDir = actPath + fileList[i];
-								}
-								else
-								{
-									subDir = actPath + File.separator + fileList[i];
-								}
-									
-								findFile(subDir, fileNamePattern, includeSubdirs, fromDate, toDate, category);
-							}
-						}
-					}
-				}
-				else
-				{
-					if (PatternComparator.patternMatch(fileList[i], fileNamePattern))
-					{
-						if (filePatternGiven || (!fileList[i].equals(MetaInfManager.METAINF_FILE)))
-						{
-							// if any file with given date range is searched, ignore the metainf files
-							
-							if ((tempFile.lastModified() >= fromDate) && (tempFile.lastModified() <= toDate))
-                            {
-                                if ((category == null) || 
-                                    metaInfMgr.isCategoryAssigned(actPath, fileList[i], category))
-                                {
-                                    addSearchResult(searchResultElement, tempFile.getAbsolutePath());
-                                    
-                                    filesFoundNum++;
+                    for (String fileList1 : fileList) {
+                        File tempFile = new File(actPath, fileList1);
+                        if (tempFile.isDirectory()) {
+                            if (includeSubdirs) {
+                                if (!dirIsLink(tempFile)) {
+                                    if (!fileList1.equals(ThumbnailThread.THUMBNAIL_SUBDIR)) {
+                                        String subDir = null;
+                                        if (actPath.endsWith(File.separator)) {
+                                            subDir = actPath + fileList1;
+                                        } else {
+                                            subDir = actPath + File.separator + fileList1;
+                                        }
+                                        findFile(subDir, fileNamePattern, includeSubdirs, fromDate, toDate, category);
+                                    }
                                 }
                             }
-						}
-					}
-				}
-			}
+                        } else {
+                            if (PatternComparator.patternMatch(fileList1, fileNamePattern)) {
+                                if (filePatternGiven || (!fileList1.equals(MetaInfManager.METAINF_FILE))) {
+                                    // if any file with given date range is searched, ignore the metainf files
+                                    if ((tempFile.lastModified() >= fromDate) && (tempFile.lastModified() <= toDate)) {
+                                        if ((category == null) || metaInfMgr.isCategoryAssigned(actPath, fileList1, category)) {
+                                            addSearchResult(searchResultElement, tempFile.getAbsolutePath());
+                                            
+                                            filesFoundNum++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 			
             if (category != null)
             {
@@ -207,7 +192,7 @@ public class XslFindFileHandler extends XslRequestHandlerBase
 		}
 		else
 		{
-		    Logger.getLogger(getClass()).error("cannot get dir entries for " + actPath);
+		    logger.error("cannot get dir entries for " + actPath);
 		}
 
 		fileList = null;

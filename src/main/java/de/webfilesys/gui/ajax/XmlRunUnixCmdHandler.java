@@ -1,6 +1,5 @@
 package de.webfilesys.gui.ajax;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -8,17 +7,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.XmlUtil;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlRunUnixCmdHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlRunUnixCmdHandler.class);
 	public XmlRunUnixCmdHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -29,11 +32,12 @@ public class XmlRunUnixCmdHandler extends XmlRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process()
 	{
         if ((!isAdminUser(false)) || (!userMgr.getDocumentRoot(uid).equals("/")))
         {
-            Logger.getLogger(getClass()).warn("UNIX command line is only available for admin users with root access");
+            logger.warn("UNIX command line is only available for admin users with root access");
             return;
         }
 		
@@ -64,7 +68,7 @@ public class XmlRunUnixCmdHandler extends XmlRequestHandlerBase
 	
 	private String runUnixCmd(String unixCmd)
 	{
-	    StringBuffer buff = new StringBuffer();
+	    StringBuilder buff = new StringBuilder();
 	    
 	    String cmdToExecute = unixCmd;
 	    
@@ -73,7 +77,7 @@ public class XmlRunUnixCmdHandler extends XmlRequestHandlerBase
             cmdToExecute = unixCmd + " 2>&1";
         }
  
-        Logger.getLogger(getClass()).debug("executing command : " + cmdToExecute);
+        logger.debug("executing command : " + cmdToExecute);
 
         String cmdWithParms[];
         
@@ -98,39 +102,30 @@ public class XmlRunUnixCmdHandler extends XmlRequestHandlerBase
         try
         {
             cmdProcess = rt.exec(cmdWithParms);
+            String stdoutLine = null;
+
+            boolean done = false;
+
+            try (BufferedReader cmdOut = new BufferedReader(new InputStreamReader(cmdProcess.getInputStream()))){
+                while (!done) {
+                    stdoutLine = cmdOut.readLine();
+
+                    if (stdoutLine == null) {
+                        done = true;
+                    } else {
+                        buff.append(stdoutLine);
+                        buff.append('\n');
+                    }
+                }
+            } catch (IOException ioe) {
+                logger.error("failed to read OS command output", ioe);
+            }
         }
         catch (Exception e)
         {
-            Logger.getLogger(getClass()).error("failed to run OS command", e);
+            logger.error("failed to run OS command", e);
         }
 
-        DataInputStream cmdOut = new DataInputStream(cmdProcess.getInputStream());
-        String stdoutLine = null;
-
-        boolean done = false;
-
-        try
-        {
-            while (!done)
-            {
-                stdoutLine = cmdOut.readLine();
-
-                if (stdoutLine == null)
-                {
-                    done = true;
-                }
-                else
-                {
-                    buff.append(stdoutLine);
-                    buff.append('\n');
-                }
-            }
-        }
-        catch (IOException ioe)
-        {
-            Logger.getLogger(getClass()).error("failed to read OS command output", ioe);
-        }
-        
         return buff.toString();
 	}
 }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" name="${artifactId}" verbose="false" monitorInterval="30">
+    <Appenders>
+        <Console name="console">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%-5level} - %highlight{%msg}%n%ex{full}%n" />
+        </Console>
+        <RollingRandomAccessFile name="WebFileSysLogAppender" fileName="${sys:catalina.home}/logs/${project.artifactId}.log"
+                                 filePattern="${sys:catalina.home}/logs/${project.artifactId}-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <pattern>%d %p [%t] %C{1.}.%M(%L) %m%n%ex{full}%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="5 MB" />
+            </Policies>
+        </RollingRandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <AsyncLogger name="de.webfilesys" level="DEBUG" additivity="false" includeLocation="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="WebFileSysLogAppender" />
+            <AsyncRoot level="info">
+                <AppenderRef ref="console"/>
+                <AppenderRef ref="WebFileSysLogAppender" />
+            </AsyncRoot>
+        </AsyncLogger>
+    </Loggers>
+</Configuration>

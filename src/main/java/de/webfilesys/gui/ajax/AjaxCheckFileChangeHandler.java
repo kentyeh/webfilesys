@@ -7,16 +7,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AjaxCheckFileChangeHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(AjaxCheckFileChangeHandler.class);
 	public AjaxCheckFileChangeHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -53,9 +55,9 @@ public class AjaxCheckFileChangeHandler extends XmlRequestHandlerBase
         {
             lastModifiedOld = Long.parseLong(lastModifiedParam);
         }
-        catch (Exception ex)
+        catch (NumberFormatException ex)
         {
-            Logger.getLogger(getClass()).warn(ex);
+            logger.warn(ex);
             return;
         }
 
@@ -72,9 +74,9 @@ public class AjaxCheckFileChangeHandler extends XmlRequestHandlerBase
         {
             sizeOld = Long.parseLong(sizeParam);
         }
-        catch (Exception ex)
+        catch (NumberFormatException ex)
         {
-            Logger.getLogger(getClass()).warn(ex);
+            logger.warn(ex);
             return;
         }
         
@@ -82,7 +84,7 @@ public class AjaxCheckFileChangeHandler extends XmlRequestHandlerBase
         
         if ((!fileToCheck.exists()) || (!fileToCheck.canRead()))
         {
-            Logger.getLogger(getClass()).warn(filePath + " is not a readable file");
+            logger.warn("{} is not a readable file", filePath);
             return;
         }
         

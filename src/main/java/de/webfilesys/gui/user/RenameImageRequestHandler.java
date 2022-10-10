@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Category;
 import de.webfilesys.Comment;
@@ -18,12 +17,15 @@ import de.webfilesys.graphics.AutoThumbnailCreator;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.gui.xsl.XslThumbnailHandler;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class RenameImageRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(RenameImageRequestHandler.class);
 	boolean fileNameKnown = false;
 
 	public RenameImageRequestHandler(
@@ -36,6 +38,7 @@ public class RenameImageRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -47,7 +50,7 @@ public class RenameImageRequestHandler extends UserRequestHandler
 		
 		if (newFileName == null)
 		{
-			Logger.getLogger(getClass()).error("required parameter newFileName missing");
+			logger.error("required parameter newFileName missing");
 			
 			return;
 		}
@@ -74,7 +77,7 @@ public class RenameImageRequestHandler extends UserRequestHandler
 
 		File dest = new File(newImagePath);
 
-		if ((newFileName.indexOf("..") >= 0) || (!source.renameTo(dest)))
+		if ((newFileName.contains("..")) || (!source.renameTo(dest)))
 		{
 			output.println("<html>");
 			output.println("<head>");
@@ -106,12 +109,9 @@ public class RenameImageRequestHandler extends UserRequestHandler
 	
 		if (assignedCategories != null)
 		{
-			for (int i=0;i<assignedCategories.size();i++)
-			{
-				Category cat = (Category) assignedCategories.get(i);
-			
-				metaInfMgr.addCategory(newImagePath, cat);
-			}
+                    for (Category cat : assignedCategories) {
+                        metaInfMgr.addCategory(newImagePath, cat);
+                    }
 		}
 
 		GeoTag geoTag = metaInfMgr.getGeoTag(imagePath);
@@ -141,7 +141,7 @@ public class RenameImageRequestHandler extends UserRequestHandler
 		{
 			if (!thumbnailFile.delete())
 			{
-				Logger.getLogger(getClass()).debug("cannot remove thumbnail file " + thumbnailPath);
+				logger.debug("cannot remove thumbnail file " + thumbnailPath);
 			}
 		}
 

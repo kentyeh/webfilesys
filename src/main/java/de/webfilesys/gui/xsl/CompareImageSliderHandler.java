@@ -9,17 +9,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CompareImageSliderHandler extends XslRequestHandlerBase {
-	private static final Logger LOG = Logger.getLogger(CompareImageSliderHandler.class);
+	private static final Logger logger = LogManager.getLogger(CompareImageSliderHandler.class);
     
 	public CompareImageSliderHandler(
     		HttpServletRequest req, 
@@ -37,7 +38,7 @@ public class CompareImageSliderHandler extends XslRequestHandlerBase {
 		List<String> selectedFiles = getSelectedFiles();
 		
 		if (selectedFiles.size() != 2) {
-		    LOG.error("this image comparision requires two selected pictures");
+		    logger.error("this image comparision requires two selected pictures");
 		    return;
 		}
 

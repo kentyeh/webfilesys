@@ -18,7 +18,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -31,6 +30,8 @@ import com.ice.tar.TarInputStream;
 import de.webfilesys.ViewHandlerConfig;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Shows the content of a UNIX tar archive as a folder tree.
@@ -39,6 +40,7 @@ import de.webfilesys.util.XmlUtil;
  * @author Frank Hoehnel
  */
 public class TarViewHandler implements ViewHandler {
+    private static final Logger logger = LogManager.getLogger(TarViewHandler.class);
 	protected Document doc = null;
 
 	protected DocumentBuilder builder = null;
@@ -51,10 +53,9 @@ public class TarViewHandler implements ViewHandler {
 	
     DecimalFormat numFormat = new DecimalFormat("#,###,###,###,###");
 
+        @Override
 	public void process(String filePath, ViewHandlerConfig viewHandlerConfig,
 			HttpServletRequest req, HttpServletResponse resp) {
-	    
-	    TarInputStream tarFile = null;
 	    
 		try {
 			docFactory = DocumentBuilderFactory.newInstance();
@@ -87,7 +88,7 @@ public class TarViewHandler implements ViewHandler {
 
 			XmlUtil.setChildText(folderTreeElement, "shortZipFileName", fileName);
 
-			tarFile = new TarInputStream(new FileInputStream(filePath));
+			try(TarInputStream tarFile = new TarInputStream(new FileInputStream(filePath))){
 
 			TarEntry tarEntry = null;
 
@@ -106,26 +107,16 @@ public class TarViewHandler implements ViewHandler {
 
 			output.flush();
 			
-			tarFile.close();
+                        }
 		} catch (ParserConfigurationException pcex) {
-			Logger.getLogger(getClass()).error(pcex.toString());
+			logger.error(pcex.toString());
 		} catch (FileNotFoundException e) {
-			Logger.getLogger(getClass()).error(
+			logger.error(
 					"failed to extract content of tar archive", e);
 
-			return;
 		} catch (IOException e) {
-			Logger.getLogger(getClass()).error(
+			logger.error(
 					"failed to extract content of tar archive", e);
-
-			if (tarFile != null) {
-			    try {
-	                tarFile.close();                
-			    } catch (Exception ex) {
-			    }
-			}
-			
-			return;
 		}
 	}
 
@@ -258,16 +249,18 @@ public class TarViewHandler implements ViewHandler {
      * @param req the servlet request
      * @param resp the servlet response
      */
+        @Override
     public void processZipContent(String zipFilePath, InputStream zipIn, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req, HttpServletResponse resp)
     {
         // not yet supported
-        Logger.getLogger(getClass()).warn("reading from ZIP archive not supported by ViewHaandler " + this.getClass().getName());
+        logger.warn("reading from ZIP archive not supported by ViewHaandler " + this.getClass().getName());
     }
     
     /**
      * Does this ViewHandler support reading the file from an input stream of a ZIP archive?
      * @return true if reading from ZIP archive is supported, otherwise false
      */
+        @Override
     public boolean supportsZipContent()
     {
         return false;

@@ -17,10 +17,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.gui.xsl.XslFileListHandler;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import javax.crypto.NoSuchPaddingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * AES encryption for a single file.
@@ -28,6 +33,7 @@ import de.webfilesys.gui.xsl.XslFileListHandler;
  */
 public class EncryptFileRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(EncryptFileRequestHandler.class);
     public static byte[] CHECKSUM = new byte[] {0x10, 0x20, 0x30, 0x40, 0x50, 0x60};
     
 	protected HttpServletRequest req = null;
@@ -48,6 +54,7 @@ public class EncryptFileRequestHandler extends UserRequestHandler
         this.resp = resp;
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -59,7 +66,7 @@ public class EncryptFileRequestHandler extends UserRequestHandler
 
 		if ((fileName == null) || (fileName.trim().length() == 0))
 		{
-		    Logger.getLogger(getClass()).error("parameter fileName missing");
+		    logger.error("parameter fileName missing");
 		    return;
 		}
 		
@@ -67,7 +74,7 @@ public class EncryptFileRequestHandler extends UserRequestHandler
 		
         if ((cryptoKey == null) || (cryptoKey.trim().length() == 0))
         {
-            Logger.getLogger(getClass()).error("parameter cryptoKey missing");
+            logger.error("parameter cryptoKey missing");
             return;
         }
 		
@@ -87,7 +94,7 @@ public class EncryptFileRequestHandler extends UserRequestHandler
 		{
 			if (!thumbnailFile.delete())
 			{
-				Logger.getLogger(getClass()).debug("cannot remove thumbnail file " + thumbnailPath);
+				logger.debug("cannot remove thumbnail file " + thumbnailPath);
 			}
 		}
 		*/
@@ -118,16 +125,16 @@ public class EncryptFileRequestHandler extends UserRequestHandler
             // CBC requires an initialization vector
             ecipher.init(Cipher.ENCRYPT_MODE, secretKey, paramSpec);
         }
-        catch (Exception e)
+        catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
         {
-            Logger.getLogger(getClass()).error("failed to create cipher for AES encryption", e);
+            logger.error("failed to create cipher for AES encryption", e);
         }
 	    
 	    File sourceFile = new File(currentPath, fileName);
 	    
 	    if ((!sourceFile.exists()) || (!sourceFile.isFile()) || (!sourceFile.canRead()))
 	    {
-	        Logger.getLogger(getClass()).error(fileName + " is not a readable file");
+	        logger.error(fileName + " is not a readable file");
 	        return;
 	    }
 	    
@@ -145,19 +152,11 @@ public class EncryptFileRequestHandler extends UserRequestHandler
 	        
 	        i++;
 	    }
-	    
-        FileInputStream fileIn = null;
-        
-        FileOutputStream fileOut = null;
-
-        try
+	
+        try(FileInputStream fileIn = new FileInputStream(sourceFile);
+                FileOutputStream fileOut = new FileOutputStream(targetFile);
+                CipherOutputStream encryptedOut = new CipherOutputStream(fileOut, ecipher))
 	    {
-	        fileIn = new FileInputStream(sourceFile);
-	        
-	        fileOut = new FileOutputStream(targetFile);
-	        
-	        CipherOutputStream encryptedOut = new CipherOutputStream(fileOut, ecipher);
-
 	        encryptedOut.write(CHECKSUM, 0, CHECKSUM.length);
 	        
             byte[] buff = new byte[1024];
@@ -168,38 +167,14 @@ public class EncryptFileRequestHandler extends UserRequestHandler
                 encryptedOut.write(buff, 0, numRead);
             }
 	        
-            encryptedOut.close();
 	    }
 	    catch (FileNotFoundException fnfEx)
 	    {
-	        Logger.getLogger(getClass()).error(fnfEx);
+	        logger.error(fnfEx);
 	    }
 	    catch (IOException ioex)
 	    {
-	        Logger.getLogger(getClass()).error(ioex);
-	    }
-	    finally
-	    {
-            if (fileIn != null)
-            {
-                try
-                {
-                    fileIn.close();
-                }
-                catch (IOException ioex)
-                {
-                }
-            }
-            if (fileOut != null)
-            {
-                try
-                {
-                    fileOut.close();
-                }
-                catch (IOException ioex)
-                {
-                }
-            }
+	        logger.error(ioex);
 	    }
 	}
 	
@@ -210,7 +185,7 @@ public class EncryptFileRequestHandler extends UserRequestHandler
             MessageDigest md = MessageDigest.getInstance("MD5");
             return md.digest(bytesOfMessage);
         }  
-        catch (Exception e)
+        catch (UnsupportedEncodingException | NoSuchAlgorithmException e)
         {
              return null;
         }

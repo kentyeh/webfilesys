@@ -14,9 +14,9 @@ public class ViewHandlerConfig
 	
 	public ViewHandlerConfig()
 	{
-		filePatternList = new ArrayList<String>();
+		filePatternList = new ArrayList<>();
 		
-		parameterMap = new HashMap<String, String>(3);
+		parameterMap = new HashMap<>(3);
 	}
 	
 	public void setHandlerClass(String newClass)

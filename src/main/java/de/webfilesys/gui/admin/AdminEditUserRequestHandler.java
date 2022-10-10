@@ -6,11 +6,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.LanguageManager;
 import de.webfilesys.gui.CSSManager;
 import de.webfilesys.user.TransientUser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Administrator edits the account of an user.
@@ -19,6 +19,7 @@ import de.webfilesys.user.TransientUser;
  */
 public class AdminEditUserRequestHandler extends AdminRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(AdminEditUserRequestHandler.class);
 	String errorMsg = null;
 	
 	public AdminEditUserRequestHandler(
@@ -34,13 +35,14 @@ public class AdminEditUserRequestHandler extends AdminRequestHandler
         this.errorMsg = errorMsg;
 	}
 	
+        @Override
 	protected void process()
 	{
 		String login = getParameter("username");
 
 		TransientUser user = userMgr.getUser(login);
 		if (user == null) {
-        	Logger.getLogger(getClass()).error("user not found: " + login);
+        	logger.error("user not found: " + login);
         	return;
 		}
 		
@@ -402,19 +404,14 @@ public class AdminEditUserRequestHandler extends AdminRequestHandler
         output.println("<td class=\"formParm1\"><b>language</b></td>");
 		output.println("<td class=\"formParm2\"><select id=\"language\" name=\"language\" size=\"1\">");
 
-		for (int i=0;i<languages.size();i++)
-		{
-			String lang=(String) languages.get(i);
-
-			output.print("<option");
-
-			if (lang.equals(userLanguage))
-			{
-				output.print(" selected=\"selected\"");
-			}
-
-			output.println(">" + lang + "</option>");
-		}
+            for (String lang : languages) {
+                output.print("<option");
+                if (lang.equals(userLanguage))
+                {
+                    output.print(" selected=\"selected\"");
+                }
+                output.println(">" + lang + "</option>");
+            }
 		output.println("</select></td>");
         output.println("</tr>");
 
@@ -440,22 +437,19 @@ public class AdminEditUserRequestHandler extends AdminRequestHandler
         output.println("<td class=\"formParm1\"><b>layout (CSS file)</b></td>");
 		output.println("<td class=\"formParm2\"><select id=\"css\" name=\"css\" size=\"1\">");
 
-		for (int i = 0; i < cssList.size(); i++)
-		{
-			String css = (String) cssList.get(i);
-
-			if (!css.equals("mobile")) 
-			{
-	            output.print("<option");
-
-	            if (css.equals(userCss))
-	            {
-	                output.print(" selected=\"selected\"");
-	            }
-
-	            output.println(">" + css + "</option>");
-			}
-		}
+            for (String css : cssList) {
+                if (!css.equals("mobile"))
+                {
+                    output.print("<option");
+                    
+                    if (css.equals(userCss))
+                    {
+                        output.print(" selected=\"selected\"");
+                    }
+                    
+                    output.println(">" + css + "</option>");
+                }
+            }
 		output.println("</select></td>");
         output.println("</tr>");
 

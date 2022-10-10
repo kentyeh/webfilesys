@@ -15,7 +15,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -24,9 +23,13 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FileSysBookmarkManager extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(FileSysBookmarkManager.class);
     public static final String BOOKMARK_DIR    = "bookmarks";
 	
     HashMap<String, Element> bookmarkTable = null;
@@ -44,16 +47,17 @@ public class FileSysBookmarkManager extends Thread
     private static FileSysBookmarkManager bookmarkManager = null;
     
     private String bookmarkPath = null;
-    
+
+    private final ReentrantLock lock = new ReentrantLock();    
     private FileSysBookmarkManager()
     {
     	bookmarkPath = WebFileSys.getInstance().getConfigBaseDir() + "/" + BOOKMARK_DIR;
     	
-        bookmarkTable = new HashMap<String, Element>();
+        bookmarkTable = new HashMap<>();
         
-        indexTable = new HashMap<String, HashMap<String, Element>>();
+        indexTable = new HashMap<>();
         
-        cacheDirty = new HashMap<String, Boolean>();
+        cacheDirty = new HashMap<>();
 
         shutdownFlag = false;
         
@@ -66,7 +70,7 @@ public class FileSysBookmarkManager extends Thread
         }
         catch (ParserConfigurationException pcex)
         {
-            Logger.getLogger(getClass()).error(pcex);
+            logger.error(pcex);
         }
 
         this.start();
@@ -99,7 +103,7 @@ public class FileSysBookmarkManager extends Thread
         {
             if (!bookmarkFile.canRead())
             {
-                Logger.getLogger(getClass()).error("cannot read bookmark file for user " + userid);
+                logger.error("cannot read bookmark file for user " + userid);
                 return(null);
             }
 
@@ -138,20 +142,13 @@ public class FileSysBookmarkManager extends Thread
             
             inputSource.setEncoding("UTF-8");
 
-            if (Logger.getLogger(getClass()).isDebugEnabled())
-            {
-                Logger.getLogger(getClass()).debug("reading bookmarks from " + bookmarkFilePath);
-            }
+            logger.debug("reading bookmarks from " + bookmarkFilePath);
 
             doc = builder.parse(inputSource);
         }
-        catch (SAXException saxex)
+        catch (SAXException | IOException saxex)
         {
-            Logger.getLogger(getClass()).error("failed to load category file : " + bookmarkFilePath, saxex);
-        }
-        catch (IOException ioex)
-        {
-            Logger.getLogger(getClass()).error("failed to load category file : " + bookmarkFilePath, ioex);
+            logger.error("failed to load category file : " + bookmarkFilePath, saxex);
         }
         finally 
         {
@@ -182,7 +179,7 @@ public class FileSysBookmarkManager extends Thread
 
         int listLength = bookmarks.getLength();
 
-        HashMap<String, Element> userIndex = new HashMap<String, Element>();
+        HashMap<String, Element> userIndex = new HashMap<>();
 
         for (int i = 0; i < listLength; i++)
         {
@@ -203,14 +200,14 @@ public class FileSysBookmarkManager extends Thread
     {
         Boolean dirtyFlag = cacheDirty.get(userid);
 
-        if ((dirtyFlag!=null) && dirtyFlag.booleanValue())
+        if ((dirtyFlag!=null) && dirtyFlag)
         {
             saveToFile(userid);
         }
 
         if (bookmarkTable.get(userid) != null)
         {
-			Logger.getLogger(getClass()).debug("disposing bookmark list of user " + userid);
+			logger.debug("disposing bookmark list of user " + userid);
         }
 
         bookmarkTable.remove(userid);
@@ -221,8 +218,8 @@ public class FileSysBookmarkManager extends Thread
     {
         saveChangedUsers();
 
-        bookmarkTable = new HashMap<String, Element>();
-        indexTable = new HashMap<String, HashMap<String, Element>>();
+        bookmarkTable = new HashMap<>();
+        indexTable = new HashMap<>();
     }
 
     public ArrayList<String> getBookmarkIds(String userid)
@@ -257,7 +254,7 @@ public class FileSysBookmarkManager extends Thread
         }
         else
         {
-            Logger.getLogger(getClass()).debug("no bookmarks found for userid " + userid);
+            logger.debug("no bookmarks found for userid " + userid);
         }
     
         return(bookmarkIds);
@@ -267,11 +264,11 @@ public class FileSysBookmarkManager extends Thread
     {
         Element bookmarkList = getBookmarkList(userid);
 
-        ArrayList<FileSysBookmark> listOfBookmarks = new ArrayList<FileSysBookmark>();
+        ArrayList<FileSysBookmark> listOfBookmarks = new ArrayList<>();
 
         if (bookmarkList==null)
         {
-            Logger.getLogger(getClass()).debug("bookmark list for user " + userid + " does not exist!");
+            logger.debug("bookmark list for user " + userid + " does not exist!");
 
             return(listOfBookmarks);
         }
@@ -302,7 +299,7 @@ public class FileSysBookmarkManager extends Thread
                 }
                 catch (NumberFormatException nfe)
                 {
-                    Logger.getLogger(getClass()).warn(nfe);
+                    logger.warn(nfe);
                     creationTime=(new Date()).getTime();
                 }
 
@@ -316,7 +313,7 @@ public class FileSysBookmarkManager extends Thread
                 }
                 catch (NumberFormatException nfe)
                 {
-                    Logger.getLogger(getClass()).warn(nfe);
+                    logger.warn(nfe);
                     updateTime=(new Date()).getTime();
                 }
 
@@ -340,7 +337,7 @@ public class FileSysBookmarkManager extends Thread
 
         if (bookmark == null)
         {
-            Logger.getLogger(getClass()).warn("bookmark for user " + userid + "id " + searchedId + " does not exist!");
+            logger.warn("bookmark for user " + userid + "id " + searchedId + " does not exist!");
             return(null);
         }
 
@@ -358,7 +355,7 @@ public class FileSysBookmarkManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-            Logger.getLogger(getClass()).error(nfe);
+            logger.error(nfe);
             creationTime=(new Date()).getTime();
         }
 
@@ -372,7 +369,7 @@ public class FileSysBookmarkManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-			Logger.getLogger(getClass()).error(nfe);
+			logger.error(nfe);
             updateTime=(new Date()).getTime();
         }
 
@@ -404,7 +401,7 @@ public class FileSysBookmarkManager extends Thread
             }
         }
 
-        Logger.getLogger(getClass()).warn("bookmark with id " + searchedId + " not found in index");
+        logger.warn("bookmark with id " + searchedId + " not found in index");
 
         NodeList bookmarks = bookmarkList.getElementsByTagName("bookmark");
 
@@ -430,7 +427,7 @@ public class FileSysBookmarkManager extends Thread
 
     protected Element createBookmarkList(String userid)
     {
-        Logger.getLogger(getClass()).debug("creating new bookmark list for user : " + userid);
+        logger.debug("creating new bookmark list for user : " + userid);
         
         Document doc = builder.newDocument();
 
@@ -445,7 +442,7 @@ public class FileSysBookmarkManager extends Thread
 
         bookmarkTable.put(userid, bookmarkListElement);
 
-        indexTable.put(userid, new HashMap<String, Element>());
+        indexTable.put(userid, new HashMap<>());
         
         return(bookmarkListElement);
     }
@@ -460,9 +457,8 @@ public class FileSysBookmarkManager extends Thread
         }
 
         Element newElement = null;
-        
-        synchronized (bookmarkList)
-        {
+        try{
+            this.lock.lock();
             Document doc = bookmarkList.getOwnerDocument();
 
             newElement = doc.createElement("bookmark");
@@ -487,6 +483,8 @@ public class FileSysBookmarkManager extends Thread
             
             HashMap<String, Element> userIndex = indexTable.get(userid);
             userIndex.put(newIdString, newElement);
+        } finally {
+            this.lock.unlock();;
         }
 
         updateBookmark(userid, newBookmark);
@@ -512,7 +510,7 @@ public class FileSysBookmarkManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-            Logger.getLogger(getClass()).warn(nfe);
+            logger.warn(nfe);
         }
 
         return(lastId);
@@ -532,15 +530,13 @@ public class FileSysBookmarkManager extends Thread
 
     public Element updateBookmark(String userid, FileSysBookmark changedBookmark)
     {
-        Element bookmarkListElement = getBookmarkList(userid);
-
-        synchronized (bookmarkListElement)
-        {
+        try{
+            this.lock.lock();
             Element bookmarkElement = getBookmarkElement(userid, changedBookmark.getId());
 
             if (bookmarkElement == null)
             {
-                Logger.getLogger(getClass()).warn("updateBookmark: bookmark for user " + userid + " with id " + changedBookmark.getId() +  " not found");
+                logger.warn("updateBookmark: bookmark for user " + userid + " with id " + changedBookmark.getId() +  " not found");
                 return(null);
             }
 
@@ -549,9 +545,11 @@ public class FileSysBookmarkManager extends Thread
 			XmlUtil.setChildText(bookmarkElement, "creationTime", "" + changedBookmark.getCreationTime().getTime());
 			XmlUtil.setChildText(bookmarkElement, "updateTime", "" + changedBookmark.getUpdateTime().getTime());
 
-            cacheDirty.put(userid, new Boolean(true));
+            cacheDirty.put(userid, true);
             
             return(bookmarkElement);
+        } finally {
+            this.lock.unlock();
         }
     }
 
@@ -616,7 +614,7 @@ public class FileSysBookmarkManager extends Thread
 		}
 		catch (NumberFormatException nfe)
 		{
-			Logger.getLogger(getClass()).warn(nfe);
+			logger.warn(nfe);
 			creationTime=(new Date()).getTime();
 		}
 
@@ -630,7 +628,7 @@ public class FileSysBookmarkManager extends Thread
 		}
 		catch (NumberFormatException nfe)
 		{
-			Logger.getLogger(getClass()).warn(nfe);
+			logger.warn(nfe);
 			updateTime=(new Date()).getTime();
 		}
 
@@ -649,7 +647,7 @@ public class FileSysBookmarkManager extends Thread
 
             if (bookmarkElement == null)
             {
-                Logger.getLogger(getClass()).warn("bookmark for user " + userid + " id " + searchedId + " not found");
+                logger.warn("bookmark for user " + userid + " id " + searchedId + " not found");
                 return;
             }
 
@@ -662,7 +660,7 @@ public class FileSysBookmarkManager extends Thread
                 
                 bookmarkList.removeChild(bookmarkElement);
 
-                cacheDirty.put(userid, new Boolean(true));
+                cacheDirty.put(userid, true);
             }
         }
 
@@ -674,14 +672,11 @@ public class FileSysBookmarkManager extends Thread
 
         if (bookmarkListElement == null)
         {
-            Logger.getLogger(getClass()).warn("bookmark list for user " + userid + " does not exist");
+            logger.warn("bookmark list for user " + userid + " does not exist");
             return;
         }
 
-        if (Logger.getLogger(getClass()).isDebugEnabled())
-        {
-            Logger.getLogger(getClass()).debug("saving bookmarks for user " + userid);
-        }
+        logger.debug("saving bookmarks for user " + userid);
         
         synchronized (bookmarkListElement)
         {
@@ -701,7 +696,7 @@ public class FileSysBookmarkManager extends Thread
             }
             catch (IOException io1)
             {
-                Logger.getLogger(getClass()).error("error saving bookmark file " + xmlFileName, io1);
+                logger.error("error saving bookmark file " + xmlFileName, io1);
             }
             finally
             {
@@ -725,12 +720,12 @@ public class FileSysBookmarkManager extends Thread
 
         for (String userid : cacheUserList) {
 
-            boolean dirtyFlag = cacheDirty.get(userid).booleanValue();
+            boolean dirtyFlag = cacheDirty.get(userid);
 
             if (dirtyFlag)
             {
                 saveToFile(userid);
-                cacheDirty.put(userid, new Boolean(false));
+                cacheDirty.put(userid, false);
             }
         }
     }
@@ -751,14 +746,11 @@ public class FileSysBookmarkManager extends Thread
         
         if (bookmarkFile.delete())
         {
-            if (Logger.getLogger(getClass()).isDebugEnabled())
-            {
-                Logger.getLogger(getClass()).debug("bookmark file deleted for user " + userid);
-            }
-            else
-            {
-                Logger.getLogger(getClass()).warn("failed to delete bookmark file for user " + userid);
-            }
+                logger.debug("bookmark file deleted for user " + userid);
+        }
+        else
+        {
+            logger.warn("failed to delete bookmark file for user " + userid);
         }
     }
     

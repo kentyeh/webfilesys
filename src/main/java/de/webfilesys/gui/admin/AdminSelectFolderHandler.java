@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -23,6 +22,8 @@ import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.StringComparator;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Select a folder for an administrative task, for example to select the document root for an user.
@@ -32,6 +33,7 @@ import de.webfilesys.util.XmlUtil;
  */
 public class AdminSelectFolderHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(AdminSelectFolderHandler.class);
 	protected int dirCounter;
 	protected int currentDirNum;
 	
@@ -116,6 +118,7 @@ public class AdminSelectFolderHandler extends XslRequestHandlerBase
 		currentDirNum = 0;
 	}
 	
+        @Override
 	protected void addMsgResource(String key, String value)
 	{
 		if (resourcesElement == null)
@@ -141,7 +144,7 @@ public class AdminSelectFolderHandler extends XslRequestHandlerBase
 
 		if (fileList == null)
 		{
-			Logger.getLogger(getClass()).warn("filelist is null for " + partOfPath);
+			logger.warn("filelist is null for " + partOfPath);
 			
 			dirTreeStatus.collapseDir(partOfPath);
 			return;
@@ -161,35 +164,28 @@ public class AdminSelectFolderHandler extends XslRequestHandlerBase
 			pathWithSlash = partOfPath + File.separator;
 		}
 
-		ArrayList<String> subdirList = new ArrayList<String>();
+		ArrayList<String> subdirList = new ArrayList<>();
 
-		for (int i=0; i<fileList.length; i++)
-		{
-			String subdirPath = null;
+            for (String fileList1 : fileList) {
+                String subdirPath = null;
+                subdirPath = pathWithSlash + fileList1;
+                File tempFile = new File(subdirPath);
+                if (tempFile.isDirectory()) {
+                    String subdirName = fileList1;
+                    int subdirPathLength = subdirPath.length();
+                    if (belowDocRoot || accessAllowed(subdirPath) ||
+                            ((docRoot.indexOf(subdirPath.replace('\\','/')) == 0) &&
+                            ((subdirPathLength == docRoot.length()) ||
+                            (docRoot.charAt(subdirPathLength) == '/')))) {
+                        
+                        if (!subdirName.equals(ThumbnailThread.THUMBNAIL_SUBDIR)) {
+                            subdirList.add(subdirPath);
+                        }
+                    }
+                }
+            }
 
-			subdirPath = pathWithSlash + fileList[i];
-
-			File tempFile = new File(subdirPath);
-
-			if (tempFile.isDirectory())
-			{
-				String subdirName = fileList[i];
-
-				int subdirPathLength = subdirPath.length();
-
-				if (belowDocRoot || accessAllowed(subdirPath) ||
-					((docRoot.indexOf(subdirPath.replace('\\','/')) == 0) &&
-					 ((subdirPathLength == docRoot.length()) ||
-					(docRoot.charAt(subdirPathLength) == '/')))) {
-					
-					if (!subdirName.equals(ThumbnailThread.THUMBNAIL_SUBDIR)) {
-						subdirList.add(subdirPath);
-					}
-				}
-			}
-		}
-
-		if (subdirList.size()==0)
+		if (subdirList.isEmpty())
 		{
 			return;
 		}
@@ -223,7 +219,7 @@ public class AdminSelectFolderHandler extends XslRequestHandlerBase
 				}
 				else
 				{
-					hasSubdirs = (subdirExist.intValue()==1);
+					hasSubdirs = (subdirExist==1);
 				}
 
                 folderElement = doc.createElement("folder");
@@ -262,7 +258,7 @@ public class AdminSelectFolderHandler extends XslRequestHandlerBase
 						}
 						catch (IOException ioex)
 						{
-							Logger.getLogger(getClass()).error(ioex);
+							logger.error(ioex);
 						}
 					}
 				}

@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -17,12 +16,14 @@ import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslResizeParmsHandler extends XslRequestHandlerBase {
-    private static final Logger LOG = Logger.getLogger(XslResizeParmsHandler.class);
+    private static final Logger logger = LogManager.getLogger(XslResizeParmsHandler.class);
 	
 	public XslResizeParmsHandler(
 			HttpServletRequest req, 
@@ -33,6 +34,7 @@ public class XslResizeParmsHandler extends XslRequestHandlerBase {
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -47,7 +49,7 @@ public class XslResizeParmsHandler extends XslRequestHandlerBase {
 		if (imgFilePath == null) {
 			// save selected files in session
 			
-	        ArrayList<String> selectedFiles = new ArrayList<String>();
+	        ArrayList<String> selectedFiles = new ArrayList<>();
 
 	        Enumeration allKeys = req.getParameterNames();
 

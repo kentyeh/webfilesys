@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class DirStatsByAge {
 
-	private ArrayList ageCategories = null;
+	private ArrayList<AgeCategory> ageCategories = null;
 	
 	private long filesInTree = 0L;
 	
@@ -50,17 +50,17 @@ public class DirStatsByAge {
 			return;
 		}
 		
-		for (int i = 0; i < fileList.length; i++) {
-			if (fileList[i].isDirectory()) {
-				walkThroughFolderTree(fileList[i].getAbsolutePath());
-			} else {
-				if (fileList[i].isFile()) {
-					addToStats(fileList[i].lastModified(), fileList[i].length());
-					filesInTree++;
-					treeFileSize += fileList[i].length();
-				}
-			}
-		}
+            for (File fileList1 : fileList) {
+                if (fileList1.isDirectory()) {
+                    walkThroughFolderTree(fileList1.getAbsolutePath());
+                } else {
+                    if (fileList1.isFile()) {
+                        addToStats(fileList1.lastModified(), fileList1.length());
+                        filesInTree++;
+                        treeFileSize += fileList1.length();
+                    }
+                }
+            }
 	}
 	
 	private void addToStats(long lastModified, long fileSize) {
@@ -81,23 +81,18 @@ public class DirStatsByAge {
 	}
 	
     private void calculatePercentage() {
-        for (int i = 0; i < ageCategories.size(); i++) {
-            AgeCategory ageCat = (AgeCategory) ageCategories.get(i);
-            
-            if (filesInTree == 0) {
-            	ageCat.setFileNumPercent(0);
-            } else {
-                ageCat.setFileNumPercent((int) (ageCat.getFileNum() * 100L / filesInTree));
+            for (AgeCategory ageCat : ageCategories) {
+                if (filesInTree == 0) {
+                    ageCat.setFileNumPercent(0);
+                } else {
+                    ageCat.setFileNumPercent((int) (ageCat.getFileNum() * 100L / filesInTree));
+                }   ageCat.setSizePercent(treeFileSize);
+                if (ageCat.getFileNum() > fileNumCategoryMax) {
+                    fileNumCategoryMax = ageCat.getFileNum();   
+                }   if (ageCat.getSizeSum() > sizeSumCategoryMax) {
+                    sizeSumCategoryMax = ageCat.getSizeSum();   
             }
-            ageCat.setSizePercent(treeFileSize);
-            
-            if (ageCat.getFileNum() > fileNumCategoryMax) {
-                fileNumCategoryMax = ageCat.getFileNum();   
             }
-            if (ageCat.getSizeSum() > sizeSumCategoryMax) {
-                sizeSumCategoryMax = ageCat.getSizeSum();   
-            }
-        }
     }
     
     public long getFileNumCategoryMax() {

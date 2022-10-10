@@ -8,14 +8,16 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class URLFileRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(URLFileRequestHandler.class);
 	public URLFileRequestHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -26,6 +28,7 @@ public class URLFileRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		String actPath=getParameter("actPath");
@@ -37,10 +40,8 @@ public class URLFileRequestHandler extends UserRequestHandler
 
 		String webLink=null;
 
-		try
+		try (BufferedReader fin=new BufferedReader(new FileReader(actPath)))
 		{
-			BufferedReader fin=new BufferedReader(new FileReader(actPath));
-
 			String line=null;
 
 			while ((webLink==null) && ((line=fin.readLine())!=null))
@@ -55,7 +56,7 @@ public class URLFileRequestHandler extends UserRequestHandler
 		}
 		catch (IOException ioex)
 		{
-			Logger.getLogger(getClass()).warn("openUrlFile: " + ioex);
+			logger.warn("openUrlFile: " + ioex);
 		}
 
 		output.println("<HTML>");

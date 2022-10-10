@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.calendar.Appointment;
@@ -17,9 +16,11 @@ import de.webfilesys.calendar.AppointmentManager;
 import de.webfilesys.gui.ajax.XmlRequestHandlerBase;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class XmlPasteAppointmentHandler extends XmlRequestHandlerBase {
-	
+	private static final Logger logger = LogManager.getLogger(XmlPasteAppointmentHandler.class);
 	public XmlPasteAppointmentHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -43,7 +44,7 @@ public class XmlPasteAppointmentHandler extends XmlRequestHandlerBase {
 		
 		if (CommonUtils.isEmpty(yearParam) || CommonUtils.isEmpty(monthParam) || CommonUtils.isEmpty(dayOfMonthParam))
 		{
-            Logger.getLogger(getClass()).warn("missing parameter");
+            logger.warn("missing parameter");
 			return;
 		}
 		
@@ -58,7 +59,7 @@ public class XmlPasteAppointmentHandler extends XmlRequestHandlerBase {
         }
         catch (NumberFormatException numEx)
         {
-            Logger.getLogger(getClass()).warn("invalid parameter", numEx);
+            logger.warn("invalid parameter", numEx);
             return;
         }
         
@@ -68,7 +69,7 @@ public class XmlPasteAppointmentHandler extends XmlRequestHandlerBase {
 		
         if (CommonUtils.isEmpty(appointmentId))
         {
-            Logger.getLogger(getClass()).warn("appointment id for move not found in session");
+            logger.warn("appointment id for move not found in session");
 			return;
         }
 
@@ -76,7 +77,7 @@ public class XmlPasteAppointmentHandler extends XmlRequestHandlerBase {
 		
         if (appointmentToMove == null) 
         {
-            Logger.getLogger(getClass()).warn("appointment for move operation not found: " + appointmentId);
+            logger.warn("appointment for move operation not found: " + appointmentId);
             return;
         }
         

@@ -36,6 +36,7 @@ public class XslCoBrowsingMasterHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
         String docRoot = userMgr.getDocumentRoot(uid);
@@ -63,7 +64,7 @@ public class XslCoBrowsingMasterHandler extends XslRequestHandlerBase
 		}
 
 		ArrayList<String> imageFiles = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER);
-		if ((imageFiles == null) || (imageFiles.size() == 0))
+		if ((imageFiles == null) || (imageFiles.isEmpty()))
 		{
             // todo: error handling
 			return;
@@ -121,7 +122,7 @@ public class XslCoBrowsingMasterHandler extends XslRequestHandlerBase
 		ArrayList<String> imageTree = (ArrayList<String>) session.getAttribute(SessionKey.SLIDESHOW_BUFFER);
 		if (imageTree == null)
 		{
-			imageTree = new ArrayList<String>();
+			imageTree = new ArrayList<>();
 			session.setAttribute(SessionKey.SLIDESHOW_BUFFER,imageTree);
 		}
 

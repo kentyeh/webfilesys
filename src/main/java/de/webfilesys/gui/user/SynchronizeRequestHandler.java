@@ -13,17 +13,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.xsl.XslSyncCompareHandler;
 import de.webfilesys.sync.SyncItem;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class SynchronizeRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(SynchronizeRequestHandler.class);
     private boolean createMissingTarget;
     private boolean createMissingSource;
     private boolean removeExtraTarget;
@@ -51,6 +53,7 @@ public class SynchronizeRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -84,19 +87,16 @@ public class SynchronizeRequestHandler extends UserRequestHandler
         
         output.println("<br/>");
        
-        ArrayList syncItemList = (ArrayList) session.getAttribute(XslSyncCompareHandler.SESSION_ATTRIB_SYNCHRONIZE_ITEMS);
+        ArrayList<SyncItem> syncItemList = (ArrayList<SyncItem>) session.getAttribute(XslSyncCompareHandler.SESSION_ATTRIB_SYNCHRONIZE_ITEMS);
         
         if (syncItemList == null)
         {
             // should never happen
-            Logger.getLogger(getClass()).error("sync item list not found in session");
+            logger.error("sync item list not found in session");
             return;
         }
         
-        for (int i = 0; i < syncItemList.size(); i++)
-        {
-            SyncItem syncItem = (SyncItem) syncItemList.get(i);
-            
+        for (SyncItem syncItem : syncItemList) {
             synchronize(syncItem);
         }
         
@@ -357,10 +357,9 @@ public class SynchronizeRequestHandler extends UserRequestHandler
 
         byte buff[] = new byte[4096];
 
-        try
+        try (BufferedInputStream fin = new BufferedInputStream(new FileInputStream(sourceFileName));
+                BufferedOutputStream fout = new BufferedOutputStream(new FileOutputStream(targetFileName)))
         {
-            BufferedInputStream fin = new BufferedInputStream(new FileInputStream(sourceFileName));
-            BufferedOutputStream fout = new BufferedOutputStream(new FileOutputStream(targetFileName));
 
             int count;
             while (( count = fin.read(buff)) >= 0 )
@@ -373,7 +372,7 @@ public class SynchronizeRequestHandler extends UserRequestHandler
         }
         catch (Throwable e)
         {
-            Logger.getLogger(getClass()).error(e);
+            logger.error(e);
             copyFailed = true;
         }
 
@@ -438,26 +437,23 @@ public class SynchronizeRequestHandler extends UserRequestHandler
 
         if (fileList != null)
         {
-            for (int i = 0; i < fileList.length; i++)
-            {
-                File tempFile=new File(path + File.separator + fileList[i]);
-                if (tempFile.isDirectory())
-                {
-                    if (!deleteDirTree(path + File.separator + fileList[i]))
+            for (String fileList1 : fileList) {
+                File tempFile = new File(path + File.separator + fileList1);
+                if (tempFile.isDirectory()) {
+                    if (!deleteDirTree(path + File.separator + fileList1)) {
                         deleteError=true;
-                }
-                else
-                {
+                    }
+                } else {
                     if (tempFile.delete())
                     {
-                    	deletedFilesTarget++;
+                        deletedFilesTarget++;
                         output.println("<nobr>" + getResource("sync.fileDeleted", "file deleted") + ": " + getHeadlinePath(tempFile.getAbsolutePath()) + "</nobr><br>");
                     }
                     else
                     {
                         deleteError=true;
                         output.println("<nobr>" + getResource("sync.fileDeleteError", "failed to delete file") + ": " + getHeadlinePath(tempFile.getAbsolutePath()) + "</nobr><br>");
-                        Logger.getLogger(getClass()).warn("failed to delete file " + tempFile);
+                        logger.warn("failed to delete file " + tempFile);
                     }
                 }
             }
@@ -472,7 +468,7 @@ public class SynchronizeRequestHandler extends UserRequestHandler
         {
             deleteError=true;
             output.println("<nobr>" + getResource("sync.dirDeleteError", "failed to delete directory") + ": " + getHeadlinePath(path) + "</nobr><br>");
-            Logger.getLogger(getClass()).warn("failed to delete directory " + path);
+            logger.warn("failed to delete directory " + path);
         }
 
         return(!(deleteError));
@@ -510,7 +506,7 @@ public class SynchronizeRequestHandler extends UserRequestHandler
         }
         catch (IOException rte)
         {
-            Logger.getLogger(getClass()).error(rte);
+            logger.error(rte);
         }
 
         try
@@ -519,7 +515,7 @@ public class SynchronizeRequestHandler extends UserRequestHandler
         }
         catch (InterruptedException iex)
         {
-            Logger.getLogger(getClass()).error(iex);
+            logger.error(iex);
         }
         
         output.println("<nobr>" + getResource("sync.switchedToReadWrite", "access rights changed to writable") + ": " + getHeadlinePath(path) + "</nobr><br>");

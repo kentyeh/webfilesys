@@ -7,12 +7,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.GeoTag;
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Points of interest for Open Street Maps.
@@ -20,6 +21,7 @@ import de.webfilesys.util.CommonUtils;
  */
 public class OpenStreetMapPOIHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(OpenStreetMapPOIHandler.class);
 	public OpenStreetMapPOIHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -36,7 +38,7 @@ public class OpenStreetMapPOIHandler extends UserRequestHandler
 
 		if (!accessAllowed(path))
 		{
-			Logger.getLogger(getClass()).warn("user " + uid + " tried to access folder outside of his document root: " + path);
+			logger.warn("user " + uid + " tried to access folder outside of his document root: " + path);
 			
 			return;
 		}
@@ -45,7 +47,7 @@ public class OpenStreetMapPOIHandler extends UserRequestHandler
 		
 		if (!folderOrFile.exists())
 		{
-			Logger.getLogger(getClass()).error("file not found: " + path);
+			logger.error("file not found: " + path);
 			
 			return;
 		}
@@ -121,7 +123,7 @@ public class OpenStreetMapPOIHandler extends UserRequestHandler
 		
         if ((longitude == Float.NEGATIVE_INFINITY) || (latitude == Float.NEGATIVE_INFINITY))
         {
-            Logger.getLogger(getClass()).error("No Geo Tag / GPS Exif data exists for file/folder " + path);
+            logger.error("No Geo Tag / GPS Exif data exists for file/folder " + path);
             
             return;
         }

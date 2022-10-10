@@ -18,7 +18,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -29,16 +28,24 @@ import org.xml.sax.SAXException;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class AppointmentManager extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(AppointmentManager.class);
     private String appointmentDir = null;
+    private final ReentrantLock lockSelf = new ReentrantLock();
+    private final ReentrantLock lockElement = new ReentrantLock();
+    private final ReentrantLock lockList = new ReentrantLock();
 
-    HashMap<String, Element> appointmentMap = null;
+    ConcurrentHashMap<String, Element> appointmentMap = null;
 
-    HashMap<String, HashMap<String, Element>> indexTable = null;
+    ConcurrentHashMap<String, HashMap<String, Element>> indexTable = null;
 
-    HashMap<String, Boolean> cacheDirty=null;
+    ConcurrentHashMap<String, Boolean> cacheDirty=null;
 
     DocumentBuilder builder = null;
 
@@ -52,10 +59,10 @@ public class AppointmentManager extends Thread
     {
         appointmentDir = WebFileSys.getInstance().getConfigBaseDir() + "/" + "appointments";
 
-        appointmentMap = new HashMap<String, Element>();
-        indexTable = new HashMap<String, HashMap<String, Element>>();
+        appointmentMap = new ConcurrentHashMap<>();
+        indexTable = new ConcurrentHashMap<>();
         
-        cacheDirty = new HashMap<String, Boolean>();
+        cacheDirty = new ConcurrentHashMap<>();
 
         builder = null;
 
@@ -66,7 +73,7 @@ public class AppointmentManager extends Thread
         }
         catch (ParserConfigurationException pcex)
         {
-        	Logger.getLogger(getClass()).error(pcex);
+        	logger.error(pcex);
         }
 
         alarmDistributor = new AlarmDistributor();
@@ -92,7 +99,7 @@ public class AppointmentManager extends Thread
 
     public synchronized void run()
     {
-    	Logger.getLogger(getClass()).info("AppointmentManager started");
+    	logger.info("AppointmentManager started");
 
     	boolean stop = false;
     	
@@ -108,12 +115,8 @@ public class AppointmentManager extends Thread
                 
                 if (loopCounter == 60) 
             	{
-            		synchronized (appointmentMap)
-            		{
-                		synchronized (indexTable)
-                		{
-                    		synchronized (cacheDirty)
-                    		{
+            		try {
+                            this.lockSelf.lock();
                     			Date now = new Date();
                     			if (now.getHours() == 0)
                     			{
@@ -121,14 +124,12 @@ public class AppointmentManager extends Thread
                                     saveChangedUsers();
                     			}
                     			
-                    			if (Logger.getLogger(getClass()).isDebugEnabled()) {
-                                	Logger.getLogger(getClass()).debug("AppointmentManager clearing appointment cache");
-                    			}
+                                logger.debug("AppointmentManager clearing appointment cache");
                                 appointmentMap.clear();
                                 indexTable.clear();
                                 cacheDirty.clear();
-                    		}
-                		}
+                    		} finally  {
+                            this.lockSelf.unlock();
             		}
             		loopCounter = 0;
             	}
@@ -137,10 +138,7 @@ public class AppointmentManager extends Thread
             {
             	alarmDistributor.interrupt();
                 saveChangedUsers();
-            	if (Logger.getLogger(getClass()).isInfoEnabled())
-            	{
-            	    Logger.getLogger(getClass()).info("AppointmentManager ready for shutdown");
-            	}
+                logger.info("AppointmentManager ready for shutdown");
                 stop = true;
             }
         }
@@ -148,15 +146,12 @@ public class AppointmentManager extends Thread
     
     private void expireUnrepeatedEvents() 
     {
-    	if (Logger.getLogger(getClass()).isInfoEnabled())
-    	{
-        	Logger.getLogger(getClass()).info("checking for unrepeated events to expire");
-    	}
+        logger.info("checking for unrepeated events to expire");
     	
     	File appDir = new File(appointmentDir);
     	File[] userFiles = appDir.listFiles();
     	if (userFiles == null) {
-        	Logger.getLogger(getClass()).error("failed to list appointment user files");
+        	logger.error("failed to list appointment user files");
         	return;
     	}
     	
@@ -164,49 +159,41 @@ public class AppointmentManager extends Thread
     	
     	long appointmentExpirationMillis = WebFileSys.getInstance().getCalendarExpirationPeriod() * 24 * 60 * 60 * 1000;
     	
-    	for (int i = 0; i < userFiles.length; i++) 
-    	{
-    		File userFile = userFiles[i];
-    		if (userFile.isFile() && userFile.canRead()) 
-    		{
-    			String userFileName = userFile.getName();
-    			if (userFileName.endsWith(".xml")) 
-    			{
-    				String userid = userFileName.substring(0, userFileName.lastIndexOf('.'));
-    				
-    		    	if (Logger.getLogger(getClass()).isDebugEnabled())
-    		    	{
-    		        	Logger.getLogger(getClass()).debug("checking expiration for user " + userid);
-    		    	}
-
-    		    	ArrayList<Appointment> userAppointments = getListOfAppointments(userid, false);
-    				
-    				if (userAppointments != null)
-    				{
-    					Iterator<Appointment> iter = userAppointments.iterator();
-    					while (iter.hasNext()) {
-    						Appointment appointment = iter.next();
-    						if (appointment.getRepeatPeriod() == AlarmEntry.REPEAT_NONE) 
-    						{
-        						if (now - appointment.getEventTime().getTime() > appointmentExpirationMillis)
-        						{
-        							removeAppointment(userid, appointment.getId());
-        					    	if (Logger.getLogger(getClass()).isInfoEnabled())
-        					    	{
-        				        	    Logger.getLogger(getClass()).info("removing expired appointment: " + appointment.getId() + " for user " + userid);
-        					    	}
-        						}
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
+        for (File userFile : userFiles) {
+            if (userFile.isFile() && userFile.canRead())
+            {
+                String userFileName = userFile.getName();
+                if (userFileName.endsWith(".xml"))
+                {
+                    String userid = userFileName.substring(0, userFileName.lastIndexOf('.'));
+                    
+                    logger.debug("checking expiration for user " + userid);
+                    
+                    ArrayList<Appointment> userAppointments = getListOfAppointments(userid, false);
+                    
+                    if (userAppointments != null)
+                    {
+                        Iterator<Appointment> iter = userAppointments.iterator();
+                        while (iter.hasNext()) {
+                            Appointment appointment = iter.next();
+                            if (appointment.getRepeatPeriod() == AlarmEntry.REPEAT_NONE)
+                            {
+                                if (now - appointment.getEventTime().getTime() > appointmentExpirationMillis)
+                                {
+                                    removeAppointment(userid, appointment.getId());
+                                    logger.info("removing expired appointment: " + appointment.getId() + " for user " + userid);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
     public Element getAppointmentList(String userid)
     {
-        Element appointmentList=(Element) appointmentMap.get(userid);
+        Element appointmentList= appointmentMap.get(userid);
 
         if (appointmentList!=null)
         {
@@ -221,7 +208,7 @@ public class AppointmentManager extends Thread
         {
             if (!appointmentFile.canRead())
             {
-            	Logger.getLogger(getClass()).error("cannot read appointment file for user " + userid);
+            	logger.error("cannot read appointment file for user " + userid);
                 return(null);
             }
 
@@ -246,7 +233,7 @@ public class AppointmentManager extends Thread
 
         if ((!appointmentFile.exists()) || (!appointmentFile.canRead()))
         {
-        	Logger.getLogger(getClass()).error("appointment file not found or not readable: " + appointmentFilePath);
+        	logger.error("appointment file not found or not readable: " + appointmentFilePath);
             return(null);
         }
         
@@ -262,20 +249,13 @@ public class AppointmentManager extends Thread
             
             inputSource.setEncoding("UTF-8");
 
-            if (Logger.getLogger(getClass()).isDebugEnabled())
-            {
-                Logger.getLogger(getClass()).debug("reading appointments from " + appointmentFilePath);
-            }
+            logger.debug("reading appointments from " + appointmentFilePath);
 
             doc = builder.parse(inputSource);
         }
-        catch (SAXException saxex)
+        catch (SAXException | IOException saxex)
         {
-            Logger.getLogger(getClass()).error("failed to load appointment file : " + appointmentFilePath, saxex);
-        }
-        catch (IOException ioex)
-        {
-            Logger.getLogger(getClass()).error("failed to load appointment file : " + appointmentFilePath, ioex);
+            logger.error("failed to load appointment file : " + appointmentFilePath, saxex);
         }
         finally 
         {
@@ -325,9 +305,9 @@ public class AppointmentManager extends Thread
 
     public void disposeAppointmentList(String userid)
     {
-        Boolean dirtyFlag=(Boolean) cacheDirty.get(userid);
+        Boolean dirtyFlag= cacheDirty.get(userid);
 
-        if ((dirtyFlag!=null) && dirtyFlag.booleanValue())
+        if ((dirtyFlag!=null) && dirtyFlag)
         {
             saveToFile(userid);
         }
@@ -340,8 +320,8 @@ public class AppointmentManager extends Thread
     {
         saveChangedUsers();
 
-        appointmentMap = new HashMap<String, Element>();
-        indexTable = new HashMap<String, HashMap<String, Element>>();
+        appointmentMap = new ConcurrentHashMap<>();
+        indexTable = new ConcurrentHashMap<>();
     }
 
     public ArrayList<String> getAppointmentIds(String userid)
@@ -367,7 +347,7 @@ public class AppointmentManager extends Thread
 
                 if (appointmentIds==null)
                 {
-                    appointmentIds = new ArrayList<String>();
+                    appointmentIds = new ArrayList<>();
                 }
 
                 appointmentIds.add(appointment.getAttribute("id"));
@@ -375,7 +355,7 @@ public class AppointmentManager extends Thread
         }
         else
         {
-        	Logger.getLogger(getClass()).info("no appointments found for userid " + userid);
+        	logger.info("no appointments found for userid " + userid);
         }
     
         return(appointmentIds);
@@ -415,7 +395,7 @@ public class AppointmentManager extends Thread
 
                 if (listOfAppointments==null)
                 {
-                    listOfAppointments = new ArrayList<Appointment>();
+                    listOfAppointments = new ArrayList<>();
                 }
 
                 Appointment newAppointment=new Appointment(appointment.getAttribute("id"));
@@ -469,7 +449,7 @@ public class AppointmentManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-        	Logger.getLogger(getClass()).error("failed to read appointment: ", nfe);
+        	logger.error("failed to read appointment: ", nfe);
         }
 
         int repeatPeriod=AlarmEntry.REPEAT_NONE;
@@ -481,7 +461,7 @@ public class AppointmentManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-        	Logger.getLogger(getClass()).error("failed to read appointment", nfe);
+        	logger.error("failed to read appointment", nfe);
         }
 
         String fullDay = XmlUtil.getChildText(appointment,"fullDay");
@@ -527,7 +507,7 @@ public class AppointmentManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-        	Logger.getLogger(getClass()).error("failed to read appointment", nfe);
+        	logger.error("failed to read appointment", nfe);
         }
 
         newAppointment.setEventTime(new Date(eventTime));
@@ -542,7 +522,7 @@ public class AppointmentManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-        	Logger.getLogger(getClass()).error("invalid appointment creation time", nfe);
+        	logger.error("invalid appointment creation time", nfe);
             creationTime=(new Date()).getTime();
         }
 
@@ -556,7 +536,7 @@ public class AppointmentManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-        	Logger.getLogger(getClass()).error("invalid appointment update time", nfe);
+        	logger.error("invalid appointment update time", nfe);
             updateTime=(new Date()).getTime();
         }
 
@@ -569,7 +549,7 @@ public class AppointmentManager extends Thread
 
         if (appointment==null)
         {
-        	Logger.getLogger(getClass()).error("appointment for user " + userid + " id " + searchedId + " not found");
+        	logger.error("appointment for user " + userid + " id " + searchedId + " not found");
             return(null);
         }
         
@@ -591,11 +571,11 @@ public class AppointmentManager extends Thread
         
         Element appointment=null;
 
-        HashMap<String, Element> userIndex = (HashMap<String, Element>) indexTable.get(userid);
+        HashMap<String, Element> userIndex = indexTable.get(userid);
 
         if (userIndex!=null)
         {
-            appointment=(Element) userIndex.get(searchedId);
+            appointment= userIndex.get(searchedId);
 
             if (appointment!=null)
             {
@@ -603,7 +583,7 @@ public class AppointmentManager extends Thread
             }
         }
 
-    	Logger.getLogger(getClass()).error("appointment with id " + searchedId + " not found in index");
+    	logger.error("appointment with id " + searchedId + " not found in index");
 
         NodeList appointments=appointmentList.getElementsByTagName("appointment");
 
@@ -629,7 +609,7 @@ public class AppointmentManager extends Thread
 
     protected Element createAppointmentList(String userid)
     {
-    	Logger.getLogger(getClass()).info("creating new appointment list for user : " + userid);
+    	logger.info("creating new appointment list for user : " + userid);
         
         Document doc=builder.newDocument();
 
@@ -644,7 +624,7 @@ public class AppointmentManager extends Thread
 
         appointmentMap.put(userid,appointmentListElement);
 
-        indexTable.put(userid, new HashMap<String, Element>());
+        indexTable.put(userid, new HashMap<>());
 
         return(appointmentListElement);
     }
@@ -663,8 +643,8 @@ public class AppointmentManager extends Thread
 
         String newIdString=null;
 
-        synchronized (appointmentList)
-        {
+        try {
+            this.lockList.lock();
             Document doc=appointmentList.getOwnerDocument();
 
             Element newElement=doc.createElement("appointment");
@@ -698,8 +678,10 @@ public class AppointmentManager extends Thread
             newAppointment.setId(newIdString);
             newElement.setAttribute("id",newIdString);
 
-            HashMap<String, Element> userIndex = (HashMap<String, Element>) indexTable.get(userid);
+            HashMap<String, Element> userIndex =  indexTable.get(userid);
             userIndex.put(newIdString,newElement);
+        } finally {
+            this.lockList.unlock();
         }
 
         updateAppointment(userid,newAppointment, true);
@@ -725,7 +707,7 @@ public class AppointmentManager extends Thread
         }
         catch (NumberFormatException nfe)
         {
-        	Logger.getLogger(getClass()).error("failed to get last id", nfe);
+        	logger.error("failed to get last id", nfe);
         }
 
         return(lastId);
@@ -749,13 +731,13 @@ public class AppointmentManager extends Thread
 
         Element appointmentListElement = getAppointmentList(userid);
 
-        synchronized (appointmentListElement)
-        {
+        try {
+            this.lockElement.lock();
             appointmentElement = getAppointmentElement(userid,changedAppointment.getId());
 
             if (appointmentElement == null)
             {
-            	Logger.getLogger(getClass()).error("updateAppointment: appointment for user " + userid + " with id " + changedAppointment.getId() +  " not found");            	
+            	logger.error("updateAppointment: appointment for user " + userid + " with id " + changedAppointment.getId() +  " not found");            	
                 return(null);
             }
 
@@ -785,7 +767,9 @@ public class AppointmentManager extends Thread
             XmlUtil.setChildText(appointmentElement,"fullDayNum", Integer.toString(changedAppointment.getFullDayNum()));
             
             // saveToFile(userid);
-            cacheDirty.put(userid, new Boolean(true));
+            cacheDirty.put(userid, true);
+        } finally {
+            this.lockElement.unlock();
         }
         
         if (updateAlarmIdx)
@@ -809,13 +793,13 @@ public class AppointmentManager extends Thread
     	
         Element appointmentListElement=getAppointmentList(userid);
 
-        synchronized (appointmentListElement)
-        {
+        try{
+            this.lockElement.lock();
             Element appointmentElement=getAppointmentElement(userid,searchedId);
 
             if (appointmentElement==null)
             {
-            	Logger.getLogger(getClass()).error("appointment for user " + userid + " id " + searchedId + " not found");
+            	logger.error("appointment for user " + userid + " id " + searchedId + " not found");
                 return;
             }
 
@@ -823,14 +807,16 @@ public class AppointmentManager extends Thread
 
             if (appointmentList!=null)
             {
-                HashMap<String, Element> userIndex=(HashMap<String, Element>) indexTable.get(userid);
+                HashMap<String, Element> userIndex= indexTable.get(userid);
                 userIndex.remove(appointmentElement.getAttribute("id"));
 
                 appointmentList.removeChild(appointmentElement);
 
                 // saveToFile(userid);
-                cacheDirty.put(userid,new Boolean(true));
+                cacheDirty.put(userid, true);
             }
+        } finally {
+            this.lockElement.unlock();
         }
     }
 
@@ -897,7 +883,7 @@ public class AppointmentManager extends Thread
     {
     	Element appointmentList = getAppointmentList(userid);
     	
-		ArrayList<Appointment> listOfAppointments = new ArrayList<Appointment>();
+		ArrayList<Appointment> listOfAppointments = new ArrayList<>();
 
 		if (appointmentList == null)
 		{
@@ -926,7 +912,7 @@ public class AppointmentManager extends Thread
 					}
 					catch (NumberFormatException nfex)
 					{
-						Logger.getLogger(getClass()).error("invalid event time in appointment of user " + userid);
+						logger.error("invalid event time in appointment of user " + userid);
 					}
                 }
 
@@ -960,17 +946,17 @@ public class AppointmentManager extends Thread
 
 		if (appointments != null)
 		{
-			ArrayList<Appointment> dailyAppointments = new ArrayList<Appointment>();
+			ArrayList<Appointment> dailyAppointments = new ArrayList<>();
 
-			ArrayList<Appointment> weeklyAppointments = new ArrayList<Appointment>();
+			ArrayList<Appointment> weeklyAppointments = new ArrayList<>();
 
-			ArrayList<Appointment> monthlyAppointments = new ArrayList<Appointment>();
+			ArrayList<Appointment> monthlyAppointments = new ArrayList<>();
 
-			ArrayList<Appointment> annualAppointments = new ArrayList<Appointment>();
+			ArrayList<Appointment> annualAppointments = new ArrayList<>();
 			
-			ArrayList<Appointment> weekdayAppointments = new ArrayList<Appointment>();
+			ArrayList<Appointment> weekdayAppointments = new ArrayList<>();
 
-			ArrayList<Appointment> multiDayAppointments = new ArrayList<Appointment>();
+			ArrayList<Appointment> multiDayAppointments = new ArrayList<>();
 
     		Calendar startTimeCal = new GregorianCalendar();
     		startTimeCal.setTimeInMillis(startTime);
@@ -1028,7 +1014,7 @@ public class AppointmentManager extends Thread
 						}
 						catch (NumberFormatException nfex)
 						{
-							Logger.getLogger(getClass()).error("invalid event time in appointment of user " + userid + " : " + eventTimeVal);
+							logger.error("invalid event time in appointment of user " + userid + " : " + eventTimeVal);
 						}
 	                }
 				}
@@ -1057,7 +1043,7 @@ public class AppointmentManager extends Thread
 						}
 						catch (NumberFormatException numEx) 
 						{
-							Logger.getLogger(getClass()).error("invalid fullDayNum value in appointment of user " + userid, numEx);
+							logger.error("invalid fullDayNum value in appointment of user " + userid, numEx);
 						}
 					}
 				}
@@ -1314,11 +1300,11 @@ public class AppointmentManager extends Thread
 	{
 		Element appointmentList = this.getAppointmentList(userid);
     	
-		ArrayList<Appointment> listOfAppointments = new ArrayList<Appointment>();
+		ArrayList<Appointment> listOfAppointments = new ArrayList<>();
 
 		if (appointmentList == null)
 		{
-			Logger.getLogger(getClass()).error("appointment list for user " + userid + " does not exist!");
+			logger.error("appointment list for user " + userid + " does not exist!");
 
 			return(listOfAppointments);
 		}
@@ -1345,7 +1331,7 @@ public class AppointmentManager extends Thread
 					}
 					catch (NumberFormatException nfex)
 					{
-						Logger.getLogger(getClass()).error("invalid alarm time in appointment of user " + userid);
+						logger.error("invalid alarm time in appointment of user " + userid);
 					}
 				}
 
@@ -1371,22 +1357,22 @@ public class AppointmentManager extends Thread
 
         if (appointmentListElement==null)
         {
-        	Logger.getLogger(getClass()).error("appointment list for user " + userid + " does not exist");
+        	logger.error("appointment list for user " + userid + " does not exist");
             return;
         }
 
-        Logger.getLogger(getClass()).debug("saving appointments for user " + userid);
+        logger.debug("saving appointments for user " + userid);
 
         File appointmentDirFile = new File(appointmentDir);
         if (!appointmentDirFile.exists()) 
         {
         	if (appointmentDirFile.mkdirs())
         	{
-        		Logger.getLogger(getClass()).debug("appointment folder created");
+        		logger.debug("appointment folder created");
         	}
         	else
         	{
-        		Logger.getLogger(getClass()).error("appointment folder could not be created");
+        		logger.error("appointment folder could not be created");
         		return;
         	}
         }
@@ -1409,7 +1395,7 @@ public class AppointmentManager extends Thread
             }
             catch (IOException io1)
             {
-            	Logger.getLogger(getClass()).error("failed to save appointments for user " + userid, io1);
+            	logger.error("failed to save appointments for user " + userid, io1);
             }
             finally
             {
@@ -1437,19 +1423,19 @@ public class AppointmentManager extends Thread
         {
             String userid = (String) cacheUserIter.next();
 
-            boolean dirtyFlag = cacheDirty.get(userid).booleanValue();
+            boolean dirtyFlag = cacheDirty.get(userid);
 
             if (dirtyFlag)
             {
                 saveToFile(userid);
-                cacheDirty.put(userid,new Boolean(false));
+                cacheDirty.put(userid, false);
             }
         }
     }
     
     protected void loadAlarmIndexFromXml()
     {
-    	Logger.getLogger(getClass()).debug("loading appointments into alarm index");
+    	logger.debug("loading appointments into alarm index");
     	
         alarmIdx = new AlarmIndex();
 
@@ -1465,23 +1451,20 @@ public class AppointmentManager extends Thread
         	todayCal.set(Calendar.MINUTE, 0);
         	todayCal.set(Calendar.SECOND, 0);
         	
-            for (int i = 0; i < userList.length; i++)
-            {
-                String userXmlFileName = userList[i];
-
-                if (userXmlFileName.endsWith(".xml"))
-                {
-                    String userName = userXmlFileName.substring(0, userXmlFileName.indexOf(".xml"));
-
-                    loadUserAppointmentsFromXml(userName, todayCal);
+                for (String userXmlFileName : userList) {
+                    if (userXmlFileName.endsWith(".xml"))
+                    {
+                        String userName = userXmlFileName.substring(0, userXmlFileName.indexOf(".xml"));
+                        
+                        loadUserAppointmentsFromXml(userName, todayCal);
+                    }
                 }
-            }
         }
     }
 
     private String getTimeZoneOffset(long forTime) 
     {
-		StringBuffer tzone = new StringBuffer();
+		StringBuilder tzone = new StringBuilder();
 		tzone.append("(GMT");
 
 		TimeZone timeZone = TimeZone.getDefault();
@@ -1506,10 +1489,7 @@ public class AppointmentManager extends Thread
 
         if ((appointmentList != null) && (appointmentList.size() > 0))
         {
-            for (int i = 0; i < appointmentList.size(); i++)
-            {
-                Appointment appointment = appointmentList.get(i);
-
+            for (Appointment appointment : appointmentList) {
                 AlarmEntry newEvent = alarmIdx.addEvent(userName, appointment);
 
                 appointment.setScheduleId(newEvent.getDateId());
@@ -1518,69 +1498,63 @@ public class AppointmentManager extends Thread
 
                 if (appointment.isAlarmed())
                 {
-                	if (appointment.getRepeatPeriod() == AlarmEntry.REPEAT_NONE) {
+                    if (appointment.getRepeatPeriod() == AlarmEntry.REPEAT_NONE) {
                         newEvent.setAlarmed();
-                	}
-                	else
-                	{
+                    }
+                    else
+                    {
                         newEvent.unsetAlarmed();
-                	}
+                    }
                 }
 
                 if (appointment.isMailAlarmed())
                 {
                     newEvent.setMailAlarmed();
                 }
-
-            	if ((appointment.getAlarmType() == AlarmEntry.ALARM_MAIL) ||
-                	(appointment.getAlarmType() == AlarmEntry.ALARM_ALL))
-            	{
-            		if (appointment.getAlarmTime().getTime() < todayCal.getTimeInMillis()) 
-            		{
-            			// alarm(s) missed during server downtime - send it now 
-                    	
-            			if (appointment.getRepeatPeriod() == AlarmEntry.REPEAT_NONE)
-            			{
-            				if (!appointment.isMailAlarmed())
-            				{
-            					if (Logger.getLogger(getClass()).isDebugEnabled()) 
-            					{
-                        			Logger.getLogger(getClass()).debug("sending downtime alarm for user " + userName);
-            					}
-
-            					// TODO: take user's timezone from user profile and calculate time
-            					// and timezone offset to show in the mail
-            					// int tzHourOffset = XmlUserProfileManager.getInstance().getTimeZone(userName);
-            					
-            					String tzone = getTimeZoneOffset(appointment.getAlarmTime().getTime());
-            					
-                            	if (alarmDistributor.sendAlarmMail(userName, appointment, tzone.toString()))
-        						{
-        							newEvent.setMailAlarmed();
-        							appointment.setMailAlarmed(true);
-        							
-        							updateAppointment(userName, appointment, false);
-        							
-        				            downtimeAlarmSent = true;
-        						}
-            				}
-            			}
-            			else
-            			{
-            				if (checkMissedRepeatedAlarms(userName, appointment, newEvent, todayCal))
-            				{
-    				            downtimeAlarmSent = true;
-            				}
-            			}
-            		}
-            	}
+                
+                if ((appointment.getAlarmType() == AlarmEntry.ALARM_MAIL) ||
+                        (appointment.getAlarmType() == AlarmEntry.ALARM_ALL))
+                {
+                    if (appointment.getAlarmTime().getTime() < todayCal.getTimeInMillis())
+                    {
+                        // alarm(s) missed during server downtime - send it now
+                        
+                        if (appointment.getRepeatPeriod() == AlarmEntry.REPEAT_NONE)
+                        {
+                            if (!appointment.isMailAlarmed())
+                            {
+                                logger.debug("sending downtime alarm for user " + userName);
+                                
+                                // TODO: take user's timezone from user profile and calculate time
+                                // and timezone offset to show in the mail
+                                // int tzHourOffset = XmlUserProfileManager.getInstance().getTimeZone(userName);
+                                
+                                String tzone = getTimeZoneOffset(appointment.getAlarmTime().getTime());
+                                
+                                if (alarmDistributor.sendAlarmMail(userName, appointment, tzone))
+                                {
+                                    newEvent.setMailAlarmed();
+                                    appointment.setMailAlarmed(true);
+                                    
+                                    updateAppointment(userName, appointment, false);
+                                    
+                                    downtimeAlarmSent = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (checkMissedRepeatedAlarms(userName, appointment, newEvent, todayCal))
+                            {
+                                downtimeAlarmSent = true;
+                            }
+                        }
+                    }
+                }
             }
         }
         
-		if (Logger.getLogger(getClass()).isDebugEnabled())
-		{
-	    	Logger.getLogger(getClass()).debug("loaded appointments of user " + userName + " into alarm index");
-		}
+	    logger.debug("loaded appointments of user " + userName + " into alarm index");
     	
     	if (downtimeAlarmSent)
     	{
@@ -1643,10 +1617,7 @@ public class AppointmentManager extends Thread
 	    	alarmCal.add(Calendar.DAY_OF_MONTH, 1);
 	    	while (alarmCal.getTimeInMillis() < todayCal.getTimeInMillis())
 	    	{
-	    		if (Logger.getLogger(getClass()).isDebugEnabled())
-	    		{
-	    			Logger.getLogger(getClass()).debug("sending daily repeated downtime alarm for user " + userid);
-	    		}
+	    		logger.debug("sending daily repeated downtime alarm for user " + userid);
 
 				// TODO: take user's timezone from user profile and calculate time
 				// and timezone offset to show in the mail
@@ -1674,10 +1645,7 @@ public class AppointmentManager extends Thread
 	    	alarmCal.add(Calendar.WEEK_OF_YEAR, 1);
 	    	while (alarmCal.getTimeInMillis() < todayCal.getTimeInMillis())
 	    	{
-	    		if (Logger.getLogger(getClass()).isDebugEnabled())
-	    		{
-	    			Logger.getLogger(getClass()).debug("sending weekly repeated downtime alarm for user " + userid);
-	    		}
+	    		logger.debug("sending weekly repeated downtime alarm for user " + userid);
 
     			// TODO: take user's timezone from user profile and calculate time
 				// and timezone offset to show in the mail
@@ -1705,10 +1673,7 @@ public class AppointmentManager extends Thread
 	    	alarmCal.add(Calendar.MONTH, 1);
 	    	while (alarmCal.getTimeInMillis() < todayCal.getTimeInMillis())
 	    	{
-	    		if (Logger.getLogger(getClass()).isDebugEnabled())
-	    		{
-	    			Logger.getLogger(getClass()).debug("sending monthly repeated downtime alarm for user " + userid);
-	    		}
+	    		logger.debug("sending monthly repeated downtime alarm for user " + userid);
 
     			// TODO: take user's timezone from user profile and calculate time
 				// and timezone offset to show in the mail
@@ -1736,10 +1701,7 @@ public class AppointmentManager extends Thread
 	    	alarmCal.add(Calendar.YEAR, 1);
 	    	while (alarmCal.getTimeInMillis() < todayCal.getTimeInMillis())
 	    	{
-	    		if (Logger.getLogger(getClass()).isDebugEnabled())
-	    		{
-	    			Logger.getLogger(getClass()).debug("sending annual repeated downtime alarm for user " + userid);
-	    		}
+	    		logger.debug("sending annual repeated downtime alarm for user " + userid);
 
     			// TODO: take user's timezone from user profile and calculate time
 				// and timezone offset to show in the mail
@@ -1778,10 +1740,7 @@ public class AppointmentManager extends Thread
 	    	}
 	    	while (alarmCal.getTimeInMillis() < todayCal.getTimeInMillis())
 	    	{
-	    		if (Logger.getLogger(getClass()).isDebugEnabled())
-	    		{
-	    			Logger.getLogger(getClass()).debug("sending weekday repeated downtime alarm for user " + userid + " alarm time: " + alarmCal.getTime());
-	    		}
+	    		logger.debug("sending weekday repeated downtime alarm for user " + userid + " alarm time: " + alarmCal.getTime());
 
     			// TODO: take user's timezone from user profile and calculate time
 				// and timezone offset to show in the mail

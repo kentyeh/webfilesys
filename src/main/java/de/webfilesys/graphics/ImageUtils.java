@@ -1,8 +1,11 @@
 package de.webfilesys.graphics;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ImageUtils {
+
+    private static final Logger logger = LogManager.getLogger(ImageUtils.class);
 
 	public static ImageDimensions getScaledDimensions(int origWidth, int origHeight, int maxWidth, int maxHeight) {
 		int yscale = 100000;
@@ -46,7 +49,7 @@ public class ImageUtils {
                 scaledDim.setOrigWidth(scaledImage.getRealWidth());
                 scaledDim.setOrigHeight(scaledImage.getRealHeight());
         	} catch (Exception ex) {
-                Logger.getLogger(ImageUtils.class).error("failed to get image dimension for file " + imgPath, ex);
+                logger.error("failed to get image dimension for file " + imgPath, ex);
         		scaledDim = new ImageDimensions(100, 100);
         	}
         }

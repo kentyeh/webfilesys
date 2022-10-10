@@ -1,9 +1,11 @@
 package de.webfilesys;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SystemEditor extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(SystemEditor.class);
 	String fileName;
 
 	public SystemEditor(String fileName)
@@ -11,6 +13,7 @@ public class SystemEditor extends Thread
 		this.fileName=fileName;
 	}
 
+        @Override
 	public void run()
 	{
 		String cmd=null;
@@ -33,7 +36,7 @@ public class SystemEditor extends Thread
 		}
 		catch (Exception e)
 		{
-			Logger.getLogger(getClass()).error(e);
+			logger.error(e);
 		}
 	}
 }

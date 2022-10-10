@@ -1,7 +1,6 @@
 package de.webfilesys.gui.xsl;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.List;
@@ -10,19 +9,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
-import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CompareImageTabHandler extends XslRequestHandlerBase {
-	private static final Logger LOG = Logger.getLogger(CompareImageTabHandler.class);
+	private static final Logger logger = LogManager.getLogger(CompareImageTabHandler.class);
     
 	private static final String XSL_STYLESHEET_NAME = "compareImgTab.xsl";
 	
@@ -44,7 +43,7 @@ public class CompareImageTabHandler extends XslRequestHandlerBase {
 		List<String> selectedFiles = getSelectedFiles();
 		
 		if (selectedFiles.size() < 2) {
-		    LOG.error("this image comparision requires at least two selected pictures");
+		    logger.error("this image comparision requires at least two selected pictures");
 		    return;
 		}
 

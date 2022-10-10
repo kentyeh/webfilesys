@@ -32,6 +32,7 @@ public class XslListCommentsHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String actPath = getParameter("actPath");
@@ -109,54 +110,44 @@ public class XslListCommentsHandler extends XslRequestHandlerBase
 		{
 			SimpleDateFormat dateFormat = LanguageManager.getInstance().getDateFormat(language);
 
-			for (int i = 0; i < listOfComments.size(); i++)
-			{
-				Comment comment=(Comment) listOfComments.get(i);
-
-				String login = comment.getUser();
-
-				StringBuffer userString = new StringBuffer();
-				
-				if (!userMgr.userExists(login))
-				{
-					// anonymous guest who entered his name
-					userString.append(login);
-				}
-				else if (userMgr.getUserType(login).equals("virtual"))
-				{
-					userString.append(getResource("label.guestuser","Guest"));
-				}
-				else
-				{
-					String firstName = userMgr.getFirstName(login);
-					String lastName = userMgr.getLastName(login);
-
-					if ((lastName != null) && (lastName.trim().length() > 0))
-					{
-						if (firstName != null)
-						{
-							userString.append(firstName);
-							userString.append(" ");
-						}
-
-						userString.append(lastName);
-					}
-					else
-					{
-						userString.append(login);
-					}
-				}
-
-				Element commentElement = doc.createElement("comment");
-				
-				commentListElement.appendChild(commentElement);
-				
-				XmlUtil.setChildText(commentElement, "user", userString.toString(), false);
-
-				XmlUtil.setChildText(commentElement, "date", dateFormat.format(comment.getCreationDate()), false);
-
-				XmlUtil.setChildText(commentElement, "msg", comment.getMessage(), true);
-			}
+                    for (Comment comment : listOfComments) {
+                        String login = comment.getUser();
+                        StringBuilder userString = new StringBuilder();
+                        if (!userMgr.userExists(login))
+                        {
+                            // anonymous guest who entered his name
+                            userString.append(login);
+                        }
+                        else if (userMgr.getUserType(login).equals("virtual"))
+                        {
+                            userString.append(getResource("label.guestuser","Guest"));
+                        }
+                        else
+                        {
+                            String firstName = userMgr.getFirstName(login);
+                            String lastName = userMgr.getLastName(login);
+                            
+                            if ((lastName != null) && (lastName.trim().length() > 0))
+                            {
+                                if (firstName != null)
+                                {
+                                    userString.append(firstName);
+                                    userString.append(" ");
+                                }
+                                
+                                userString.append(lastName);
+                            }
+                            else
+                            {
+                                userString.append(login);
+                            }
+                        }
+                        Element commentElement = doc.createElement("comment");
+                        commentListElement.appendChild(commentElement);
+                        XmlUtil.setChildText(commentElement, "user", userString.toString(), false);
+                        XmlUtil.setChildText(commentElement, "date", dateFormat.format(comment.getCreationDate()), false);
+                        XmlUtil.setChildText(commentElement, "msg", comment.getMessage(), true);
+                    }
 		}
 			
 		this.processResponse("fileComments.xsl");

@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Constants;
@@ -24,12 +23,14 @@ import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XformImageHandler extends XmlRequestHandlerBase {
-    private static final Logger LOG = Logger.getLogger(XformImageHandler.class);
+    private static final Logger logger = LogManager.getLogger(XformImageHandler.class);
 	
 	public XformImageHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session, PrintWriter output,
 			String uid) {
@@ -44,13 +45,13 @@ public class XformImageHandler extends XmlRequestHandlerBase {
 		String imageName = req.getParameter("imgName");
 
 		if (CommonUtils.isEmpty(imageName)) {
-			LOG.warn("missing parameter imgName");
+			logger.warn("missing parameter imgName");
 			return;
 		}
 
 		String domId = getParameter("domId");
 		if (CommonUtils.isEmpty(domId)) {
-			LOG.warn("missing parameter domId");
+			logger.warn("missing parameter domId");
 			return;
 		}
 
@@ -181,7 +182,7 @@ public class XformImageHandler extends XmlRequestHandlerBase {
 			XmlUtil.setChildText(fileElement, "thumbHeight", Integer.toString(thumbHeight));
 			
 		} catch (IOException ioex) {
-			LOG.error("failed to get image data", ioex);
+			logger.error("failed to get image data", ioex);
 		}
 		
 		String imgSrcPath = "/webfilesys/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(resultImageName);

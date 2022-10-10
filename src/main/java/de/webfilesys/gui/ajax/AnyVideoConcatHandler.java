@@ -7,20 +7,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.graphics.VideoConcatAnyThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.SessionKey;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AnyVideoConcatHandler extends MultiVideoHandlerBase {
 	
-	private static Logger LOG = Logger.getLogger(AnyVideoConcatHandler.class);
+	private static final Logger logger = LogManager.getLogger(AnyVideoConcatHandler.class);
 	
 	private static final String TARGET_FOLDER = "_joined";
 	
@@ -29,6 +30,7 @@ public class AnyVideoConcatHandler extends MultiVideoHandlerBase {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -39,7 +41,7 @@ public class AnyVideoConcatHandler extends MultiVideoHandlerBase {
 		List<String> selectedFiles = (List<String>) session.getAttribute(SessionKey.SELECTED_FILES);
 
 		if (selectedFiles == null) {
-			LOG.error("selected video files not found in session");
+			logger.error("selected video files not found in session");
 			return;
 		}
 		
@@ -56,7 +58,7 @@ public class AnyVideoConcatHandler extends MultiVideoHandlerBase {
 			newWidth = Integer.parseInt(newWidthParam);
 			newHeight = Integer.parseInt(newHeightParam);
 		} catch (Exception ex) {
-			LOG.error("invalid value for new video dimension", ex);
+			logger.error("invalid value for new video dimension", ex);
 			return;
 		}
 

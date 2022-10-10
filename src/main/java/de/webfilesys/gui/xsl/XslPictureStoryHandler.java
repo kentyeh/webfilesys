@@ -1,14 +1,12 @@
 package de.webfilesys.gui.xsl;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -22,7 +20,6 @@ import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.ImageDimensions;
 import de.webfilesys.graphics.ImageUtils;
-import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
 
@@ -41,9 +38,10 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
-		session.setAttribute("viewMode", new Integer(Constants.VIEW_MODE_STORY));
+		session.setAttribute("viewMode", Constants.VIEW_MODE_STORY);
 
 		MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 
@@ -138,7 +136,7 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 			{
 				int newScreenWidth = Integer.parseInt(screenWidthParm);
 
-				session.setAttribute("screenWidth", new Integer(newScreenWidth));
+				session.setAttribute("screenWidth", newScreenWidth);
 			}
 			catch (NumberFormatException nfex)
 			{
@@ -151,7 +149,7 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 			{
 				int newScreenHeight = Integer.parseInt(screenHeightParm);
 
-				session.setAttribute("screenHeight", new Integer(newScreenHeight));
+				session.setAttribute("screenHeight", newScreenHeight);
 			}
 			catch (NumberFormatException nfex)
 			{
@@ -165,14 +163,14 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 		
 		if (widthScreen != null)
 		{
-			screenWidth = widthScreen.intValue();
+			screenWidth = widthScreen;
 		}
 
 		Integer heightScreen = (Integer) session.getAttribute("screenHeight");
 		
 		if (heightScreen != null)
 		{
-			screenHeight = heightScreen.intValue();
+			screenHeight = heightScreen;
 		}
 		
 		int thumbnailSize = 400;
@@ -194,7 +192,7 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 			{
 				startIdx = Integer.parseInt(startIdxParm);
 
-				session.setAttribute("startIdx",new Integer(startIdx));
+				session.setAttribute("startIdx", startIdx);
 			}
 			catch (NumberFormatException nfex)
 			{
@@ -207,7 +205,7 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 			
 			if (startIdxFromSession != null)
 			{
-				startIdx = startIdxFromSession.intValue();
+				startIdx = startIdxFromSession;
 			}
 		}
 		
@@ -291,9 +289,9 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 
 				Integer sessionThumbPageSize = (Integer) session.getAttribute("thumbPageSize");
 				
-				if ((sessionThumbPageSize == null) || (sessionThumbPageSize.intValue() != pageSize))
+				if ((sessionThumbPageSize == null) || (sessionThumbPageSize != pageSize))
 				{
-					session.setAttribute("thumbPageSize", new Integer(pageSize));
+					session.setAttribute("thumbPageSize", pageSize);
 
 					if (!readonly)
 					{
@@ -302,7 +300,7 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 					
 					startIdx = 0;
 
-					session.setAttribute("startIdx", new Integer(0));
+					session.setAttribute("startIdx", 0);
 				}
 			}
 			catch (NumberFormatException nfex)
@@ -313,9 +311,9 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 		{
 			Integer sessionThumbPageSize = (Integer) session.getAttribute("thumbPageSize");
 			
-			if ((sessionThumbPageSize != null) && (sessionThumbPageSize.intValue() != 0))
+			if ((sessionThumbPageSize != null) && (sessionThumbPageSize != 0))
 			{
-				pageSize = sessionThumbPageSize.intValue();
+				pageSize = sessionThumbPageSize;
 			}
 		}
 
@@ -402,12 +400,12 @@ public class XslPictureStoryHandler extends XslRequestHandlerBase
 							}
 						}
 						
-						Integer pageStartIdx = (Integer) pageStartIndices.get(pageCounter);
+						Integer pageStartIdx = pageStartIndices.get(pageCounter);
 						
 						Element pageElement = doc.createElement("page");
 						pagingElement.appendChild(pageElement);
 						pageElement.setAttribute("num", Integer.toString(pageCounter + 1));
-						pageElement.setAttribute("startIdx", Integer.toString(pageStartIdx.intValue()));
+						pageElement.setAttribute("startIdx", Integer.toString(pageStartIdx));
 					}
 				}
 			}

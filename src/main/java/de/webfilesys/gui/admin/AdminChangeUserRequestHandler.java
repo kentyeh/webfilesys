@@ -6,19 +6,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
-import com.ctc.wstx.util.StringUtil;
-
 import de.webfilesys.mail.EmailUtils;
 import de.webfilesys.user.TransientUser;
 import de.webfilesys.user.UserMgmtException;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AdminChangeUserRequestHandler extends AdminRequestHandler {
+    private static final Logger logger = LogManager.getLogger(AdminChangeUserRequestHandler.class);
 	public AdminChangeUserRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -28,8 +27,9 @@ public class AdminChangeUserRequestHandler extends AdminRequestHandler {
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process() {
-		StringBuffer errorMsg = new StringBuffer();
+		StringBuilder errorMsg = new StringBuilder();
 
 		String login=getParameter("username");
 
@@ -120,7 +120,7 @@ public class AdminChangeUserRequestHandler extends AdminRequestHandler {
 
 				if ((!docRootFile.exists()) || (!docRootFile.isDirectory()))
 				{
-					errorMsg.append("the document root directory " + insertDoubleBackslash(documentRoot) + " does not exist\\n");
+					errorMsg.append("the document root directory ").append(insertDoubleBackslash(documentRoot)).append(" does not exist\\n");
 				}
 			}
 		}
@@ -167,8 +167,8 @@ public class AdminChangeUserRequestHandler extends AdminRequestHandler {
 		TransientUser changedUser = userMgr.getUser(login);
 		
 		if (changedUser == null) {
-            Logger.getLogger(getClass()).error("user for update not found: " + login);
-			errorMsg.append("user for update not found: " + login);
+            logger.error("user for update not found: " + login);
+			errorMsg.append("user for update not found: ").append(login);
 			(new AdminEditUserRequestHandler(req, resp, session, output, uid, errorMsg.toString())).handleRequest(); 
 			return;
 		}
@@ -237,8 +237,8 @@ public class AdminChangeUserRequestHandler extends AdminRequestHandler {
 		try {
 			userMgr.updateUser(changedUser);
 		} catch (UserMgmtException ex) {
-            Logger.getLogger(getClass()).error("failed to update user " + login, ex);
-			errorMsg.append("failed to update user " + login);
+            logger.error("failed to update user " + login, ex);
+			errorMsg.append("failed to update user ").append(login);
 			(new AdminEditUserRequestHandler(req, resp, session, output, uid, errorMsg.toString())).handleRequest(); 
 			return;
 		}

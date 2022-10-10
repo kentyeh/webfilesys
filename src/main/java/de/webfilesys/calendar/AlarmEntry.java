@@ -187,9 +187,10 @@ public class AlarmEntry implements Serializable
         return("none");
     }
     
+        @Override
     public String toString()
     {
-    	StringBuffer buff = new StringBuffer();
+    	StringBuilder buff = new StringBuilder();
     	buff.append("AlarmEntry[");
     	buff.append("xmlId=");
     	buff.append(getXmlId());

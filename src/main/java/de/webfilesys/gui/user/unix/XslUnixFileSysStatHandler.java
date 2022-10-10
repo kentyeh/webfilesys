@@ -1,6 +1,5 @@
 package de.webfilesys.gui.user.unix;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -21,12 +19,17 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.xsl.XslRequestHandlerBase;
 import de.webfilesys.unix.FileSysInfo;
 import de.webfilesys.util.XmlUtil;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslUnixFileSysStatHandler extends XslRequestHandlerBase
 {
+      private static final Logger logger = LogManager.getLogger(XslUnixFileSysStatHandler.class);
 	public XslUnixFileSysStatHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -37,6 +40,7 @@ public class XslUnixFileSysStatHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		if (File.separatorChar != '/')
@@ -138,10 +142,10 @@ public class XslUnixFileSysStatHandler extends XslRequestHandlerBase
         }
         catch (Exception e)
         {
-            Logger.getLogger(getClass()).error(e);
+            logger.error(e);
         }
 
-        DataInputStream cmdOut = new DataInputStream(cmdProcess.getInputStream());
+        try(BufferedReader cmdOut = new BufferedReader(new InputStreamReader(cmdProcess.getInputStream()))){
         
         String stdoutLine = null;
 
@@ -150,14 +154,7 @@ public class XslUnixFileSysStatHandler extends XslRequestHandlerBase
 
         while (!done)
         {
-            try
-            {
                 stdoutLine = cmdOut.readLine();
-            }
-            catch (IOException ioe)
-            {
-                System.out.println(ioe);
-            }
             if (stdoutLine==null)
             {
                 done = true;
@@ -187,14 +184,14 @@ public class XslUnixFileSysStatHandler extends XslRequestHandlerBase
 
                         String p_used = fsParser.nextToken();  
 
-                        int percentUsed = new Integer(p_used.substring(0,p_used.length()-1)).intValue();
+                        int percentUsed = Integer.parseInt(p_used.substring(0,p_used.length()-1));
                         int percent_i_used = 0;
                         
                         if (osType == WebFileSys.OS_AIX)
                         {
                             fsParser.nextToken();
                             String p_i_used = fsParser.nextToken();
-                            percent_i_used = new Integer(p_i_used.substring(0,p_i_used.length()-1)).intValue();
+                            percent_i_used = Integer.parseInt(p_i_used.substring(0,p_i_used.length()-1));
                         }
 
                         String mountPoint = fsParser.nextToken();
@@ -204,18 +201,18 @@ public class XslUnixFileSysStatHandler extends XslRequestHandlerBase
 
                         fileSysStatList.add(newFilesysInfo);
                     }
-                    catch (NoSuchElementException nseEx)
+                    catch (NoSuchElementException | NumberFormatException nseEx)
                     {
-                        Logger.getLogger(getClass()).error("error parsing filesys table : " + nseEx + "\n in line " + stdoutLine);
-                    }
-                    catch (NumberFormatException nfe)
-                    {
-                        Logger.getLogger(getClass()).error("error parsing filesys table : " + nfe + "\n in line " + stdoutLine);
+                        logger.error("error parsing filesys table : " + nseEx + "\n in line " + stdoutLine);
                     }
                 }
             }
         }
-
+        }
+            catch (IOException ioe)
+            {
+                logger.debug(ioe.getMessage(), ioe);
+            }
         return fileSysStatList;
 	}
 }

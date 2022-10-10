@@ -1,16 +1,12 @@
 package de.webfilesys.graphics;
 
 import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageFilter;
-import java.awt.image.ImageProducer;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,15 +21,16 @@ import javax.imageio.ImageWriter;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.Constants;
 import de.webfilesys.FileComparator;
 import de.webfilesys.FileSelectionStatus;
 import de.webfilesys.FileSelector;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ThumbnailCreatorBase
 {
+    private static final Logger logger = LogManager.getLogger(ThumbnailCreatorBase.class);
     public static final int SCALE_MIN_SIZE = 300;
     
     public static final String THUMBNAIL_SUBDIR = "_thumbnails";
@@ -54,7 +51,7 @@ public class ThumbnailCreatorBase
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error(ioex);
+            logger.error(ioex);
             return;
         }
         
@@ -83,7 +80,7 @@ public class ThumbnailCreatorBase
         {
             if (!thumbDir.mkdir())
             {
-                Logger.getLogger(getClass()).error("cannot create thumbnail dir: " + thumbDir);
+                logger.error("cannot create thumbnail dir: " + thumbDir);
                 return;                   
             }
         }
@@ -91,7 +88,7 @@ public class ThumbnailCreatorBase
         {
             if ((!thumbDir.isDirectory()) || (!thumbDir.canWrite()))
             {
-                Logger.getLogger(getClass()).error("cannot write to thumbnail dir: " + thumbDir);
+                logger.error("cannot write to thumbnail dir: " + thumbDir);
                 return;                   
             }
         }   
@@ -113,7 +110,7 @@ public class ThumbnailCreatorBase
         try {
             tracker.waitForAll();
         } catch (Exception ex) {
-            Logger.getLogger(getClass()).warn("failed to load original image for thumbnail creation", ex);
+            logger.warn("failed to load original image for thumbnail creation", ex);
         }
 
         tracker.removeImage(origImage);
@@ -154,16 +151,16 @@ public class ThumbnailCreatorBase
                 ios.flush();
                 imgWriter.dispose();
                 long endTime = System.currentTimeMillis();
-                Logger.getLogger(getClass()).debug("JPEG Thumbnail created for " + imgFileName + " (" + (endTime - startTime) + " ms)");
+                logger.debug("JPEG Thumbnail created for " + imgFileName + " (" + (endTime - startTime) + " ms)");
                 success = true;
             }
             catch (IOException ioex) 
             {
-                Logger.getLogger(getClass()).error("error writing thumbnail file " + thumbFileName, ioex);
+                logger.error("error writing thumbnail file " + thumbFileName, ioex);
             }
             catch (OutOfMemoryError memEx)
             {
-                Logger.getLogger(getClass()).error("insufficient memory for thumbnail creation", memEx);
+                logger.error("insufficient memory for thumbnail creation", memEx);
             }
             finally
             {
@@ -174,7 +171,7 @@ public class ThumbnailCreatorBase
                     }
                     catch (Exception ex)
                     {
-                        Logger.getLogger(getClass()).error("error closing thumbnail file", ex);
+                        logger.error("error closing thumbnail file", ex);
                     }
                 }
             }
@@ -206,7 +203,7 @@ public class ThumbnailCreatorBase
 
                 if (pngBytes == null)
                 {
-                    Logger.getLogger(getClass()).warn("PNG Encoder : Null image");
+                    logger.warn("PNG Encoder : Null image");
                 }
                 else
                 {
@@ -216,13 +213,13 @@ public class ThumbnailCreatorBase
                 thumbOut.flush();
 
                 long endTime = System.currentTimeMillis();
-                Logger.getLogger(getClass()).debug("PNG Thumbnail created for " + imgFileName + " (" + (endTime - startTime) + " ms)");
+                logger.debug("PNG Thumbnail created for " + imgFileName + " (" + (endTime - startTime) + " ms)");
                 
                 success = true;
             }
             catch (IOException ioex)
             {
-                Logger.getLogger(getClass()).error("cannot create PNG thumbnail for " + imgFileName, ioex);
+                logger.error("cannot create PNG thumbnail for " + imgFileName, ioex);
             }
             finally
             {
@@ -233,7 +230,7 @@ public class ThumbnailCreatorBase
                     }
                     catch (Exception ex)
                     {
-                        Logger.getLogger(getClass()).error("error closing thumbnail file", ex);
+                        logger.error("error closing thumbnail file", ex);
                     }
                 }
             }
@@ -314,10 +311,7 @@ public class ThumbnailCreatorBase
 
             if ((fileList!=null) && (fileList.length > 0))
             {
-                for (int i=0;i<fileList.length;i++)
-                {
-                    String fileName=fileList[i];
-
+                for (String fileName : fileList) {
                     String fullPath=actPath + fileName;
 
                     File tempFile=new File(fullPath);
@@ -338,10 +332,8 @@ public class ThumbnailCreatorBase
 
         if ((selectedFiles!=null) && (selectedFiles.size()>0))
         {
-            for (int i=0;i<selectedFiles.size();i++)
-            {
-                String actFileName=(String) selectedFiles.get(i);
-
+            for (String selectedFile : selectedFiles) {
+                String actFileName = (String) selectedFile;
                 if (!thumbnailUpToDate(actPath + actFileName))
                 {
                     createScaledImage(actPath + actFileName);
@@ -356,7 +348,7 @@ public class ThumbnailCreatorBase
 
         if (!tempFile.delete())
         {
-            Logger.getLogger(getClass()).error("cannot cleanup thumbnail file " + thumbFileName);
+            logger.error("cannot cleanup thumbnail file " + thumbFileName);
         }
     }
 
@@ -366,7 +358,7 @@ public class ThumbnailCreatorBase
 
         if (sepIdx < 0)
         {
-            Logger.getLogger(ThumbnailCreatorBase.class).error("incorrect image path: " + imgPath);
+            logger.error("incorrect image path: " + imgPath);
             return(null); 
         }
 

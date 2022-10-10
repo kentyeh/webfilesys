@@ -2,7 +2,8 @@ package de.webfilesys;
 
 import java.io.File;
 import java.util.Comparator;
-import java.util.Hashtable;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FileComparator implements Comparator {
     public static final int SORT_BY_FILENAME = 1; 
@@ -13,8 +14,8 @@ public class FileComparator implements Comparator {
 
     public static final int SORT_FILES_BY_NAME = 5; 
     
-    Hashtable<String, Long> sizeCache = null;
-    Hashtable<String, Long> dateCache = null;
+    ConcurrentHashMap<String, Long> sizeCache = null;
+    ConcurrentHashMap<String, Long> dateCache = null;
 
     int sortBy;
     String path;
@@ -33,11 +34,11 @@ public class FileComparator implements Comparator {
         this.sortBy = sortBy;
 
         if (sortBy == SORT_BY_SIZE) {
-            sizeCache = new Hashtable<String, Long>();
+            sizeCache = new ConcurrentHashMap<>();
         }
 
         if (sortBy == SORT_BY_DATE) {
-            dateCache = new Hashtable<String, Long>();
+            dateCache = new ConcurrentHashMap<>();
         }
     }
 
@@ -87,28 +88,28 @@ public class FileComparator implements Comparator {
             long fileSize1;
             long fileSize2;
 
-            Long file1Size = (Long) sizeCache.get(path + fileName1);
+            Long file1Size = sizeCache.get(path + fileName1);
             
             if (file1Size == null) {
                 file1 = new File(path + fileName1);
             
                 fileSize1 = file1.length();
 
-                sizeCache.put(path + fileName1,new Long(fileSize1));
+                sizeCache.put(path + fileName1, fileSize1);
             } else {
-                fileSize1 = file1Size.longValue();
+                fileSize1 = file1Size;
             }
 
-            Long file2Size = (Long) sizeCache.get(path + fileName2);
+            Long file2Size = sizeCache.get(path + fileName2);
             
             if (file2Size == null) {
                 file2 = new File(path + fileName2);
             
                 fileSize2 = file2.length();
 
-                sizeCache.put(path + fileName2,new Long(fileSize2));
+                sizeCache.put(path + fileName2, fileSize2);
             } else {
-                fileSize2 = file2Size.longValue();
+                fileSize2 = file2Size;
             }
 
             if (fileSize1 < fileSize2) {
@@ -126,28 +127,28 @@ public class FileComparator implements Comparator {
             long fileDate1;
             long fileDate2;
 
-            Long file1Date = (Long) dateCache.get(path + fileName1);
+            Long file1Date = dateCache.get(path + fileName1);
             
             if (file1Date == null) {
                 file1 = new File(path + fileName1);
             
                 fileDate1 = file1.lastModified();
 
-                dateCache.put(path + fileName1, new Long(fileDate1));
+                dateCache.put(path + fileName1, fileDate1);
             } else {
-                fileDate1 = file1Date.longValue();
+                fileDate1 = file1Date;
             }
             
-            Long file2Date = (Long) dateCache.get(path + fileName2);
+            Long file2Date = dateCache.get(path + fileName2);
             
             if (file2Date == null) {
                 file2 = new File(path + fileName2);
             
                 fileDate2 = file2.lastModified();
 
-                dateCache.put(path + fileName2, new Long(fileDate2));
+                dateCache.put(path + fileName2, fileDate2);
             } else {
-                fileDate2 = file2Date.longValue();
+                fileDate2 = file2Date;
             }
             
             if (fileDate1 < fileDate2) {
@@ -164,7 +165,18 @@ public class FileComparator implements Comparator {
         return(0);
     }
 
+    @Override
     public boolean equals(Object obj) {
         return obj.equals(this);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 31 * hash + Objects.hashCode(this.sizeCache);
+        hash = 31 * hash + Objects.hashCode(this.dateCache);
+        hash = 31 * hash + this.sortBy;
+        hash = 31 * hash + Objects.hashCode(this.path);
+        return hash;
     }
 }

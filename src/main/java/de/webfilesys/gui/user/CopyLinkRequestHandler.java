@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Constants;
 import de.webfilesys.FileComparator;
@@ -17,6 +16,8 @@ import de.webfilesys.FileSelectionStatus;
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.gui.xsl.XslFileListHandler;
 import de.webfilesys.gui.xsl.XslThumbnailHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Replace all file links in the current directory by a copy of the linked original file.
@@ -25,6 +26,7 @@ import de.webfilesys.gui.xsl.XslThumbnailHandler;
  */
 public class CopyLinkRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(CopyLinkRequestHandler.class);
 	protected HttpServletRequest req = null;
 
 	protected HttpServletResponse resp = null;
@@ -48,6 +50,7 @@ public class CopyLinkRequestHandler extends UserRequestHandler
         this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -71,7 +74,7 @@ public class CopyLinkRequestHandler extends UserRequestHandler
 		
 		Integer viewMode = (Integer) session.getAttribute("viewMode");
 		
-		if ((viewMode != null) && (viewMode.intValue() == Constants.VIEW_MODE_THUMBS))
+		if ((viewMode != null) && (viewMode == Constants.VIEW_MODE_THUMBS))
 		{
 		    fileMasks = Constants.imgFileMasks;
 		}
@@ -91,39 +94,36 @@ public class CopyLinkRequestHandler extends UserRequestHandler
 		{
             MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 			
-			for (int i = 0; i < selectedFiles.size(); i++)
-			{
-				FileContainer fileCont = (FileContainer) selectedFiles.get(i);
-				
-				if (fileCont.isLink())
-				{
-					String linkName = fileCont.getName();
-
-					String targetPath = null;
-					
-					if (actPath.endsWith(File.separator))
-					{
-						targetPath = actPath + linkName;
-					}
-					else
-					{
-						targetPath = actPath + File.separatorChar + linkName;
-					}
-					
-					if (copyFile(fileCont.getRealFile().getAbsolutePath(), targetPath))
-					{
-						metaInfMgr.removeLink(actPath, linkName);
-						Logger.getLogger(getClass()).debug("link " + linkName + " replaced by a copy of original file " + fileCont.getRealFile().getAbsolutePath());
-					}
-					else
-					{
-						Logger.getLogger(getClass()).error("failed to replace link " + linkName + " by a copy of original file " + fileCont.getRealFile().getAbsolutePath());
-					}
-				}
-			}
+                    for (FileContainer fileCont : selectedFiles) {
+                        if (fileCont.isLink())
+                        {
+                            String linkName = fileCont.getName();
+                            
+                            String targetPath = null;
+                            
+                            if (actPath.endsWith(File.separator))
+                            {
+                                targetPath = actPath + linkName;
+                            }
+                            else
+                            {
+                                targetPath = actPath + File.separatorChar + linkName;
+                            }
+                            
+                            if (copyFile(fileCont.getRealFile().getAbsolutePath(), targetPath))
+                            {
+                                metaInfMgr.removeLink(actPath, linkName);
+                                logger.debug("link " + linkName + " replaced by a copy of original file " + fileCont.getRealFile().getAbsolutePath());
+                            }
+                            else
+                            {
+                                logger.error("failed to replace link " + linkName + " by a copy of original file " + fileCont.getRealFile().getAbsolutePath());
+                            }
+                        }
+                    }
 		}
 
-        if ((viewMode != null) && (viewMode.intValue() == Constants.VIEW_MODE_THUMBS))
+        if ((viewMode != null) && (viewMode == Constants.VIEW_MODE_THUMBS))
         {
             (new XslThumbnailHandler(req, resp, session, output, uid, clientIsLocal)).handleRequest(); 
         }

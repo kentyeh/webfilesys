@@ -6,7 +6,7 @@
     <role>admin</role>
     <firstName>Admin</firstName>
     <lastName>Administrator</lastName>
-    <language>English</language> 
+    <language>Chinese</language> 
     <readonly>false</readonly>   
     <email>nobody@nowhere.com</email>   
     <css>fmweb</css>   

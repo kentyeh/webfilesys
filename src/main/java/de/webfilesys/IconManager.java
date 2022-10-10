@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class IconManager {
+    private static final Logger logger = LogManager.getLogger(IconManager.class);
+
     private static final String ICON_FILE = "iconAssignment.conf";
 
     public static final String DEFAULT_ICON = "doc.gif";
@@ -94,7 +96,7 @@ public class IconManager {
     	File iconFile = new File(iconFilePath);
 
         if ((!iconFile.exists()) || (!iconFile.isFile()) || (!iconFile.canRead())) {
-             Logger.getLogger(getClass()).error("icon assignment file " + iconFilePath + " is not a readable file");
+             logger.error("icon assignment file " + iconFilePath + " is not a readable file");
              return;
          }
 
@@ -104,7 +106,7 @@ public class IconManager {
              fis = new FileInputStream(iconFile);
              iconTable.load(fis);
          } catch (IOException ioex) {
-        	 Logger.getLogger(getClass()).error("failed to load icon assignment file", ioex);
+        	 logger.error("failed to load icon assignment file", ioex);
          } finally {
  			if (fis != null) {
  				try {

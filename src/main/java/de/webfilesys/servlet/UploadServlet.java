@@ -13,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.Constants;
 import de.webfilesys.LanguageManager;
 import de.webfilesys.MetaInfManager;
@@ -28,11 +26,15 @@ import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
 import de.webfilesys.user.UserManager;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLDecoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class UploadServlet extends WebFileSysServlet
 {
+    private static final Logger logger = LogManager.getLogger(UploadServlet.class);
 	private static final long serialVersionUID = 1L;
 	
+        @Override
 	public void doPost ( HttpServletRequest req, HttpServletResponse resp )
     throws ServletException, java.io.IOException
     {
@@ -91,14 +93,14 @@ public class UploadServlet extends WebFileSysServlet
         
         String actPath = null;
 
-        int bytesUploaded = 0;
+        long bytesUploaded = 0;
 
-        Long uploadCounter = new Long(bytesUploaded);
+        Long uploadCounter = bytesUploaded;
 
         session.setAttribute(Constants.UPLOAD_COUNTER, uploadCounter);
-        session.setAttribute(Constants.UPLOAD_SIZE, new Long(0));
+        session.setAttribute(Constants.UPLOAD_SIZE, (long) 0);
 
-        Boolean uploadSuccess = Boolean.valueOf(false);
+        Boolean uploadSuccess = false;
 
         session.setAttribute(Constants.UPLOAD_SUCCESS, uploadSuccess);
 
@@ -240,9 +242,7 @@ public class UploadServlet extends WebFileSysServlet
 
         if (contentLength > 0)
         {
-            session.setAttribute(
-                Constants.UPLOAD_SIZE,
-                new Long(contentLength - prefixLength - ((long) compare_length)));
+            session.setAttribute(Constants.UPLOAD_SIZE, contentLength - prefixLength - ((long) compare_length));
         }
 
         String out_file_name = null;
@@ -285,7 +285,7 @@ public class UploadServlet extends WebFileSysServlet
 			}
 			catch (IOException ioex)
 			{
-				Logger.getLogger(getClass()).debug("cannot write upload to file " + out_file_name + " - using original file name " + fn_only);
+				logger.debug("cannot write upload to file " + out_file_name + " - using original file name " + fn_only);
 			    
 			    out_file_name = null;
 			}
@@ -345,7 +345,7 @@ public class UploadServlet extends WebFileSysServlet
                     {
                         stop = true;
 
-                        Logger.getLogger(getClass()).warn("unexpected end of upload stream of file " + out_file_name + " at byte index "
+                        logger.warn("unexpected end of upload stream of file " + out_file_name + " at byte index "
                                 + bytesUploaded);
                     }
                     else
@@ -354,7 +354,7 @@ public class UploadServlet extends WebFileSysServlet
                 
                         if (uploadCanceled != null)
                         {
-                            Logger.getLogger(getClass()).warn("upload of file " + out_file_name + " canceled by user at byte index " + bytesUploaded);
+                            logger.warn("upload of file " + out_file_name + " canceled by user at byte index " + bytesUploaded);
                             stop = true;
                         }
                     }
@@ -429,15 +429,15 @@ public class UploadServlet extends WebFileSysServlet
                             {
                                 uploadLimitExceeded = true;
                                 
-                                session.setAttribute(Constants.UPLOAD_LIMIT_EXCEEDED,new Boolean(true));
+                                session.setAttribute(Constants.UPLOAD_LIMIT_EXCEEDED, true);
                                 
-                                Logger.getLogger(getClass()).warn("upload limit exceeded for user " + userid + " for file " + out_file_name);
+                                logger.warn("upload limit exceeded for user " + userid + " for file " + out_file_name);
 
                                 exceptionText = LanguageManager.getInstance().getResource(language, "alert.uploadLimitExceeded", "The size of the uploaded file exceeds the limit");
                             }
                         }
 
-                        uploadCounter = new Long(bytesUploaded);
+                        uploadCounter = bytesUploaded;
                         session.setAttribute(
                             Constants.UPLOAD_COUNTER,
                             uploadCounter);
@@ -453,12 +453,12 @@ public class UploadServlet extends WebFileSysServlet
                 }
             }
 
-            uploadSuccess = new Boolean(!uploadLimitExceeded);
+            uploadSuccess = !uploadLimitExceeded;
             session.setAttribute(Constants.UPLOAD_SUCCESS, uploadSuccess);
         }
         catch (IOException e)
         {
-            Logger.getLogger(getClass()).error("error writing upload file to " + out_file_name, e);
+            logger.error("error writing upload file to " + out_file_name, e);
 
             if (e instanceof FileNotFoundException)
             {
@@ -480,7 +480,7 @@ public class UploadServlet extends WebFileSysServlet
         		}
         		catch (Exception ex) 
         		{
-        			Logger.getLogger(getClass()).error("error closing upload file", ex);
+        			logger.error("error closing upload file", ex);
         		}
         	}
         }
@@ -535,7 +535,7 @@ public class UploadServlet extends WebFileSysServlet
                     
                     if (sessionViewMode != null)
                     {
-                        viewMode = sessionViewMode.intValue();
+                        viewMode = sessionViewMode;
                     }
         	        
                     if (viewMode == Constants.VIEW_MODE_THUMBS) 
@@ -558,7 +558,7 @@ public class UploadServlet extends WebFileSysServlet
         	}
         }
 
-		session.setAttribute(Constants.UPLOAD_COUNTER, new Integer(0));
+		session.setAttribute(Constants.UPLOAD_COUNTER, 0);
     }
     
     public void handleSingleBinaryUpload(HttpServletRequest req, HttpServletResponse resp)
@@ -569,7 +569,7 @@ public class UploadServlet extends WebFileSysServlet
         String currentPath = (String) session.getAttribute(Constants.SESSION_KEY_CWD);
         
         if (currentPath == null) {
-            Logger.getLogger(getClass()).error("current working directory unknown");
+            logger.error("current working directory unknown");
             return;
         }
         
@@ -585,10 +585,7 @@ public class UploadServlet extends WebFileSysServlet
 
         File outFile = new File(currentPath, fileName);
         
-        if (Logger.getLogger(getClass()).isDebugEnabled())
-        {
-            Logger.getLogger(getClass()).debug("ajax binary file upload: " + outFile.getAbsolutePath());
-        }
+        logger.debug("ajax binary file upload: " + outFile.getAbsolutePath());
         
         long uploadSize = 0l;
         
@@ -608,7 +605,7 @@ public class UploadServlet extends WebFileSysServlet
             {
                 uploadSize += bytesRead;
                 if (uploadSize > uploadLimit) {
-                    Logger.getLogger(getClass()).warn("upload limit of " + uploadLimit + " bytes exceeded for file " + outFile.getAbsolutePath());
+                    logger.warn("upload limit of " + uploadLimit + " bytes exceeded for file " + outFile.getAbsolutePath());
                     uploadOut.flush();
                     uploadOut.close();
                     outFile.delete();
@@ -623,7 +620,7 @@ public class UploadServlet extends WebFileSysServlet
         }
         catch (IOException ex) 
         {
-            Logger.getLogger(getClass()).error("error in ajax binary upload", ex);
+            logger.error("error in ajax binary upload", ex);
             throw ex;
         }
         finally 
@@ -653,7 +650,7 @@ public class UploadServlet extends WebFileSysServlet
     
     private String replaceIllegalChars(String fileName) 
     {
-        StringBuffer buff = new StringBuffer(fileName.length());
+        StringBuilder buff = new StringBuilder(fileName.length());
         
         for (int i = 0; i < fileName.length(); i++) 
         {
@@ -723,7 +720,7 @@ public class UploadServlet extends WebFileSysServlet
         
         if (sessRO != null)
         {
-            sessionReadonly = sessRO.booleanValue();
+            sessionReadonly = sessRO;
         }
         
         boolean readonly =
@@ -734,14 +731,14 @@ public class UploadServlet extends WebFileSysServlet
             return (true);
         }
 
-        Logger.getLogger(getClass()).warn("read-only user " + userid + " tried write access");
+        logger.warn("read-only user " + userid + " tried write access");
 
         return (false);
     }
 
     protected boolean accessAllowed(String fileName, String userid)
     {
-        if (fileName.indexOf("..") >=0)
+        if (fileName.contains(".."))
         {
             return(false);
         }

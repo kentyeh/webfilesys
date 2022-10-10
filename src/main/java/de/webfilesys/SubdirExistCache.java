@@ -2,20 +2,22 @@ package de.webfilesys;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import de.webfilesys.graphics.ThumbnailThread;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SubdirExistCache {
 	
-    private HashMap<String, Integer> subdirExists = null;
+    private ConcurrentHashMap<String, Integer> subdirExists = null;
+    private final ReentrantLock lock = new ReentrantLock();
 
     private static SubdirExistCache instance = null;
     
     private SubdirExistCache() 
     {
-    	subdirExists = new HashMap<String, Integer>(100);
+    	subdirExists = new ConcurrentHashMap<>(100);
     }
     
     public static SubdirExistCache getInstance() 
@@ -34,7 +36,7 @@ public class SubdirExistCache {
      */
     public Integer existsSubdir(String path)
     {
-        return((Integer) subdirExists.get(path));	
+        return(subdirExists.get(path));	
     }
     
     /**
@@ -44,10 +46,7 @@ public class SubdirExistCache {
      */
     public void setExistsSubdir(String path, Integer newVal)
     {
-    	synchronized (subdirExists)
-    	{
     	    subdirExists.put(path, newVal);
-    	}
     }
     
     /**
@@ -56,11 +55,11 @@ public class SubdirExistCache {
      */
     public void cleanupExistSubdir(String path)
     {
-    	synchronized (subdirExists)
-    	{
+    	try {
+            this.lock.lock();
     		Iterator<String> keyIter = subdirExists.keySet().iterator();
     		
-    		ArrayList<String> keysToRemove = new ArrayList<String>();
+    		ArrayList<String> keysToRemove = new ArrayList<>();
     		
     		while (keyIter.hasNext())
     		{
@@ -81,7 +80,9 @@ public class SubdirExistCache {
     		{
     			subdirExists.remove(keysToRemove.get(i));
     		}
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
     
     public void initialReadSubdirs(int operatingSystemType)
@@ -89,11 +90,11 @@ public class SubdirExistCache {
         String rootDirPath;
         if ((operatingSystemType == WebFileSys.OS_OS2) || (operatingSystemType == WebFileSys.OS_WIN))
         {
-            rootDirPath = new String("C:\\");
+            rootDirPath = "C:\\";
         }
         else
         {
-            rootDirPath = new String("/");
+            rootDirPath = "/";
         }
 
         File rootDir = new File(rootDirPath);
@@ -101,42 +102,41 @@ public class SubdirExistCache {
         File[] rootFileList = rootDir.listFiles();
         if (rootFileList != null)
         {
-        	synchronized (subdirExists)
-        	{
-                for (int i = 0; i < rootFileList.length; i++)
-                {
-                    File tempFile = rootFileList[i];
-
-                    if (tempFile.isDirectory())
-                    {
-                        File subDir = tempFile;
-                        File[] subFileList = subDir.listFiles();
-                        
-                        boolean hasSubdirs = false;
-                        if (subFileList != null) 
+        	try {
+                    this.lock.lock();
+                    for (File tempFile : rootFileList) {
+                        if (tempFile.isDirectory()) 
                         {
-                            for (int k = 0; (!hasSubdirs) && (k < subFileList.length); k++) 
+                            File subDir = tempFile; 
+                            File[] subFileList = subDir.listFiles();
+                            
+                            boolean hasSubdirs = false;
+                            if (subFileList != null)
                             {
-                            	if (subFileList[k].isDirectory())
-                            	{
-                					if (!subFileList[k].getName().equals(ThumbnailThread.THUMBNAIL_SUBDIR))
-                					{
-                                		hasSubdirs = true;
-                					}
-                            	}
+                                for (int k = 0; (!hasSubdirs) && (k < subFileList.length); k++)
+                                {
+                                    if (subFileList[k].isDirectory())
+                                    {
+                                        if (!subFileList[k].getName().equals(ThumbnailThread.THUMBNAIL_SUBDIR))
+                                        {
+                                            hasSubdirs = true;
+                                        }
+                                    }
+                                }
+                            }
+                            if (hasSubdirs)
+                            {
+                                setExistsSubdir(subDir.getAbsolutePath(), 1);
+                            }
+                            else
+                            {
+                                setExistsSubdir(subDir.getAbsolutePath(), 0);
                             }
                         }
-                        if (hasSubdirs)
-                        {
-                        	setExistsSubdir(subDir.getAbsolutePath(), new Integer(1));
-                        }
-                        else
-                        {
-                        	setExistsSubdir(subDir.getAbsolutePath(), new Integer(0));
-                        }
                     }
-                }
-        	}
+        	} finally {
+            this.lock.unlock();
+        }
         }
     }
 }

@@ -7,15 +7,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.util.UTF8URLDecoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlMultiFileRequestHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlMultiFileRequestHandler.class);
 	String actPath = null;
 	
 	protected ArrayList<String> selectedFiles = null;
@@ -33,7 +35,7 @@ public class XmlMultiFileRequestHandler extends XmlRequestHandlerBase
 	{
         super(req, resp, session, output, uid);
 		
-		selectedFiles = new ArrayList<String>();
+		selectedFiles = new ArrayList<>();
 
 		// Enumeration allKeys=requestParms.keys();
 
@@ -66,7 +68,7 @@ public class XmlMultiFileRequestHandler extends XmlRequestHandlerBase
 				}
 				catch (Exception ue1)
 				{
-					Logger.getLogger(getClass()).error(ue1);
+					logger.error(ue1);
 				}
 			}
 		}
@@ -85,11 +87,12 @@ public class XmlMultiFileRequestHandler extends XmlRequestHandlerBase
         }
 	}
 
+        @Override
 	public void handleRequest()
 	{
 		if (!accessAllowed(actPath))
 		{
-			Logger.getLogger(getClass()).warn("user " + uid + " tried to access folder outside of it's document root: " + actPath);
+			logger.warn("user " + uid + " tried to access folder outside of it's document root: " + actPath);
 			return;
 		}
 		

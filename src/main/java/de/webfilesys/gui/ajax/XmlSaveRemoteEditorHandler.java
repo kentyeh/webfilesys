@@ -11,16 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.gui.user.RemoteEditorRequestHandler;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlSaveRemoteEditorHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(XmlSaveRemoteEditorHandler.class);
 	public XmlSaveRemoteEditorHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -47,7 +49,7 @@ public class XmlSaveRemoteEditorHandler extends XmlRequestHandlerBase {
         File destFile = new File(fileName);
         
         if (!destFile.canWrite()) {
-            Logger.getLogger(getClass()).warn("failed to save editor content - file is not writable: " + fileName);
+            logger.warn("failed to save editor content - file is not writable: " + fileName);
         	writeError = true;
         } else {
 			String text = getParameter("text");
@@ -67,7 +69,7 @@ public class XmlSaveRemoteEditorHandler extends XmlRequestHandlerBase {
 			        // use OS default encoding
 	                fout = new PrintWriter(fos);
 			    } else {
-	                Logger.getLogger(getClass()).debug("saving editor file " + fileName + " with character encoding " + fileEncoding);
+	                logger.debug("saving editor file " + fileName + " with character encoding " + fileEncoding);
 			        
 			        if (fileEncoding.equals("UTF-8-BOM")) {
 			            // write UTF-8 BOM
@@ -111,18 +113,18 @@ public class XmlSaveRemoteEditorHandler extends XmlRequestHandlerBase {
 
 				if (!copyFile(tmpFileName, fileName)) {
 					String logMsg = "cannot copy temporary file to edited file " + fileName;
-					Logger.getLogger(getClass()).error(logMsg);
+					logger.error(logMsg);
 					writeError = true;
 				} else {
 					File tmpFile = new File(tmpFileName);
 				
 					if (!tmpFile.delete()) {
-						Logger.getLogger(getClass()).warn("cannot delete temporary file " + tmpFile);
+						logger.warn("cannot delete temporary file " + tmpFile);
 					}
 				}
 			} catch (Exception ex) {
 				String logMsg="cannot save changed content of edited file " + fileName + ": " + ex;
-				Logger.getLogger(getClass()).error(logMsg);
+				logger.error(logMsg);
 				writeError = true;
                 
 				if (fout != null) {

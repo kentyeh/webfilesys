@@ -28,6 +28,7 @@ public class XmlUploadStatusHandler extends XmlRequestHandlerBase
 
 	}
 	
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -43,7 +44,7 @@ public class XmlUploadStatusHandler extends XmlRequestHandlerBase
 		
 		if (uploadSize != null)
 		{
-			fileSize = uploadSize.longValue();
+			fileSize = uploadSize;
 		}
 		
 		long bytesUploaded = 0;
@@ -52,7 +53,7 @@ public class XmlUploadStatusHandler extends XmlRequestHandlerBase
 
 		if (uploadCounter != null)
 		{
-			bytesUploaded = uploadCounter.longValue();
+			bytesUploaded = uploadCounter;
 		}
 
 		long percentUploaded = 0;
@@ -70,7 +71,7 @@ public class XmlUploadStatusHandler extends XmlRequestHandlerBase
 		XmlUtil.setChildText(resultElement, "bytesUploaded", numFormat.format(bytesUploaded));
 		XmlUtil.setChildText(resultElement, "percent", Long.toString(percentUploaded));
 
-		XmlUtil.setChildText(resultElement, "success", Boolean.toString((uploadSuccess != null) && uploadSuccess.booleanValue()));
+		XmlUtil.setChildText(resultElement, "success", Boolean.toString((uploadSuccess != null) && uploadSuccess));
 			
 		doc.appendChild(resultElement);
 		

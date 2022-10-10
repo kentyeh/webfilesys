@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.ClipBoard;
@@ -29,18 +28,22 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslThumbnailHandler extends XslFileListHandlerBase {
+    private static final Logger logger = LogManager.getLogger(XslThumbnailHandler.class);
 	public XslThumbnailHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
 			PrintWriter output, String uid, boolean clientIsLocal) {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
-		session.setAttribute("viewMode", new Integer(Constants.VIEW_MODE_THUMBS));
+		session.setAttribute("viewMode", Constants.VIEW_MODE_THUMBS);
 
 		MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 
@@ -111,14 +114,14 @@ public class XslThumbnailHandler extends XslFileListHandlerBase {
 		if ((temp != null) && (temp.length() > 0)) {
 			try {
 				sortBy = Integer.parseInt(temp);
-				session.setAttribute("sortField", new Integer(sortBy));
+				session.setAttribute("sortField", sortBy);
 			} catch (NumberFormatException nfe) {
 			}
 		} else {
 			Integer sessionSortField = (Integer) session.getAttribute("sortField");
 
 			if (sessionSortField != null) {
-				sortBy = sessionSortField.intValue();
+				sortBy = sessionSortField;
 				if (sortBy > 7) {
 					sortBy = FileComparator.SORT_BY_FILENAME;
 				}
@@ -133,14 +136,14 @@ public class XslThumbnailHandler extends XslFileListHandlerBase {
 			try {
 				rating = Integer.parseInt(temp);
 
-				session.setAttribute("rating", new Integer(rating));
+				session.setAttribute("rating", rating);
 			} catch (NumberFormatException nfe) {
 			}
 		} else {
 			Integer sessionRating = (Integer) session.getAttribute("rating");
 
 			if (sessionRating != null) {
-				rating = sessionRating.intValue();
+				rating = sessionRating;
 			}
 		}
 
@@ -177,7 +180,7 @@ public class XslThumbnailHandler extends XslFileListHandlerBase {
 		File dirFile = new File(currentPath);
 
 		if ((!dirFile.exists()) || (!dirFile.isDirectory()) || (!dirFile.canRead())) {
-			Logger.getLogger(getClass()).warn("folder is not a readable directory: " + currentPath);
+			logger.warn("folder is not a readable directory: " + currentPath);
 			XmlUtil.setChildText(fileListElement, "dirNotFound", "true", false);
 			processResponse("xsl/folderTree.xsl");
 			return;
@@ -397,19 +400,18 @@ public class XslThumbnailHandler extends XslFileListHandlerBase {
 	}
 
 	private void filterLinksOutsideDocRoot(FileSelectionStatus selectionStatus) {
-		ArrayList<FileContainer> filteredOutList = new ArrayList<FileContainer>();
+		ArrayList<FileContainer> filteredOutList = new ArrayList<>();
 
 		ArrayList<FileContainer> selectedFiles = selectionStatus.getSelectedFiles();
 
 		if (selectedFiles != null) {
-			for (int i = 0; i < selectedFiles.size(); i++) {
-				FileContainer fileCont = (FileContainer) selectedFiles.get(i);
-				if (fileCont.isLink()) {
-					if (!accessAllowed(fileCont.getRealFile().getAbsolutePath())) {
-						filteredOutList.add(fileCont);
-					}
-				}
-			}
+                    for (FileContainer fileCont : selectedFiles) {
+                        if (fileCont.isLink()) {
+                            if (!accessAllowed(fileCont.getRealFile().getAbsolutePath())) {
+                                filteredOutList.add(fileCont);
+                            }
+                        }
+                    }
 
 			if (filteredOutList.size() > 0) {
 				selectionStatus.setNumberOfFiles(selectionStatus.getNumberOfFiles() - filteredOutList.size());

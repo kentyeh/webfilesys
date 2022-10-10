@@ -4,10 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FileSysStat {
+    private static final Logger logger = LogManager.getLogger(FileSysStat.class);
+
     private String path = null;
 
     private int tree_file_num;
@@ -41,7 +43,7 @@ public class FileSysStat {
     }
 
     public ArrayList<DirStat> getStatistics() {
-    	ArrayList<DirStat> statList = new ArrayList<DirStat>();
+    	ArrayList<DirStat> statList = new ArrayList<>();
 
         File dirFile = new File(path);
         
@@ -79,7 +81,7 @@ public class FileSysStat {
              }
         }
 
-        if (statList.size() == 0) {
+        if (statList.isEmpty()) {
             return(null);
         }
 
@@ -115,7 +117,7 @@ public class FileSysStat {
                 }
             }
         } else {
-        	Logger.getLogger(getClass()).warn("cannot get dir entries for " + currentPath);
+        	logger.warn("cannot get dir entries for " + currentPath);
         }
     }
 
@@ -162,6 +164,7 @@ public class FileSysStat {
     public class DirComparator implements Comparator
     {
     
+        @Override
         public int compare(Object o1,Object o2)
         {
             if (!o2.getClass().equals(o1.getClass()))
@@ -185,6 +188,7 @@ public class FileSysStat {
             return(-1);
         }
         
+        @Override
         public boolean equals(Object obj)
         {
             return obj.equals(this);

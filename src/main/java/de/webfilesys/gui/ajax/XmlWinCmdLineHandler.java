@@ -7,17 +7,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlWinCmdLineHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlWinCmdLineHandler.class);
 	private static final String CMD_LINE_BATCH_FILE = "winCmdLine.bat";
 	
 	protected boolean clientIsLocal = false;
@@ -72,7 +74,7 @@ public class XmlWinCmdLineHandler extends XmlRequestHandlerBase
 			}
 			catch (IOException rte)
 			{
-				Logger.getLogger(getClass()).error(rte);
+				logger.error(rte);
 			}
 		}
 		

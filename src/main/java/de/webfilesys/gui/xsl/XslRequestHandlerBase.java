@@ -19,7 +19,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
@@ -28,6 +27,8 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.user.UserRequestHandler;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
@@ -35,7 +36,7 @@ import de.webfilesys.util.XmlUtil;
  */
 public class XslRequestHandlerBase extends UserRequestHandler
 {
-	private static final Logger LOG = Logger.getLogger(XslRequestHandlerBase.class);
+	private static final Logger logger = LogManager.getLogger(XslRequestHandlerBase.class);
 	
 	protected Document doc;
 
@@ -70,7 +71,7 @@ public class XslRequestHandlerBase extends UserRequestHandler
 		}
 		catch (ParserConfigurationException pcex)
 		{
-			LOG.error("failed to build XML DOM doc", pcex);
+			logger.error("failed to build XML DOM doc", pcex);
 		}
 	}
 
@@ -186,7 +187,7 @@ public class XslRequestHandlerBase extends UserRequestHandler
 		
 		StringTokenizer pathParser = new StringTokenizer(relativePath, File.separator);
 		
-		StringBuffer partialPath = new StringBuffer();
+		StringBuilder partialPath = new StringBuilder();
 		
 		while (pathParser.hasMoreTokens())
 		{
@@ -242,7 +243,7 @@ public class XslRequestHandlerBase extends UserRequestHandler
         	
 			String xslPath = WebFileSys.getInstance().getWebAppRootDir() + "xsl" + File.separator + xslFile;
         	
-        	// Logger.getLogger(getClass()).debug("server-side XSLT: " + xslPath);
+        	// logger.debug("server-side XSLT: " + xslPath);
 
 			TransformerFactory tf = TransformerFactory.newInstance();
 		
@@ -258,13 +259,9 @@ public class XslRequestHandlerBase extends UserRequestHandler
 		 		    
 				long end = System.currentTimeMillis();
         
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("server-side XSL transformation in " + (end - start) + " ms");
-				}
-			} catch (TransformerConfigurationException tex) {
-				LOG.warn(tex);
-			} catch (TransformerException tex) {
-				LOG.warn(tex);
+				logger.debug("server-side XSL transformation in " + (end - start) + " ms");
+			} catch (IllegalArgumentException | TransformerException tex) {
+				logger.warn(tex);
 			}
         }
 

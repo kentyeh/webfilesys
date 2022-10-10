@@ -19,8 +19,8 @@ public class FileSysInfo
         int percent_used,
         int percent_i_used)
     {
-        this.mount_point = new String(mount_point);
-        this.dev_name = new String(dev_name);
+        this.mount_point = mount_point;
+        this.dev_name = dev_name;
         this.capacity = capacity;
         this.free = free;
         this.percent_used = percent_used;

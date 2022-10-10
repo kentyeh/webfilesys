@@ -1,16 +1,18 @@
 package de.webfilesys.mail;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.LanguageManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class EmailUtils
 {
+    private static final Logger logger = LogManager.getLogger(EmailUtils.class);
 	public static boolean emailSyntaxOk(String emailAddress)
 	{    
 		if (emailAddress.length()<3)
@@ -140,7 +142,7 @@ public class EmailUtils
 		}
 		catch (IllegalArgumentException iaex)
 		{
-            Logger.getLogger(EmailUtils.class).error("failed to send welcome mail", iaex);
+            logger.error("failed to send welcome mail", iaex);
 		}
 	}
 }

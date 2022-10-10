@@ -4,13 +4,11 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.StringTokenizer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -34,12 +32,16 @@ import de.webfilesys.servlet.VisitorServlet;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslAlbumPictureHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslAlbumPictureHandler.class);
 	public XslAlbumPictureHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -50,6 +52,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String realPath = getParameter("realPath");
@@ -90,7 +93,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 			}
 		
 			if (CommonUtils.isEmpty(imgName)) {
-				Logger.getLogger(getClass()).error("missing imageName or after parameter");
+				logger.error("missing imageName or after parameter");
 				return;
 			}
 				
@@ -121,7 +124,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 			}
 			catch (NumberFormatException nfe)
 			{
-				Logger.getLogger(getClass()).error(nfe);
+				logger.error(nfe);
 			}
 		}
         
@@ -131,7 +134,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 			
 			if (screenWidth != null)
 			{
-				winWidth = screenWidth.intValue();
+				winWidth = screenWidth;
 			}
 			else
 			{
@@ -151,7 +154,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 			}
 			catch (NumberFormatException nfe)
 			{
-				Logger.getLogger(getClass()).error(nfe);
+				logger.error(nfe);
 			}
 		}
         
@@ -161,7 +164,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 			
 			if (screenHeight != null)
 			{
-				winWidth = screenHeight.intValue();
+				winWidth = screenHeight;
 			}
 			else
 			{
@@ -228,7 +231,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 		
 		StringTokenizer pathParser = new StringTokenizer(relativePath, File.separator);
 		
-		StringBuffer partialPath = new StringBuffer();
+		StringBuilder partialPath = new StringBuilder();
 		
 		while (pathParser.hasMoreTokens())
 		{
@@ -304,7 +307,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 		{
 			boolean alreadyRated = false;
 			
-			Hashtable ratedPictures = (Hashtable) session.getAttribute("ratedPictures");
+			ConcurrentHashMap<String,Boolean> ratedPictures = (ConcurrentHashMap<String,Boolean>) session.getAttribute("ratedPictures");
 			
 			if (ratedPictures != null)
 			{
@@ -362,54 +365,44 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
         	
 			SimpleDateFormat dateFormat = LanguageManager.getInstance().getDateFormat(language);
 
-			for (int i = 0; i < listOfComments.size(); i++)
-			{
-				Comment comment=(Comment) listOfComments.get(i);
-
-				Element commentElement = doc.createElement("comment");
-        	
-				commentListElement.appendChild(commentElement);
-
-				String login = comment.getUser();
-
-				StringBuffer userString=new StringBuffer();
-
-				if (!userMgr.userExists(login))
-				{
-					// anonymous guest who entered his name
-					userString.append(login);
-				}
-				else if (userMgr.getUserType(login).equals("virtual"))
-				{
-					userString.append(getResource("label.guestuser","Guest"));
-				}
-				else
-				{
-					String firstName = userMgr.getFirstName(login);
-					String lastName = userMgr.getLastName(login);
-
-					if ((lastName!=null) && (lastName.trim().length()>0))
-					{
-						if (firstName!=null)
-						{
-							userString.append(firstName);
-							userString.append(" ");
-						}
-
-						userString.append(lastName);
-					}
-					else
-					{
-						userString.append(login);
-					}
-				}
-
-				XmlUtil.setChildText(commentElement, "user", userString.toString());
-
-				XmlUtil.setChildText(commentElement, "date", dateFormat.format(comment.getCreationDate()));
-
-				XmlUtil.setChildText(commentElement, "msg", comment.getMessage(), true);
-			}
+                    for (Comment comment : listOfComments) {
+                        Element commentElement = doc.createElement("comment");
+                        commentListElement.appendChild(commentElement);
+                        String login = comment.getUser();
+                        StringBuilder userString=new StringBuilder();
+                        if (!userMgr.userExists(login))
+                        {
+                            // anonymous guest who entered his name
+                            userString.append(login);
+                        }
+                        else if (userMgr.getUserType(login).equals("virtual"))
+                        {
+                            userString.append(getResource("label.guestuser","Guest"));
+                        }
+                        else
+                        {
+                            String firstName = userMgr.getFirstName(login);
+                            String lastName = userMgr.getLastName(login);
+                            
+                            if ((lastName!=null) && (lastName.trim().length()>0))
+                            {
+                                if (firstName!=null)
+                                {
+                                    userString.append(firstName);
+                                    userString.append(" ");
+                                }
+                                
+                                userString.append(lastName);
+                            }
+                            else
+                            {
+                                userString.append(login);
+                            }
+                        }
+                        XmlUtil.setChildText(commentElement, "user", userString.toString());
+                        XmlUtil.setChildText(commentElement, "date", dateFormat.format(comment.getCreationDate()));
+                        XmlUtil.setChildText(commentElement, "msg", comment.getMessage(), true);
+                    }
         }
         
 		GeoTag geoTag = metaInfMgr.getGeoTag(imgPath);
@@ -431,7 +424,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
         
         if (!isLastImg) {
             Integer sortBy = (Integer) session.getAttribute("sortField");
-            if ((sortBy == null) || (sortBy.intValue() == FileContainerComparator.SORT_BY_FILENAME)) 
+            if ((sortBy == null) || (sortBy == FileContainerComparator.SORT_BY_FILENAME)) 
             {
                 XmlUtil.setChildText(imageDataElement, "nextLink", "true", false);
             }

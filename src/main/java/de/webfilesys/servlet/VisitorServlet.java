@@ -14,8 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.Constants;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.xsl.XslPictureStoryHandler;
@@ -23,6 +21,8 @@ import de.webfilesys.gui.xsl.album.XslAlbumSlideShowHandler;
 import de.webfilesys.gui.xsl.album.XslPictureAlbumHandler;
 import de.webfilesys.mail.SmtpEmail;
 import de.webfilesys.user.UserManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Visitor access to published picture albums.
@@ -35,9 +35,10 @@ import de.webfilesys.user.UserManager;
  * parameter viewType is optional, default is picture album
  */
 public class VisitorServlet extends WebFileSysServlet {
+    private static final Logger logger = LogManager.getLogger(VisitorServlet.class);
 	private static final long serialVersionUID = 1L;
 
-	private static int REQUEST_PATH_LENGTH = "/webfilesys/visitor".length();
+	private static final int REQUEST_PATH_LENGTH = "/webfilesys/visitor".length();
 	
 	public static final String VISITOR_COOKIE_NAME = "webfilesys-visitor";
 	
@@ -47,6 +48,7 @@ public class VisitorServlet extends WebFileSysServlet {
 	
 	private static final int VISITOR_COOKIE_MAX_AGE = 120 * 24 * 60 * 60; // expires after 120 days
 	
+        @Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, java.io.IOException {
         // prevent caching
@@ -61,7 +63,7 @@ public class VisitorServlet extends WebFileSysServlet {
 		String requestPath = req.getRequestURI();		
 		
 		if (requestPath.length() <= REQUEST_PATH_LENGTH + 1) {
-        	Logger.getLogger(getClass()).error("missing parameters");
+        	logger.error("missing parameters");
         	sendErrorPage(resp, "missing parameters");
         	return;
 		}
@@ -83,12 +85,12 @@ public class VisitorServlet extends WebFileSysServlet {
 					viewType = paramParser.nextToken();
 				}
 			} else {
-	        	Logger.getLogger(getClass()).error("missing parameter password");
+	        	logger.error("missing parameter password");
 	        	sendErrorPage(resp, "missing parameter");
 	        	return;
 			}
 		} else {
-        	Logger.getLogger(getClass()).error("missing parameter userid");
+        	logger.error("missing parameter userid");
         	sendErrorPage(resp, "missing parameter");
         	return;
 		}
@@ -125,7 +127,7 @@ public class VisitorServlet extends WebFileSysServlet {
                 logEntry = logEntry + " [" + userAgent + "]";
             }
 
-            Logger.getLogger(getClass()).info(logEntry);
+            logger.info(logEntry);
 
             if ((WebFileSys.getInstance().getMailHost() != null) && WebFileSys.getInstance().isMailNotifyLogin()) {
             	
@@ -161,6 +163,7 @@ public class VisitorServlet extends WebFileSysServlet {
         }
     }
 	
+        @Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 		    throws ServletException, java.io.IOException {
     	
@@ -170,11 +173,11 @@ public class VisitorServlet extends WebFileSysServlet {
 	private String getVisitorIdFromCookie(HttpServletRequest req) {
 		Cookie[] cookies = req.getCookies();
 		if (cookies != null) {
-			for (int i = 0; i < cookies.length; i++) {
-				if (cookies[i].getName().equals(VISITOR_COOKIE_NAME)) {
-					return cookies[i].getValue();
-				}
-			}
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equals(VISITOR_COOKIE_NAME)) {
+                            return cookie.getValue();
+                        }
+                    }
 		}
 		return null;
 	}

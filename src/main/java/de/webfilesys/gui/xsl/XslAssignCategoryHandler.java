@@ -31,6 +31,7 @@ public class XslAssignCategoryHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String filePath = getParameter("filePath");
@@ -127,7 +128,7 @@ public class XslAssignCategoryHandler extends XslRequestHandlerBase
         }
 
 
-        if ((userCategories == null) || (userCategories.size() == 0))
+        if ((userCategories == null) || (userCategories.isEmpty()))
         {
 			addMsgResource("label.noCategoryDefined", getResource("label.noCategoryDefined","No categories has been defined."));
         }

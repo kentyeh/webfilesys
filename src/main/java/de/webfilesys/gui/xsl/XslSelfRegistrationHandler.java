@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -22,12 +21,15 @@ import de.webfilesys.user.UserManager;
 import de.webfilesys.user.UserMgmtException;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslSelfRegistrationHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslSelfRegistrationHandler.class);
 	public XslSelfRegistrationHandler(HttpServletRequest req, 
     		HttpServletResponse resp,
             HttpSession session,
@@ -132,7 +134,7 @@ public class XslSelfRegistrationHandler extends XslRequestHandlerBase
         String userRole = getParameter("userRole");
 
         if ((userRole == null) || (!userRole.equals("webspace"))) {
-			Logger.getLogger(getClass()).error("invalid user role: " + userRole);
+			logger.error("invalid user role: " + userRole);
 			return;
         }
         
@@ -163,7 +165,7 @@ public class XslSelfRegistrationHandler extends XslRequestHandlerBase
 		{
 			if (!docRootFile.mkdir())
 			{
-				Logger.getLogger(getClass()).error("cannot create home directory for new user " + login + ": " + docRoot);
+				logger.error("cannot create home directory for new user " + login + ": " + docRoot);
 			}
 		}
 		
@@ -190,15 +192,13 @@ public class XslSelfRegistrationHandler extends XslRequestHandlerBase
 		try {
 			userMgr.createUser(newUser);
 		} catch (UserMgmtException ex) {
-        	Logger.getLogger(getClass()).warn("failed to create new user " + login, ex);
+        	logger.warn("failed to create new user " + login, ex);
 			addValidationError("username", "failed to create new user");
 			selfRegistrationForm(req, session);
 			return;
 		}
 
-		if (Logger.getLogger(getClass()).isInfoEnabled()) {
-			Logger.getLogger(getClass()).info(req.getRemoteAddr() + ": new user " + login + " registered (not activated)");
-		}
+		logger.info(req.getRemoteAddr() + ": new user " + login + " registered (not activated)");
 
 		
         if (WebFileSys.getInstance().getMailHost() != null) {
@@ -209,7 +209,7 @@ public class XslSelfRegistrationHandler extends XslRequestHandlerBase
     					   WebFileSys.getInstance().getLogDateFormat().format(new Date()) + " " + req.getRemoteAddr() + ": new user " + login + " registered")).send();
     		}
 
-            StringBuffer activationLink = new StringBuffer();
+            StringBuilder activationLink = new StringBuilder();
 
             if (req.getScheme().toLowerCase().startsWith("https")) {
                 activationLink.append("https://");
@@ -294,31 +294,25 @@ public class XslSelfRegistrationHandler extends XslRequestHandlerBase
 		
 		ArrayList<String> languageList = langMgr.getAvailableLanguages();
 		
-		for (int i = 0; i < languageList.size(); i++ )
-		{
-			String languageName = (String) languageList.get(i);
-			
-			Element languageElement = doc.createElement("language");
-			
-			XmlUtil.setElementText(languageElement, languageName);
-			
-			if (selectedLanguage != null)
-		    {
-				if (selectedLanguage.equals(languageName))
-  				{
-					languageElement.setAttribute("selected", "true");
-				}
-		    }
-			else
-			{
-				if (languageName.equals(LanguageManager.DEFAULT_LANGUAGE))
-				{
-					languageElement.setAttribute("selected", "true");
-				}
-			}
-			
-			languagesElement.appendChild(languageElement);
-		}
+            for (String languageName : languageList) {
+                Element languageElement = doc.createElement("language");
+                XmlUtil.setElementText(languageElement, languageName);
+                if (selectedLanguage != null)
+                {
+                    if (selectedLanguage.equals(languageName))
+                    {
+                        languageElement.setAttribute("selected", "true");
+                    }
+                }
+                else
+                {
+                    if (languageName.equals(LanguageManager.DEFAULT_LANGUAGE))
+                    {
+                        languageElement.setAttribute("selected", "true");
+                    }
+                }
+                languagesElement.appendChild(languageElement);
+            }
 
 		String selectedCss = req.getParameter("css");
 		
@@ -328,34 +322,31 @@ public class XslSelfRegistrationHandler extends XslRequestHandlerBase
 		
 		ArrayList<String> cssList = CSSManager.getInstance().getAvailableCss();
 
-		for (int i = 0; i < cssList.size(); i++)
-		{
-			String css = (String) cssList.get(i);
-			
-            if (!css.equals("mobile")) 
-            {
-                Element layoutElement = doc.createElement("layout");
-                
-                XmlUtil.setElementText(layoutElement, css);
-                
-                if (selectedCss != null)
+            for (String css : cssList) {
+                if (!css.equals("mobile"))
                 {
-                    if (selectedCss.equals(css))
+                    Element layoutElement = doc.createElement("layout");
+                    
+                    XmlUtil.setElementText(layoutElement, css);
+                    
+                    if (selectedCss != null)
                     {
-                        layoutElement.setAttribute("selected", "true");
+                        if (selectedCss.equals(css))
+                        {
+                            layoutElement.setAttribute("selected", "true");
+                        }
                     }
-                }
-                else
-                {
-                    if (css.equals(CSSManager.DEFAULT_LAYOUT))
+                    else
                     {
-                        layoutElement.setAttribute("selected", "true");
+                        if (css.equals(CSSManager.DEFAULT_LAYOUT))
+                        {
+                            layoutElement.setAttribute("selected", "true");
+                        }
                     }
+                    
+                    layoutsElement.appendChild(layoutElement);
                 }
-                
-                layoutsElement.appendChild(layoutElement);
-            }			
-		}
+            }
 		
 		addRequestParameter("username");
 		addRequestParameter("password");

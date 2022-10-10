@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.ClipBoard;
@@ -29,12 +28,15 @@ import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.gui.user.SwitchFileAgeColoringHandler;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslFileListHandler extends XslFileListHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslFileListHandler.class);
 	private static final long MILLISECONDS_HOUR = 60l * 60l * 1000;
 	private static final long MILLISECONDS_DAY = MILLISECONDS_HOUR * 24l;
 	private static final long MILLISECONDS_WEEK = MILLISECONDS_DAY * 7l;
@@ -51,6 +53,7 @@ public class XslFileListHandler extends XslFileListHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String actPath = getParameter("actpath");
@@ -99,7 +102,7 @@ public class XslFileListHandler extends XslFileListHandlerBase
 			{
 				sortBy=Integer.parseInt(temp);
 
-				session.setAttribute("sortField", new Integer(sortBy));
+				session.setAttribute("sortField", sortBy);
 			}
 			catch (NumberFormatException nfe)
 			{
@@ -111,7 +114,7 @@ public class XslFileListHandler extends XslFileListHandlerBase
 			
 			if (sortField != null)
 			{
-				sortBy = sortField.intValue();
+				sortBy = sortField;
 				if (sortBy > 5)
 				{
 				    sortBy = FileComparator.SORT_BY_FILENAME;
@@ -169,7 +172,7 @@ public class XslFileListHandler extends XslFileListHandlerBase
 		
 		if ((!dirFile.exists()) || (!dirFile.isDirectory()) || (!dirFile.canRead()))
 		{
-		    Logger.getLogger(getClass()).warn("folder is not a readable directory: " + actPath);
+		    logger.warn("folder is not a readable directory: " + actPath);
 			XmlUtil.setChildText(fileListElement, "dirNotFound", "true", false);
 			processResponse("fileList.xsl");
 			return; 
@@ -448,7 +451,7 @@ public class XslFileListHandler extends XslFileListHandlerBase
 
 		FastPathManager.getInstance().queuePath(uid,actPath);
 
-		session.setAttribute("viewMode", new Integer(Constants.VIEW_MODE_LIST));
+		session.setAttribute("viewMode", Constants.VIEW_MODE_LIST);
 
 		if (!readonly)
 		{

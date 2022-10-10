@@ -2,29 +2,32 @@ package de.webfilesys;
 
 import java.util.ArrayList;
 import java.util.Date;
-import org.apache.log4j.Logger;
-
 import de.webfilesys.mail.MailTemplate;
 import de.webfilesys.mail.SmtpEmail;
 import de.webfilesys.user.UserManager;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DiskQuotaInspector extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(DiskQuotaInspector.class);
+
     boolean shutdownFlag=false;
 
     public DiskQuotaInspector()
     {
     }
 
+    @Override
     public synchronized void run()
     {
         setPriority(1);
 
         while (!shutdownFlag)
         {
-            Date now = new Date();
-
-            int hour = now.getHours();
+            int hour = LocalDateTime.now(ZoneId.systemDefault()).getHour();
 
             if (hour == WebFileSys.getInstance().getDiskQuotaCheckHour())
             {
@@ -46,7 +49,7 @@ public class DiskQuotaInspector extends Thread
     {
         long startTime=System.currentTimeMillis();
 
-        Logger.getLogger(getClass()).info("disk quota inspection for webspace users started");
+        logger.info("disk quota inspection for webspace users started");
 
         UserManager userMgr = WebFileSys.getInstance().getUserMgr();
 
@@ -76,11 +79,11 @@ public class DiskQuotaInspector extends Thread
 
                         if (fileSysStat.getTotalSizeSum() > diskQuota)
                         {
-                            Logger.getLogger(getClass()).warn("disk quota exceeded for user " + userid + " (" + (diskQuota / 1024l) + " / " + (fileSysStat.getTotalSizeSum() / 1024l) + ")");
+                            logger.warn("disk quota exceeded for user " + userid + " (" + (diskQuota / 1024l) + " / " + (fileSysStat.getTotalSizeSum() / 1024l) + ")");
 
                             if (WebFileSys.getInstance().getMailHost() !=null)
                             {
-                                StringBuffer mailContent=new StringBuffer("Disk quota exceeded for user ");
+                                StringBuilder mailContent=new StringBuilder("Disk quota exceeded for user ");
                                 mailContent.append(userid);
                                 mailContent.append("\r\n\r\n");
                                 mailContent.append("disk quota   : ");
@@ -114,7 +117,7 @@ public class DiskQuotaInspector extends Thread
                                         }
                                         catch (IllegalArgumentException iaex)
                                         {
-                                            System.out.println(iaex);
+                                            logger.error(iaex);
                                         }
 
                                         String subject = LanguageManager.getInstance().getResource(userLanguage,"subject.diskquota","Disk quota exceeded");
@@ -147,7 +150,7 @@ public class DiskQuotaInspector extends Thread
                        adminMailBuffer.toString())).send();
         }
 
-        Logger.getLogger(getClass()).info("disk quota inspection ended (" + ((endTime - startTime) / 1000) + " sec)");
+        logger.info("disk quota inspection ended (" + ((endTime - startTime) / 1000) + " sec)");
     }
 
 }

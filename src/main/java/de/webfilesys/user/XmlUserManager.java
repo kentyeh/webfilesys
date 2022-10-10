@@ -10,13 +10,11 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Hashtable;
-
+import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -26,9 +24,13 @@ import org.xml.sax.SAXException;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class XmlUserManager extends UserManagerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlUserManager.class);
     public static final String USER_FILE_NAME = "users.xml";
 
     private static final String ENCRYPTION_METHOD_MD5 = "MD5";
@@ -39,10 +41,12 @@ public class XmlUserManager extends UserManagerBase
     private DocumentBuilder builder;
 
     private Element userRoot=null;
+    
+    private final ReentrantLock lock = new ReentrantLock();
 
     private boolean modified;
 
-    private Hashtable<String, Element> userCache;
+    private final ConcurrentHashMap<String, Element> userCache;
 
     public boolean readyForShutdown;
     
@@ -59,12 +63,12 @@ public class XmlUserManager extends UserManagerBase
        }
        catch (ParserConfigurationException pcex)
        {
-           Logger.getLogger(getClass()).error(pcex.toString());
+           logger.error(pcex.toString());
        }
 
        userFilePath = WebFileSys.getInstance().getConfigBaseDir() + "/" + USER_FILE_NAME;
        
-       userCache = new Hashtable(10);
+       userCache = new ConcurrentHashMap<>(10);
 
        userRoot=loadFromFile();
 
@@ -82,13 +86,10 @@ public class XmlUserManager extends UserManagerBase
             return;
         }
         
-        if (Logger.getLogger(getClass()).isDebugEnabled())
-        {
-            Logger.getLogger(getClass()).debug("saving user info to file: " + userFilePath);
-        }
+        logger.debug("saving user info to file: " + userFilePath);
 
-        synchronized (userRoot)
-        {
+        try {
+            this.lock.lock();
             OutputStreamWriter xmlOutFile = null;
 
             try
@@ -105,7 +106,7 @@ public class XmlUserManager extends UserManagerBase
             }
             catch (IOException io1)
             {
-                Logger.getLogger(getClass()).error("error saving user registry file " + userFilePath, io1);
+                logger.error("error saving user registry file " + userFilePath, io1);
             }
             finally
             {
@@ -120,6 +121,8 @@ public class XmlUserManager extends UserManagerBase
                     }
                 }
             }
+        } finally {
+            this.lock.unlock();
         }
     }
 
@@ -144,28 +147,28 @@ public class XmlUserManager extends UserManagerBase
            {
                if (!osSpecificUsersFile.renameTo(usersFile)) 
                {
-                   Logger.getLogger(getClass()).error("failed to rename user database file " + osSpecificUsersFile.getAbsolutePath() + " to " + usersFile);
+                   logger.error("failed to rename user database file " + osSpecificUsersFile.getAbsolutePath() + " to " + usersFile);
                    return(null);
                }
                else 
                {
-                   Logger.getLogger(getClass()).info("initialized user database file from " + osSpecificUsersFile.getAbsolutePath());
+                   logger.info("initialized user database file from " + osSpecificUsersFile.getAbsolutePath());
                }
            }
            else
            {
-               Logger.getLogger(getClass()).error("failed to initialize user database file from " + osSpecificUsersFile.getAbsolutePath());
+               logger.error("failed to initialize user database file from " + osSpecificUsersFile.getAbsolutePath());
                return(null);
            }
        }
        
        if ((!usersFile.isFile()) || (!usersFile.canRead()))
        {
-    	   Logger.getLogger(getClass()).error("user database file " + userFilePath + " is not a readable file");
+    	   logger.error("user database file " + userFilePath + " is not a readable file");
            return(null);
        }
 
-       Logger.getLogger(getClass()).info("reading user registry from " + usersFile.getAbsolutePath());
+       logger.info("reading user registry from " + usersFile.getAbsolutePath());
 
        doc = null;
        
@@ -183,11 +186,11 @@ public class XmlUserManager extends UserManagerBase
        }
        catch (SAXException saxex)
        {
-           Logger.getLogger(getClass()).error("failed to load user registry file " + usersFile.getAbsolutePath(), saxex);
+           logger.error("failed to load user registry file " + usersFile.getAbsolutePath(), saxex);
        }
        catch (IOException ioex)
        {
-           Logger.getLogger(getClass()).error("failed to load user registry file : " + usersFile.getAbsolutePath(), ioex);
+           logger.error("failed to load user registry file : " + usersFile.getAbsolutePath(), ioex);
        }
        finally 
        {
@@ -249,9 +252,10 @@ public class XmlUserManager extends UserManagerBase
     /**
      * Returns a list of the userids of all registered users (Strings)
      */
+    @Override
     public ArrayList<String> getListOfUsers()
     {
-    	ArrayList<String> listOfUsers = new ArrayList<String>();
+    	ArrayList<String> listOfUsers = new ArrayList<>();
 
         NodeList userList=userRoot.getElementsByTagName("user");
 
@@ -282,9 +286,10 @@ public class XmlUserManager extends UserManagerBase
         return(listOfUsers);
     }
 
+    @Override
     public ArrayList<String> getAdminUserEmails()
     {
-        ArrayList<String> emailList = new ArrayList<String>();
+        ArrayList<String> emailList = new ArrayList<>();
 
         NodeList userList=userRoot.getElementsByTagName("user");
 
@@ -315,9 +320,10 @@ public class XmlUserManager extends UserManagerBase
         return(emailList);
     }
 
+    @Override
     public ArrayList<String> getMailAddressesByRole(String receiverRole)
     {
-    	ArrayList<String> emailList = new ArrayList<String>();
+    	ArrayList<String> emailList = new ArrayList<>();
 
         NodeList userList=userRoot.getElementsByTagName("user");
 
@@ -348,9 +354,10 @@ public class XmlUserManager extends UserManagerBase
         return(emailList);
     }
 
+    @Override
     public ArrayList<String> getAllMailAddresses()
     {
-    	ArrayList<String> emailList = new ArrayList<String>();
+    	ArrayList<String> emailList = new ArrayList<>();
 
         NodeList userList=userRoot.getElementsByTagName("user");
 
@@ -381,6 +388,7 @@ public class XmlUserManager extends UserManagerBase
         return((Element) userCache.get(userId));
     }
 
+    @Override
     public boolean userExists(String userId)
     {
         return(getUserElement(userId)!=null);
@@ -392,6 +400,7 @@ public class XmlUserManager extends UserManagerBase
      * @param newUser the data of the new user
      * @exception UserMgmtException user could not be created
      */
+    @Override
     public void createUser(TransientUser newUser) 
     throws UserMgmtException {
     	if (newUser == null) {
@@ -479,6 +488,7 @@ public class XmlUserManager extends UserManagerBase
      * @param changedUser the data of the changed user
      * @exception UserMgmtException user could not be updated
      */
+    @Override
     public void updateUser(TransientUser changedUser) 
     throws UserMgmtException {
     	if (changedUser == null) {
@@ -545,6 +555,7 @@ public class XmlUserManager extends UserManagerBase
      * @param userId the userid of the user
      * @return user object or null if not found
      */
+    @Override
     public TransientUser getUser(String userId) {
     	Element userElem = getUserElement(userId);
     	
@@ -555,6 +566,7 @@ public class XmlUserManager extends UserManagerBase
     	return getTransientUser(userElem);
     }
     
+    @Override
     public boolean addUser(String userId)
     {
         if (getUserElement(userId)!=null)
@@ -575,6 +587,7 @@ public class XmlUserManager extends UserManagerBase
         return(true);
     }
 
+    @Override
     public String createVirtualUser(String realUser, String docRoot, String role, int expDays, String language) {
         String virtualUserId=null;
 
@@ -605,7 +618,7 @@ public class XmlUserManager extends UserManagerBase
         try {
             createUser(virtualUser);
         } catch (UserMgmtException ex) {
-        	Logger.getLogger(getClass()).warn("failed to create virtual user " + virtualUserId, ex);
+        	logger.warn("failed to create virtual user " + virtualUserId, ex);
         }
 
         modified = true;
@@ -613,6 +626,7 @@ public class XmlUserManager extends UserManagerBase
         return(virtualUserId);
     }
 
+    @Override
     public String getUserType(String userId)
     {
         Element userElem=getUserElement(userId);
@@ -632,6 +646,7 @@ public class XmlUserManager extends UserManagerBase
         return(type);
     }
 
+    @Override
     public boolean removeUser(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -650,6 +665,7 @@ public class XmlUserManager extends UserManagerBase
         return(true);
     }
 
+    @Override
     public String getFirstName(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -662,6 +678,7 @@ public class XmlUserManager extends UserManagerBase
         return(XmlUtil.getChildText(userElement,"firstName"));
     }
       
+    @Override
     public String getLastName(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -674,6 +691,7 @@ public class XmlUserManager extends UserManagerBase
         return(XmlUtil.getChildText(userElement,"lastName"));
     }
 
+    @Override
     public String getEmail(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -686,6 +704,7 @@ public class XmlUserManager extends UserManagerBase
         return(XmlUtil.getChildText(userElement,"email"));
     }
 
+    @Override
     public long getDiskQuota(String userId)
     {
         long diskQuota=(-1l);
@@ -707,13 +726,14 @@ public class XmlUserManager extends UserManagerBase
             }
             catch (NumberFormatException nfex)
             {
-            	Logger.getLogger(getClass()).warn("invalid disk quota " + quotaString);
+            	logger.warn("invalid disk quota " + quotaString);
             }
         }
 
         return(diskQuota);
     }
 
+    @Override
     public int getPageSize(String userId)
     {
         int pageSize = WebFileSys.getInstance().getThumbnailsPerPage();
@@ -741,6 +761,7 @@ public class XmlUserManager extends UserManagerBase
         return(pageSize);
     }
 
+    @Override
     public void setPageSize(String userId,int newValue)
     {
         Element userElement=getUserElement(userId);
@@ -755,6 +776,7 @@ public class XmlUserManager extends UserManagerBase
         modified=true;
     }
 
+    @Override
     public String getPhone(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -767,6 +789,7 @@ public class XmlUserManager extends UserManagerBase
         return(XmlUtil.getChildText(userElement,"phone"));
     }
 
+    @Override
     public String getLanguage(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -786,6 +809,7 @@ public class XmlUserManager extends UserManagerBase
         return(language);
     }
 
+    @Override
     public String getRole(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -804,6 +828,7 @@ public class XmlUserManager extends UserManagerBase
      * @param userId the userid of the user
      * @return the name of the CSS stylesheet
      */
+    @Override
     public String getCSS(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -816,6 +841,7 @@ public class XmlUserManager extends UserManagerBase
         return(XmlUtil.getChildText(userElement,"css"));
     }
 
+    @Override
     public boolean isReadonly(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -830,6 +856,7 @@ public class XmlUserManager extends UserManagerBase
         return((readonly!=null) && readonly.equals("true"));
     }
 
+    @Override
     public String getDocumentRoot(String userId)
     {
         Element userElement=getUserElement(userId);
@@ -859,11 +886,13 @@ public class XmlUserManager extends UserManagerBase
         return(documentRoot);
     }
 
+    @Override
     public String getLowerCaseDocRoot(String userId)
     {
         return(getDocumentRoot(userId).toLowerCase());
     }
 
+    @Override
     public String normalizeDocRoot(String documentRoot)
     {
         documentRoot=documentRoot.replace('\\','/');
@@ -881,7 +910,7 @@ public class XmlUserManager extends UserManagerBase
             File docRootFile=new File(documentRoot);
             if ((!docRootFile.exists()) || (!docRootFile.isDirectory()))
             {
-            	Logger.getLogger(getClass()).warn("the document root directory " + documentRoot + " does not exist!");
+            	logger.warn("the document root directory " + documentRoot + " does not exist!");
             }
         }
 
@@ -914,11 +943,12 @@ public class XmlUserManager extends UserManagerBase
             
             return mimeEncoder.encodeToString(encryptedPassword).trim();
     	} catch (java.security.NoSuchAlgorithmException nsaEx) {
-    	    Logger.getLogger(getClass()).error("failed to encrypt password", nsaEx);
+    	    logger.error("failed to encrypt password", nsaEx);
         	return "";
         }
     }
     
+    @Override
     public void setPassword(String userId, String newPassword) {
         Element userElement = getUserElement(userId);
 
@@ -933,6 +963,7 @@ public class XmlUserManager extends UserManagerBase
         passwordElement.setAttribute("encryption", ENCRYPTION_METHOD_SHA256);
     }
 
+    @Override
     public boolean checkPassword(String userId,String password)
     {
         if ((password == null) || (password.trim().length() == 0))
@@ -972,6 +1003,7 @@ public class XmlUserManager extends UserManagerBase
         return(encryptedPassword.equals(storedPassword));
     }
 
+    @Override
     public boolean checkReadonlyPassword(String userId, String password)
     {
         if ((password == null) || (password.trim().length() == 0)) {
@@ -1008,6 +1040,7 @@ public class XmlUserManager extends UserManagerBase
         return(encryptedPassword.equals(storedPassword));
     }
 
+    @Override
     public void setReadonlyPassword(String userId,String newPassword)
     {
         Element userElement = getUserElement(userId);
@@ -1024,6 +1057,7 @@ public class XmlUserManager extends UserManagerBase
         passwordElement.setAttribute("encryption", ENCRYPTION_METHOD_SHA256);
     }
 
+    @Override
     public void setLastLoginTime(String userId,Date newVal)
     {
         Element userElement=getUserElement(userId);
@@ -1038,6 +1072,7 @@ public class XmlUserManager extends UserManagerBase
         modified=true;
     }
 
+    @Override
     public Date getLastLoginTime(String userId)
     {
         Date lastLoginTime=null;
@@ -1059,7 +1094,7 @@ public class XmlUserManager extends UserManagerBase
             }
             catch (NumberFormatException nfex)
             {
-            	Logger.getLogger(getClass()).warn("invalid last login time " + timeString);
+            	logger.warn("invalid last login time " + timeString);
             }
         }
 
@@ -1171,9 +1206,10 @@ public class XmlUserManager extends UserManagerBase
     /**
      * Get a list of transient user objects for all non-virtual users.
      */
+        @Override
 	public ArrayList<TransientUser> getRealUsers()
 	{
-		ArrayList<TransientUser> listOfUsers = new ArrayList<TransientUser>();
+		ArrayList<TransientUser> listOfUsers = new ArrayList<>();
 
 		NodeList userList=userRoot.getElementsByTagName("user");
 
@@ -1203,7 +1239,7 @@ public class XmlUserManager extends UserManagerBase
 	{
 		String now=Long.toString(System.currentTimeMillis());
 
-		StringBuffer codeBuffer=new StringBuffer();
+		StringBuilder codeBuffer=new StringBuilder();
 
 		for (int i=now.length()-1;i>=0;i--)
 		{
@@ -1220,6 +1256,7 @@ public class XmlUserManager extends UserManagerBase
      * @param activationCode
      *            the activation code
      */
+    @Override
     public void activateUser(String activationCode) throws UserMgmtException {
         if (CommonUtils.isEmpty(activationCode)) {
             throw new UserMgmtException("activation code may not be empty");
@@ -1253,9 +1290,7 @@ public class XmlUserManager extends UserManagerBase
                                 XmlUtil.setChildText(userElement, "activated", "true");
                                 modified = true;
 
-                                if (Logger.getLogger(getClass()).isInfoEnabled()) {
-                                    Logger.getLogger(getClass()).info("user activated: " + userElement.getAttribute("id"));
-                                }
+                                logger.info("user activated: " + userElement.getAttribute("id"));
 
                                 return;
                             }
@@ -1270,7 +1305,8 @@ public class XmlUserManager extends UserManagerBase
         }
         throw new UserMgmtException("user to activate not found");
     }
-	
+
+    @Override
     public synchronized void run()
     {
         boolean exitFlag=false;
@@ -1300,6 +1336,7 @@ public class XmlUserManager extends UserManagerBase
         }
     }
 
+    @Override
     public boolean isReadyForShutdown()
     {
         return(readyForShutdown);

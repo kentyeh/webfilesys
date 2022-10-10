@@ -7,16 +7,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.ViewHandlerConfig;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Formats the log files of application servers as colored HTML.
@@ -24,21 +25,23 @@ import de.webfilesys.util.CommonUtils;
  */
 public class LogViewHandler implements ViewHandler
 {
-	private HashMap<String, String> colorMap;
+	private static final Logger logger = LogManager.getLogger(LogViewHandler.class);
+	private ConcurrentHashMap<String, String> colorMap;
 	
-	private HashMap<String, Boolean> ignoreMap;
+	private ConcurrentHashMap<String, Boolean> ignoreMap;
 	
 	private ArrayList<String> keywordList;
 	
 	public LogViewHandler() 
 	{
-		colorMap = new HashMap<String, String>(5);
+		colorMap = new ConcurrentHashMap<>(5);
 		
-		ignoreMap = new HashMap<String, Boolean>(5);
+		ignoreMap = new ConcurrentHashMap<>(5);
 		
-		keywordList = new ArrayList<String>();
+		keywordList = new ArrayList<>();
 	}
 	
+    @Override
     public void process(String filePath, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req, HttpServletResponse resp)
     {
     	String colorConfig = viewHandlerConfig.getParameter("colorConfig");
@@ -79,7 +82,7 @@ public class LogViewHandler implements ViewHandler
                 
                 String ignoreText = ignoreParm.substring(1, ignoreParm.length() - 1);
                 
-                ignoreMap.put(ignoreText, new Boolean(true));
+                ignoreMap.put(ignoreText, true);
 
                 keywordList.add(ignoreText);
             }
@@ -112,87 +115,76 @@ public class LogViewHandler implements ViewHandler
                 charEncoding = "UTF-8";
             }
             
-            InputStreamReader isr = null;
-
-            if (charEncoding != null) {
-                isr = new InputStreamReader(fis, charEncoding);
-            } else {
-                isr = new InputStreamReader(fis);
-            }
             
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-                Logger.getLogger(getClass()).debug("Reading log file with char encoding " + isr.getEncoding());
-            }
-            
-            BufferedReader fileIn = new BufferedReader(isr);
-        	
-        	String line = null;
-        	
-        	boolean eof = false;
-        	
-        	int excCounter = 0;
-        	
-        	while ((!eof) && (excCounter < 5))
-        	{
-        	    try 
-        	    {
-        	        line = fileIn.readLine();
-        	        
-        	        if (line == null) 
-        	        {
-        	            eof = true;
-        	        } 
-        	        else 
-        	        {
-        	            excCounter = 0;
-        	            
-                        boolean ignore = false;
-                        
-                        for (int i = 0; i < keywordList.size(); i ++)
+            try (InputStreamReader isr = charEncoding==null?new InputStreamReader(fis):new InputStreamReader(fis, charEncoding);
+                    BufferedReader fileIn = new BufferedReader(isr)) {
+                
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Reading log file with char encoding " + isr.getEncoding());
+                }
+                    String line = null;
+                    
+                    boolean eof = false;
+                    
+                    int excCounter = 0;
+                    
+                    while ((!eof) && (excCounter < 5))
+                    {
+                        try
                         {
-                            String keyword = (String) keywordList.get(i);
+                            line = fileIn.readLine();
                             
-                            if (line.indexOf(keyword) >= 0)
+                            if (line == null)
                             {
-                                String colorCode = (String) colorMap.get(keyword);
+                                eof = true;
+                            }
+                            else
+                            {
+                                excCounter = 0;
                                 
-                                if (colorCode != null)
-                                {
-                                    currentColor = colorCode;
-                                }
-                                else
-                                {
-                                    if (ignoreMap.get(keyword) != null) {
-                                        ignore = true;
+                                boolean ignore = false;
+                                
+                                for (String keyword : keywordList) {
+                                    if (line.contains(keyword))
+                                    {
+                                        String colorCode = (String) colorMap.get(keyword);
+                                        
+                                        if (colorCode != null)
+                                        {
+                                            currentColor = colorCode;
+                                        }
+                                        else
+                                        {
+                                            if (ignoreMap.get(keyword) != null) {
+                                                ignore = true;
+                                            }
+                                        }
                                     }
+                                }
+                                
+                                if (!ignore) {
+                                    output.print("<font color=\"" + currentColor + "\">");
+                                    output.print(htmlEncode(line));
+                                    output.println("</font>");
                                 }
                             }
                         }
-                        
-                        if (!ignore) {
-                            output.print("<font color=\"" + currentColor + "\">");
-                            output.print(htmlEncode(line));
-                            output.println("</font>");
+                        catch (Exception ex) {
+                            logger.warn("error during reading log file", ex);
+                            excCounter++;
                         }
-        	        }
-        	    } 
-        	    catch (Exception ex) {
-        	        Logger.getLogger(getClass()).warn("error during reading log file", ex);
-        	        excCounter++;
-        	    }
-        	}
-        	
-        	output.println("</pre>");
-        	output.println("</body>");
-        	output.println("</html>");
-        	
-        	output.flush();
-        	
-        	fileIn.close();
+                    }
+                    
+                    output.println("</pre>");
+                    output.println("</body>");
+                    output.println("</html>");
+                    
+                    output.flush();
+                }
     	}
     	catch (IOException ioex)
     	{
-    		Logger.getLogger(getClass()).error(ioex);
+    		logger.error(ioex);
     	}
     }
     
@@ -212,7 +204,7 @@ public class LogViewHandler implements ViewHandler
 			return (source);
 		}
 
-		StringBuffer ret = new StringBuffer(source);
+		StringBuilder ret = new StringBuilder(source);
 		
 		ret.replace(idx, idx + toReplace.length(), replacement );
 		
@@ -233,16 +225,18 @@ public class LogViewHandler implements ViewHandler
      * @param req the servlet request
      * @param resp the servlet response
      */
+    @Override
     public void processZipContent(String zipFilePath, InputStream zipIn, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req, HttpServletResponse resp)
     {
         // not yet supported
-        Logger.getLogger(getClass()).warn("reading from ZIP archive not supported by ViewHaandler " + this.getClass().getName());
+        logger.warn("reading from ZIP archive not supported by ViewHaandler " + this.getClass().getName());
     }
     
     /**
      * Does this ViewHandler support reading the file from an input stream of a ZIP archive?
      * @return true if reading from ZIP archive is supported, otherwise false
      */
+    @Override
     public boolean supportsZipContent()
     {
         return false;

@@ -18,6 +18,7 @@ public class MetaInfComparator implements Comparator
         this.sortType=sortType;
     }
 
+    @Override
     public int compare(Object o1,Object o2)
     {
         Element metaInf1=(Element) o1;
@@ -65,6 +66,7 @@ public class MetaInfComparator implements Comparator
         return(0);
     }
 
+    @Override
     public boolean equals(Object obj)
     {
         return obj.equals(this);

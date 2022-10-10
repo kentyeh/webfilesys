@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.FileLink;
@@ -16,6 +15,8 @@ import de.webfilesys.graphics.VideoInfo;
 import de.webfilesys.graphics.VideoInfoExtractor;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /*
 {
@@ -100,7 +101,7 @@ import de.webfilesys.util.XmlUtil;
  */
 public class GetVideoDimensionsHandler extends XmlRequestHandlerBase {
 	
-    private static final Logger LOG = Logger.getLogger(GetVideoDimensionsHandler.class);
+    private static final Logger logger = LogManager.getLogger(GetVideoDimensionsHandler.class);
 	
 	public GetVideoDimensionsHandler(
     		HttpServletRequest req, 
@@ -115,7 +116,7 @@ public class GetVideoDimensionsHandler extends XmlRequestHandlerBase {
         String fileName = getParameter("fileName");
 
         if (CommonUtils.isEmpty(fileName)) {
-        	LOG.warn("parameter fileName missing");
+        	logger.warn("parameter fileName missing");
         	return;
         }
         
@@ -128,12 +129,12 @@ public class GetVideoDimensionsHandler extends XmlRequestHandlerBase {
         	FileLink fileLink = MetaInfManager.getInstance().getLink(path, fileName);
         	if (fileLink != null) {
         		if (!accessAllowed(fileLink.getDestPath())) {
-        			LOG.error("user " + uid + " tried to access a linked file outside the docuemnt root: " + fileLink.getDestPath());
+        			logger.error("user " + uid + " tried to access a linked file outside the docuemnt root: " + fileLink.getDestPath());
         			return;
         		}
         		videoFile = new File(fileLink.getDestPath());
         	} else {
-    			LOG.error("link does not exist: " + path + " " + fileName);
+    			logger.error("link does not exist: " + path + " " + fileName);
     			return;
         	}
         } else {
@@ -141,7 +142,7 @@ public class GetVideoDimensionsHandler extends XmlRequestHandlerBase {
         }
         
         if ((!videoFile.exists()) || (!videoFile.isFile()) || (!videoFile.canRead())) {
-        	LOG.warn("not a readable file: " + path + " " + fileName);
+        	logger.warn("not a readable file: " + path + " " + fileName);
         	return;
         }
 

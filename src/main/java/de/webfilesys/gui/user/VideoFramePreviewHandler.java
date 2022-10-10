@@ -11,18 +11,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.VideoFrameExtractor;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.MimeTypeMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class VideoFramePreviewHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(VideoFramePreviewHandler.class);
 	private static final int PREVIEW_PIC_SIZE = 160;
 	
 	protected HttpServletResponse resp = null;
@@ -38,6 +40,7 @@ public class VideoFramePreviewHandler extends UserRequestHandler {
         this.resp = resp;
 	}
 
+        @Override
 	protected void process() {
 		String currentPath = getCwd();
 		
@@ -83,7 +86,7 @@ public class VideoFramePreviewHandler extends UserRequestHandler {
 
                 extractTime = numFormat.format(hour) + ":" + numFormat.format(min) + ":" + numFormat.format(sec) + ".00";
             } catch (Exception ex) {
-                Logger.getLogger(getClass()).warn("invalid video extract time value", ex);
+                logger.warn("invalid video extract time value", ex);
                 return;
             }
         }
@@ -109,7 +112,7 @@ public class VideoFramePreviewHandler extends UserRequestHandler {
     		try {
     			Thread.sleep(200);
     		} catch (InterruptedException iex) {
-            	Logger.getLogger(getClass()).warn("failed to wait for video frame extraction");
+            	logger.warn("failed to wait for video frame extraction");
             	loopCounter = Integer.MAX_VALUE;
     		}
     		loopCounter++;
@@ -118,7 +121,7 @@ public class VideoFramePreviewHandler extends UserRequestHandler {
         if (extractedFrameFile.exists()) {
             serveImageFromFile(extractedFramePath, false);
             if (!extractedFrameFile.delete()) {
-            	Logger.getLogger(getClass()).warn("failed to delete preview video frame file " + extractedFramePath);
+            	logger.warn("failed to delete preview video frame file " + extractedFramePath);
             }
         }
 	}
@@ -148,13 +151,9 @@ public class VideoFramePreviewHandler extends UserRequestHandler {
                 buffer = new byte[65536];
             }
         	
-        	FileInputStream fileInput = null;
+        	try (OutputStream byteOut = resp.getOutputStream();
+                        FileInputStream fileInput = new FileInputStream(fileToSend)){
 
-        	try {
-        		OutputStream byteOut = resp.getOutputStream();
-
-        		fileInput = new FileInputStream(fileToSend);
-        		
         		int bytesRead = 0;
         		long bytesWritten = 0;
         		
@@ -164,7 +163,7 @@ public class VideoFramePreviewHandler extends UserRequestHandler {
                 }
 
                 if (bytesWritten != fileSize) {
-                    Logger.getLogger(getClass()).warn(
+                    logger.warn(
                         "only " + bytesWritten + " bytes of " + fileSize + " have been written to output");
                 } 
 
@@ -178,17 +177,10 @@ public class VideoFramePreviewHandler extends UserRequestHandler {
             		}
                 }
         	} catch (IOException ioEx) {
-            	Logger.getLogger(getClass()).warn(ioEx);
-            } finally {
-        		if (fileInput != null) {
-        		    try {
-        	            fileInput.close();
-        		    } catch (Exception ex) {
-        		    }
-        		}
-        	}
+            	logger.warn(ioEx);
+            }
         } else {
-        	Logger.getLogger(getClass()).error(imgPath + " is not a readable file");
+        	logger.error(imgPath + " is not a readable file");
         }
 	}
 	

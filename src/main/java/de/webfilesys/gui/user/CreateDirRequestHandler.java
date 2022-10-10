@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Constants;
 import de.webfilesys.DirTreeStatus;
@@ -15,11 +14,14 @@ import de.webfilesys.SubdirExistCache;
 import de.webfilesys.gui.xsl.XslUnixDirTreeHandler;
 import de.webfilesys.gui.xsl.XslWinDirTreeHandler;
 import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CreateDirRequestHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(CreateDirRequestHandler.class);
 	boolean clientIsLocal = false;
 
 	public CreateDirRequestHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
@@ -29,6 +31,7 @@ public class CreateDirRequestHandler extends UserRequestHandler {
 		this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -37,7 +40,7 @@ public class CreateDirRequestHandler extends UserRequestHandler {
 		String newDir = getParameter("NewDirName");
 
 		if (newDir == null) {
-			Logger.getLogger(getClass()).error("required parameter newDirName missing");
+			logger.error("required parameter newDirName missing");
 
 			return;
 		}
@@ -86,9 +89,9 @@ public class CreateDirRequestHandler extends UserRequestHandler {
 		}
 
 		if (errorMsg == null) {
-			SubdirExistCache.getInstance().setExistsSubdir(actPath + File.separator + newDir, new Integer(0));
+			SubdirExistCache.getInstance().setExistsSubdir(actPath + File.separator + newDir, 0);
 
-			SubdirExistCache.getInstance().setExistsSubdir(actPath, new Integer(1));
+			SubdirExistCache.getInstance().setExistsSubdir(actPath, 1);
 			
 			DirTreeStatus dirTreeStatus = (DirTreeStatus) session.getAttribute(Constants.SESSION_KEY_DIR_TREE_STATUS);
 

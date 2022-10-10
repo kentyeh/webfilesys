@@ -10,15 +10,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class HexViewHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(HexViewHandler.class);
     public static final int MAX_BYTES_PER_PAGE = 50000;
     
     public static final int MAX_START_IDX = 100000000;
@@ -33,11 +35,12 @@ public class HexViewHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String fileName = getParameter("fileName");
 		
-		if ((fileName == null) || (fileName.trim().length() == 0) || (fileName.indexOf("..") >= 0))  
+		if ((fileName == null) || (fileName.trim().length() == 0) || (fileName.contains("..")))  
 		{
 		    return;
 		}
@@ -76,7 +79,7 @@ public class HexViewHandler extends UserRequestHandler
 		
 		if ((!hexFile.isFile()) || (!hexFile.canRead()))
 		{
-		    Logger.getLogger(getClass()).warn(hexFile.getAbsolutePath() + " is not a readable file");
+		    logger.warn(hexFile.getAbsolutePath() + " is not a readable file");
 		    return;
 		}
 		
@@ -164,12 +167,8 @@ public class HexViewHandler extends UserRequestHandler
 	    
 	    byte[] buff = new byte[16];
 
-	    BufferedInputStream fileIn = null;
-	    
-	    try
+	    try (BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(hexFile)))
 	    {
-	        fileIn = new BufferedInputStream(new FileInputStream(hexFile));
-	        
 	        // skip over previous pages
 	        int skipChar = 0;
 	        
@@ -248,24 +247,11 @@ public class HexViewHandler extends UserRequestHandler
 	    }
 	    catch (IOException ioex)
 	    {
-	        Logger.getLogger(getClass()).error("error in reading hex viewer file " + hexFile.getAbsolutePath(), ioex);
+	        logger.error("error in reading hex viewer file " + hexFile.getAbsolutePath(), ioex);
 	        
             output.println("<script type=\"text/javascript\">");
             output.println("alert('error occured while reading file " + hexFile.getName() + "');");
             output.println("</script>");
-	    }
-	    finally
-	    {
-	        if (fileIn != null)
-	        {
-	            try
-	            {
-	                fileIn.close();
-	            }
-	            catch (Exception ex)
-	            {
-	            }
-	        }
 	    }
 
 	    output.println("</table>");

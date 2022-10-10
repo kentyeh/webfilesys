@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -26,12 +25,15 @@ import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.PatternComparator;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslFolderDiffTreeHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslFolderDiffTreeHandler.class);
     public static final String SESSION_ATTRIB_SYNCHRONIZE_ITEMS = "DirSyncItems";
     
     SimpleDateFormat dateFormat = null;
@@ -48,6 +50,7 @@ public class XslFolderDiffTreeHandler extends XslRequestHandlerBase
         dateFormat = LanguageManager.getInstance().getDateFormat(language);
 	}
 	  
+	@Override
 	protected void process()
 	{
         String compSourcePath = getParameter("sourcePath");
@@ -67,7 +70,7 @@ public class XslFolderDiffTreeHandler extends XslRequestHandlerBase
 
         if ((compSourcePath == null) || (compTargetPath == null))
         {
-            Logger.getLogger(getClass()).warn("missing parameter source or target path");
+            logger.warn("missing parameter source or target path");
             return;
         }
         
@@ -353,7 +356,7 @@ public class XslFolderDiffTreeHandler extends XslRequestHandlerBase
     
     private String encodeViewPath(String path) 
     {
-        StringBuffer encodedPath = new StringBuffer();
+        StringBuilder encodedPath = new StringBuilder();
         
         StringTokenizer pathParser = new StringTokenizer(path, "/\\", true);
         

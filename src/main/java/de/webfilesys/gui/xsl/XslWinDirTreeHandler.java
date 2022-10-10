@@ -37,6 +37,7 @@ public class XslWinDirTreeHandler extends XslDirTreeHandler
 		this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
 		String docRoot = userMgr.getDocumentRoot(uid);
@@ -108,7 +109,7 @@ public class XslWinDirTreeHandler extends XslDirTreeHandler
 
 	            if (driveLabel != null)
 	            {
-                    existingDrives.add(new Integer(i));
+                    existingDrives.add(i);
 	            }
 	        }
         } 
@@ -118,13 +119,13 @@ public class XslWinDirTreeHandler extends XslDirTreeHandler
 
             if (driveLabel != null)
             {
-                existingDrives.add(new Integer(docRootDriveNum));
+                boolean add = existingDrives.add(new Integer(docRootDriveNum));
             }
 		}
 		
 		for (Integer drive : existingDrives) {
 		
-			int driveNum = drive.intValue();
+			int driveNum = drive;
 
 			String driveLabel = WinDriveManager.getInstance().getDriveLabel(driveNum);
 

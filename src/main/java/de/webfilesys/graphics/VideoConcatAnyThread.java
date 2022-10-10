@@ -1,24 +1,26 @@
 package de.webfilesys.graphics;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.SubdirExistCache;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VideoConcatAnyThread extends Thread {
-	
+
+    private static final Logger logger = LogManager.getLogger(VideoConcatAnyThread.class);
     private static HashMap<String, String> videoFileExtensions;
 
     static {
-    	videoFileExtensions = new HashMap<String, String>(5);
+    	videoFileExtensions = new HashMap<>(5);
     	videoFileExtensions.put("h264", "mp4");
     	videoFileExtensions.put("mpeg2video", "mpeg");
     	videoFileExtensions.put("mp4", "mp4");
@@ -49,20 +51,19 @@ public class VideoConcatAnyThread extends Thread {
     	newFrameRate = newVal;
     }
     
+    @Override
     public void run() {
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            Logger.getLogger(getClass()).debug("starting video concatenation thread");
-        }
+        logger.debug("starting video concatenation thread");
         
         Thread.currentThread().setPriority(1);
 
         File targetDirFile = new File(targetPath);
         if (!targetDirFile.exists()) {
             if (!targetDirFile.mkdir()) {
-                Logger.getLogger(getClass()).error("failed to create target folder for video joining: " + targetPath);
+                logger.error("failed to create target folder for video joining: " + targetPath);
                 return;
             } else {
-				SubdirExistCache.getInstance().setExistsSubdir(targetDirFile.getAbsolutePath(), Integer.valueOf(1));
+				SubdirExistCache.getInstance().setExistsSubdir(targetDirFile.getAbsolutePath(), 1);
             }
         }
         
@@ -87,7 +88,7 @@ public class VideoConcatAnyThread extends Thread {
         
         String ffmpegExePath = WebFileSys.getInstance().getFfmpegExePath();
 		
-        ArrayList<String> progNameAndParams = new ArrayList<String>();
+        ArrayList<String> progNameAndParams = new ArrayList<>();
         progNameAndParams.add(ffmpegExePath);
         
         for (String inputFile : selectedFiles) {
@@ -159,26 +160,22 @@ public class VideoConcatAnyThread extends Thread {
         
         progNameAndParams.add(targetFilePath);
         
-        if (Logger.getLogger(getClass()).isDebugEnabled()) {
-        	buff = new StringBuilder();
-            for (String cmdToken : progNameAndParams) {
-            	buff.append(cmdToken);
-            	buff.append(' ');
-            }
-            Logger.getLogger(getClass()).debug("ffmpeg call with params: " + buff.toString());
+        buff = new StringBuilder();
+        for (String cmdToken : progNameAndParams) {
+            buff.append(cmdToken);
+            buff.append(' ');
         }
+        logger.debug("ffmpeg call with params: " + buff.toString());
         
 		try {
 			Process convertProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
 			
-	        DataInputStream grabProcessOut = new DataInputStream(convertProcess.getErrorStream());
+	        BufferedReader grabProcessOut = new BufferedReader(new InputStreamReader(convertProcess.getErrorStream()));
 	        
 	        String outLine = null;
 	        
 	        while ((outLine = grabProcessOut.readLine()) != null) {
-	        	if (Logger.getLogger(getClass()).isDebugEnabled()) {
-	                Logger.getLogger(getClass()).debug("ffmpeg output: " + outLine);
-	        	}
+	            logger.debug("ffmpeg output: " + outLine);
 	        }
 			
 			int convertResult = convertProcess.waitFor();
@@ -187,16 +184,14 @@ public class VideoConcatAnyThread extends Thread {
 				File resultFile = new File(targetFilePath);
 				
 				if (!resultFile.exists()) {
-                    Logger.getLogger(getClass()).error("result file from ffmpeg video conversion not found: " + targetFilePath);
+                    logger.error("result file from ffmpeg video conversion not found: " + targetFilePath);
 				}
 			} else {
-				Logger.getLogger(getClass()).warn("ffmpeg returned error " + convertResult);
+				logger.warn("ffmpeg returned error " + convertResult);
 			}
 			
-		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error("failed to concatente videos", ioex);
-		} catch (InterruptedException iex) {
-			Logger.getLogger(getClass()).error("failed to concatente videos", iex);
+		} catch (IOException | InterruptedException ioex) {
+			logger.error("failed to concatente videos", ioex);
 		}
     }
     

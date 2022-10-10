@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.w3c.dom.Element;
 
 /**
  * @author Frank Hoehnel
@@ -22,11 +23,12 @@ public class GoogleEarthSinglePlacemarkHandler extends GoogleEarthHandlerBase
         super(req, resp, session, output, uid);
  	}
 
-	protected ArrayList createPlacemarkXml() 
+        @Override
+	protected ArrayList<Element> createPlacemarkXml() 
 	{
         String imgPath = req.getParameter("path");
         
-        ArrayList placemarkElementList = new ArrayList();
+        ArrayList<Element> placemarkElementList = new ArrayList();
         
         placemarkElementList.add(createPlacemark(imgPath));
         

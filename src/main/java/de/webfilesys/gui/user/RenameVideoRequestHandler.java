@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Category;
 import de.webfilesys.Comment;
@@ -17,11 +16,14 @@ import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.VideoThumbnailCreator;
 import de.webfilesys.gui.xsl.XslVideoListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class RenameVideoRequestHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(RenameVideoRequestHandler.class);
 	protected HttpServletRequest req = null;
 
 	protected HttpServletResponse resp = null;
@@ -37,6 +39,7 @@ public class RenameVideoRequestHandler extends UserRequestHandler {
 		this.requestIsLocal = requestIsLocal;
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -68,7 +71,7 @@ public class RenameVideoRequestHandler extends UserRequestHandler {
 
 		File dest = new File(newFilePath);
 
-		if ((newFileName.indexOf("..") >= 0) || (!source.renameTo(dest))) {
+		if ((newFileName.contains("..")) || (!source.renameTo(dest))) {
 			output.println("<html>");
 			output.println("<head>");
 			output.println("<script language=\"javascript\">");
@@ -99,11 +102,9 @@ public class RenameVideoRequestHandler extends UserRequestHandler {
 		ArrayList<Category> assignedCategories = metaInfMgr.getListOfCategories(oldFilePath);
 
 		if (assignedCategories != null) {
-			for (int i = 0; i < assignedCategories.size(); i++) {
-				Category cat = (Category) assignedCategories.get(i);
-
-				metaInfMgr.addCategory(newFilePath, cat);
-			}
+                    for (Category cat : assignedCategories) {
+                        metaInfMgr.addCategory(newFilePath, cat);
+                    }
 		}
 
 		GeoTag geoTag = metaInfMgr.getGeoTag(oldFilePath);
@@ -130,7 +131,7 @@ public class RenameVideoRequestHandler extends UserRequestHandler {
 
 		if (thumbnailFile.exists()) {
 			if (!thumbnailFile.delete()) {
-				Logger.getLogger(getClass()).debug("failed to remove video thumbnail file " + thumbnailPath);
+				logger.debug("failed to remove video thumbnail file " + thumbnailPath);
 			}
 		}
 

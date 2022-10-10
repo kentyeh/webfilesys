@@ -15,10 +15,11 @@ import javax.security.auth.x500.X500Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.ViewHandlerConfig;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Show the content of certificate files.
@@ -27,8 +28,9 @@ import de.webfilesys.util.CommonUtils;
  */
 public class CertificateFileViewHandler implements ViewHandler {
 	
-	private static Logger LOG = Logger.getLogger(CertificateFileViewHandler.class);
+	private static final Logger logger = LogManager.getLogger(CertificateFileViewHandler.class);
 	
+        @Override
 	public void process(String filePath, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req,
 			HttpServletResponse resp) {
 
@@ -44,11 +46,8 @@ public class CertificateFileViewHandler implements ViewHandler {
 
 			output.println("<div style=\"font-family:Arial,Helvetica;font-size:16px;color:navy;margin-bottom:16px\">Contents of certificate file " + CommonUtils.extractFileName(filePath) + "</div>");
 			
-			FileInputStream fis = null;
-			
-			try {
+			try (FileInputStream fis = new FileInputStream(filePath)){
 				CertificateFactory fact = CertificateFactory.getInstance("X.509");
-			    fis = new FileInputStream(filePath);
 			    X509Certificate cert = (X509Certificate) fact.generateCertificate(fis);
 			    
 	        	output.println("<table style=\"border:1px solid #a0a0a0;font-family:Arial,Helvetica;font-size:16px;border-collapse:collapse\">");
@@ -59,9 +58,7 @@ public class CertificateFileViewHandler implements ViewHandler {
 	        	
 	        	try {
 	        	    cert.checkValidity();
-	        	} catch (CertificateExpiredException expEx) {
-	        		valid = false;
-	        	} catch (CertificateNotYetValidException nyvEx) {
+	        	} catch (CertificateExpiredException | CertificateNotYetValidException expEx) {
 	        		valid = false;
 	        	}
 
@@ -87,25 +84,18 @@ public class CertificateFileViewHandler implements ViewHandler {
 	        	output.println("</table>");
 	        	
 		    } catch (CertificateException certEx) {
-		    	LOG.warn("failed to load certificate " + filePath, certEx);
+		    	logger.warn("failed to load certificate " + filePath, certEx);
 		    	output.println("failed to load certificate: " + certEx);
 		    } catch (IOException ioEx) {
-		    	LOG.warn("failed to load certificate " + filePath, ioEx);
+		    	logger.warn("failed to load certificate " + filePath, ioEx);
 		    	output.println("failed to load certificate: " + ioEx);
-			} finally {
-		        if (fis != null) {
-		        	try {
-			            fis.close();
-		        	} catch (Exception ex) {
-		        	}
-		        }
-		    }
+			}
 
 		    output.println("</body>");
 			output.println("</html>");
 			output.flush();
 		} catch (IOException ex) {
-	    	LOG.warn("failed to get certificate content of file " + filePath, ex);
+	    	logger.warn("failed to get certificate content of file " + filePath, ex);
 		}
 	}
 
@@ -115,10 +105,12 @@ public class CertificateFileViewHandler implements ViewHandler {
 	 * 
 	 * @return true if reading from ZIP archive is supported, otherwise false
 	 */
+        @Override
 	public boolean supportsZipContent() {
 		return false;
 	}
 
+        @Override
 	public void processZipContent(String fileName, InputStream zipIn, ViewHandlerConfig viewHandlerConfig,
 			HttpServletRequest req, HttpServletResponse resp) {
 		// ZIP not supported

@@ -30,7 +30,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -39,19 +38,27 @@ import org.xml.sax.SAXException;
 
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.XmlUtil;
+import java.util.Arrays;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Manager for decoration of folders with individual icons and text colors.
  * @author Frank Hoehnel
  */
 public class DecorationManager extends Thread {
-	
+
+    private static final Logger logger = LogManager.getLogger(DecorationManager.class);
+
     public static final String DECORATION_FILE_NAME = "decorations.xml";
 	
     private static DecorationManager decoMgr = null;
 
     private boolean modified = false;
-    
+
+private final ReentrantLock lock= new ReentrantLock();    
+
     Document doc;
 
     DocumentBuilder builder;
@@ -66,7 +73,7 @@ public class DecorationManager extends Thread {
     {
     	decorationFilePath = WebFileSys.getInstance().getConfigBaseDir() + "/" + DECORATION_FILE_NAME;
     	
-    	index = new HashMap<String, Decoration>();
+    	index = new HashMap<>();
     	
         builder = null;
 
@@ -88,7 +95,7 @@ public class DecorationManager extends Thread {
         }
         catch (ParserConfigurationException pcex)
         {
-        	Logger.getLogger(getClass()).error(pcex.toString());
+        	logger.error(pcex.toString());
         }
 
         modified = false;
@@ -117,12 +124,12 @@ public class DecorationManager extends Thread {
         
         if (decoFile.exists() && (!decoFile.canWrite()))
         {
-        	Logger.getLogger(getClass()).error("cannot write to decoration file " + decoFile.getAbsolutePath());
+        	logger.error("cannot write to decoration file " + decoFile.getAbsolutePath());
             return;
         }
 
-        synchronized (decorationRoot)
-        {
+        try {
+            this.lock.lock();
             OutputStreamWriter xmlOutFile = null;
 
             try
@@ -131,10 +138,7 @@ public class DecorationManager extends Thread {
                 
                 xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
                 
-                if (Logger.getLogger(getClass()).isDebugEnabled())
-                {
-                    Logger.getLogger(getClass()).debug("Saving decorations to file " + decoFile.getAbsolutePath());
-                }
+                logger.debug("Saving decorations to file " + decoFile.getAbsolutePath());
                 
                 XmlUtil.writeToStream(decorationRoot, xmlOutFile);
                 
@@ -144,7 +148,7 @@ public class DecorationManager extends Thread {
             }
             catch (IOException io1)
             {
-                Logger.getLogger(getClass()).error("error saving decoration to file " + decoFile.getAbsolutePath(), io1);
+                logger.error("error saving decoration to file " + decoFile.getAbsolutePath(), io1);
             }
             finally
             {
@@ -159,6 +163,8 @@ public class DecorationManager extends Thread {
                     }
                 }
             }
+        } finally {
+            this.lock.unlock();
         }
     }
 
@@ -171,7 +177,7 @@ public class DecorationManager extends Thread {
            return(null);
        }
 
-       Logger.getLogger(getClass()).info("reading decorations from " + decorationFile.getAbsolutePath());
+       logger.info("reading decorations from " + decorationFile.getAbsolutePath());
 
        doc = null;
        
@@ -187,13 +193,9 @@ public class DecorationManager extends Thread {
 
            doc = builder.parse(inputSource);
        }
-       catch (SAXException saxex)
+       catch (SAXException | IOException saxex)
        {
-           Logger.getLogger(getClass()).error("failed to load decoration from file : " + decorationFile.getAbsolutePath(), saxex);
-       }
-       catch (IOException ioex)
-       {
-           Logger.getLogger(getClass()).error("failed to load decoration from file : " + decorationFile.getAbsolutePath(), ioex);
+           logger.error("failed to load decoration from file : " + decorationFile.getAbsolutePath(), saxex);
        }
        finally 
        {
@@ -256,7 +258,8 @@ public class DecorationManager extends Thread {
     
     public void setDecoration(String path, Decoration newDeco) 
     {
-        synchronized (decorationRoot) {
+        try {
+            this.lock.lock();
             String normalizedPath = path.replace('\\', '/');    	
         	
             boolean existingFound = false;
@@ -325,6 +328,8 @@ public class DecorationManager extends Thread {
         	index.put(normalizedPath, newDeco);
         	
         	modified = true;
+        } finally {
+            this.lock.unlock();
         }
     }
     
@@ -334,7 +339,7 @@ public class DecorationManager extends Thread {
      */
     public ArrayList<String> getAvailableIcons() 
     {
-    	ArrayList<String> availableIcons = new ArrayList<String>();
+    	ArrayList<String> availableIcons = new ArrayList<>();
     	
     	String iconDirPath = WebFileSys.getInstance().getWebAppRootDir() + "icons";
     	
@@ -344,10 +349,7 @@ public class DecorationManager extends Thread {
     	{
     		String[] iconFiles = iconDir.list();
     		
-    		for (int i = 0; i < iconFiles.length; i++) 
-    		{
-    			availableIcons.add(iconFiles[i]);
-    		}
+                availableIcons.addAll(Arrays.asList(iconFiles));
     	}
     	
     	if (availableIcons.size() > 1) {
@@ -359,8 +361,8 @@ public class DecorationManager extends Thread {
     
     public void collectGarbage()
     {
-        synchronized (decorationRoot) 
-        {
+        try {
+            this.lock.lock();
             NodeList decorationList = decorationRoot.getElementsByTagName("decoration");
 
             if (decorationList == null)
@@ -402,20 +404,19 @@ public class DecorationManager extends Thread {
                 			
                 			modified = true;
                 			
-                	        if (Logger.getLogger(getClass()).isInfoEnabled()) {
-                	            Logger.getLogger(getClass()).info("removing folder decoration for non-existing icon " + icon);
-                	        }
+                	        logger.info("removing folder decoration for non-existing icon " + icon);
                 		}
             		}
             	}
             }            
         	
-            if (Logger.getLogger(getClass()).isInfoEnabled()) {
-                Logger.getLogger(getClass()).info(decoGarbageCounter + " decorations for removed folders deleted");
-            }
+            logger.info(decoGarbageCounter + " decorations for removed folders deleted");
+        } finally {
+            this.lock.unlock();
         }
     }
 
+    @Override
     public synchronized void run()
     {
         int counter = 1;
@@ -453,7 +454,7 @@ public class DecorationManager extends Thread {
                 	saveToFile();
                 }
 				
-                Logger.getLogger(getClass()).debug("DecorationManager ready for shutdown");
+                logger.debug("DecorationManager ready for shutdown");
                 
 				stop = true;
             }

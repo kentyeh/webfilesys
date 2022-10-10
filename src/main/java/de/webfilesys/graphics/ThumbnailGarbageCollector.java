@@ -1,12 +1,12 @@
 package de.webfilesys.graphics;
 import java.io.File;
 import java.util.Date;
-
-import org.apache.log4j.Logger;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ThumbnailGarbageCollector extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(ThumbnailGarbageCollector.class);
     public final static String imgFileMasks[]={"*"};
 
     String path;
@@ -18,6 +18,7 @@ public class ThumbnailGarbageCollector extends Thread
         this.path=path;
     }
  
+    @Override
     public synchronized void run()
     {
         setPriority(1);
@@ -27,7 +28,7 @@ public class ThumbnailGarbageCollector extends Thread
 
     protected void removeThumbnailGarbage()
     {
-        Logger.getLogger(getClass()).debug("thumbnail garbage collector started for dir " + path);
+        logger.debug("thumbnail garbage collector started for dir " + path);
         long startTime=(new Date()).getTime();
 
         removedCount=0;
@@ -36,7 +37,7 @@ public class ThumbnailGarbageCollector extends Thread
 
         long endTime=(new Date()).getTime();
 
-		Logger.getLogger(getClass()).debug("thumbnail garbage collection ended for dir " + path + " (" + (endTime-startTime) + " ms) - " + removedCount + " thumbnails removed.");
+		logger.debug("thumbnail garbage collection ended for dir " + path + " (" + (endTime-startTime) + " ms) - " + removedCount + " thumbnails removed.");
     }
 
     protected void exploreTree(String path)
@@ -57,10 +58,7 @@ public class ThumbnailGarbageCollector extends Thread
             return;
         }
 
-        for (int i=0;i<fileList.length;i++)
-        {
-            String subdirName=fileList[i];
-
+        for (String subdirName : fileList) {
             String subdirPath=pathWithSlash + subdirName;
 
             File tempFile=new File(subdirPath);
@@ -90,16 +88,13 @@ public class ThumbnailGarbageCollector extends Thread
             return;
         }
 
-        for (int i=0;i<fileList.length;i++)
-        {
-            String fileName=fileList[i];
-
+        for (String fileName : fileList) {
             File tempFile=new File(thumbnailPath,fileName);
             
             if (tempFile.isFile() && tempFile.canWrite())
             {
-                String imgPath=thumbnailPath.substring(0,thumbnailPath.lastIndexOf(File.separatorChar)+1); 
-
+                String imgPath=thumbnailPath.substring(0,thumbnailPath.lastIndexOf(File.separatorChar)+1);
+                
                 String imgFileName=imgPath + fileName;
                 
                 File imgFile=new File(imgFileName);
@@ -108,16 +103,13 @@ public class ThumbnailGarbageCollector extends Thread
                 {
                     if (!tempFile.delete())
                     {
-						Logger.getLogger(getClass()).warn("cannot remove thumbnail garbage file " + tempFile);
+                        logger.warn("cannot remove thumbnail garbage file " + tempFile);
                     }
                     else
                     {
                         removedCount++;
 
-                        if (Logger.getLogger(getClass()).isDebugEnabled())
-                        {
-    						Logger.getLogger(getClass()).debug("removed thumbnail garbage file: " + tempFile);
-                        }
+                        logger.debug("removed thumbnail garbage file: " + tempFile);
                     }
                 }
             }
@@ -129,14 +121,11 @@ public class ThumbnailGarbageCollector extends Thread
         {
             if (dirFile.delete())
             {
-                if (Logger.getLogger(getClass()).isDebugEnabled())
-                {
-    				Logger.getLogger(getClass()).debug("removed empty thumbnail dir " + thumbnailPath);
-                }
+    			logger.debug("removed empty thumbnail dir " + thumbnailPath);
             }
             else
             {
-				Logger.getLogger(getClass()).warn("cannot delete empty thumbnail dir " + thumbnailPath);
+			logger.warn("cannot delete empty thumbnail dir " + thumbnailPath);
             }
         }
     }

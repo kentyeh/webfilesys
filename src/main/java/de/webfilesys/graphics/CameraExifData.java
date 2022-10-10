@@ -4,9 +4,8 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.imaging.jpeg.JpegSegmentMetadataReader;
 import com.drew.imaging.jpeg.JpegSegmentType;
@@ -21,8 +20,12 @@ import com.drew.metadata.exif.ExifReader;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
 import com.drew.metadata.exif.GpsDirectory;
+import java.io.IOException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CameraExifData {
+    private static final Logger logger = LogManager.getLogger(CameraExifData.class);
 	public static final int ORIENTATION_UNKNOWN = (-1);
 	public static final int ORIENTATION_LANDSCAPE = 1;
 	public static final int ORIENTATION_PORTRAIT = 2;
@@ -75,7 +78,7 @@ public class CameraExifData {
 				            	tnDirectory.setObject(TAG_THUMBNAIL_DATA, tnData);
 				            }
 				        } catch (MetadataException e) {
-							Logger.getLogger(getClass()).error("failed to read thumbnail data", e);
+							logger.error("failed to read thumbnail data", e);
 				        }
 				    }
 				}	
@@ -99,8 +102,8 @@ public class CameraExifData {
 			gpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
 			thumbnailDirectory = metadata.getFirstDirectoryOfType(ExifThumbnailDirectory.class);
 			ifd0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-		} catch (Exception ex) {
-			Logger.getLogger(getClass()).warn("failed to extract exif data from file " + imgFileName + ": " + ex);
+		} catch (ImageProcessingException | IOException ex) {
+			logger.warn("failed to extract exif data from file " + imgFileName + ": " + ex);
 		}
 	}
 
@@ -114,24 +117,27 @@ public class CameraExifData {
 
 	public void printExifData() {
 		if (exifDirectory == null) {
-			System.out.println("exif directory is null");
+			logger.error("exif directory is null");
 			return;
 		}
-
+		StringBuilder sb = new StringBuilder();
 		try {
 			for (Tag tag : exifDirectory.getTags()) {
 
-				System.out.print(tag.getTagType() + " , ");
-				System.out.print(tag.getTagName() + " , ");
+				sb.append(tag.getTagType()).append(" , ")
+					.append(tag.getTagName()).append(" , ");
 
 				try {
-					System.out.println(tag.getDescription());
+					sb.append(tag.getDescription());
 				} catch (java.lang.NoSuchMethodError nsm) {
-					System.out.println(nsm);
+					logger.error(nsm);
 				}
 			}
+			if(sb.length()>0){
+				logger.debug(sb.toString());
+			}
 		} catch (Exception ex) {
-			System.out.println(ex);
+			logger.error(ex);
 		}
 	}
 
@@ -358,7 +364,7 @@ public class CameraExifData {
 			return;
 		}
 		if (!thumbnailDirectory.containsTag(TAG_THUMBNAIL_DATA)) {
-			Logger.getLogger(getClass()).debug("missing EXIF thumbnail data tag");
+			logger.debug("missing EXIF thumbnail data tag");
 			return;
 		}
 
@@ -367,7 +373,7 @@ public class CameraExifData {
 		try {
 			thumbData = thumbnailDirectory.getByteArray(TAG_THUMBNAIL_DATA);
 		} catch (Exception metaEx) {
-			Logger.getLogger(getClass()).warn(metaEx);
+			logger.warn(metaEx);
 			return;
 		}
 		
@@ -463,7 +469,7 @@ public class CameraExifData {
 				}
 			}
 		} catch (Exception mex) {
-			Logger.getLogger(getClass()).warn(mex);
+			logger.warn(mex);
 		}
 
 		return (latitude);
@@ -509,7 +515,7 @@ public class CameraExifData {
 				}
 			}
 		} catch (Exception mex) {
-			Logger.getLogger(getClass()).warn(mex);
+			logger.warn(mex);
 		}
 
 		return (longitude);

@@ -4,17 +4,19 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CSSManager
 {
+    private static final Logger logger = LogManager.getLogger(CSSManager.class);
+
     public static final String DEFAULT_LAYOUT = "fmweb";
 
     private static final String CSS_DIR    = "styles/skins";
     
-    private ArrayList<String> availableCss;
+    private final ArrayList<String> availableCss;
     
     private static CSSManager layoutMgr=null;
     
@@ -24,7 +26,7 @@ public class CSSManager
     {
     	cssPath = WebFileSys.getInstance().getWebAppRootDir() + "/" + CSS_DIR;
     	
-        availableCss = new ArrayList<String>();
+        availableCss = new ArrayList<>();
 
         readAvailableCss();      
     }
@@ -45,28 +47,25 @@ public class CSSManager
 
         if ((!cssDir.exists()) || (!cssDir.isDirectory()) || (!cssDir.canRead()))
         {
-            Logger.getLogger(getClass()).error("CSS directory not found or not readable: " + cssPath);
+            logger.error("CSS directory not found or not readable: " + cssPath);
              
             return;
         } 
 
         String cssList[] = cssDir.list();
 
-        for (int i=0;i<cssList.length;i++)
-        {
-             String cssFileName=cssList[i];
-
-             if (cssFileName.endsWith(".css"))
-             {
-                 File cssFile = new File(cssPath + "/" + cssFileName);
-
-                 if (cssFile.isFile() && cssFile.canRead() && (cssFile.length() > 0L))
-                 {
-                     String cssName = cssFileName.substring(0, cssFileName.lastIndexOf('.'));
-
-                     availableCss.add(cssName);
-                 }
-             }
+        for (String cssFileName : cssList) {
+            if (cssFileName.endsWith(".css"))
+            {
+                File cssFile = new File(cssPath + "/" + cssFileName);
+                
+                if (cssFile.isFile() && cssFile.canRead() && (cssFile.length() > 0L))
+                {
+                    String cssName = cssFileName.substring(0, cssFileName.lastIndexOf('.'));
+                    
+                    availableCss.add(cssName);
+                }
+            }
         }
 
         if (availableCss.size() > 1)

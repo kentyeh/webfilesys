@@ -37,7 +37,7 @@ public class XslFileListHandlerBase extends XslRequestHandlerBase {
 		currentTrailElem.setAttribute("separator", File.separator);
 		currentTrailElem.setAttribute("mask", mask);
 
-		String docRootWithSep = null;;
+		String docRootWithSep = null;
 		
         if (((File.separatorChar == '\\') && (docRoot.charAt(0) != '*')) ||
             ((File.separatorChar == '/') && (docRoot.length() > 1)))
@@ -58,7 +58,7 @@ public class XslFileListHandlerBase extends XslRequestHandlerBase {
         
 		StringTokenizer pathParser = new StringTokenizer(relativePath, File.separator);
 		
-		StringBuffer partialPath = new StringBuffer();
+		StringBuilder partialPath = new StringBuilder();
 
         if ((File.separatorChar == '/') && (docRoot.length() == 1))
 		{
@@ -68,7 +68,7 @@ public class XslFileListHandlerBase extends XslRequestHandlerBase {
 			}
 		}
 		
-		StringBuffer linkPath = new StringBuffer();
+		StringBuilder linkPath = new StringBuilder();
 		
 		boolean firstPart = true;
 		

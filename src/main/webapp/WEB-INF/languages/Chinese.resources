@@ -1,0 +1,1212 @@
+# WebFileSys resource file for international customization 
+#
+# version for English language
+#
+# Save a copy of the unchanged file for further reference !
+
+
+# common labels
+label.login.title=Web檔案總管 登錄
+label.userid=用戶名
+label.password=密碼
+label.logon=登錄
+label.file=檔案
+label.files=檔案
+label.pictures=圖片
+label.videos=影片
+label.mask=遮罩
+label.description=描述
+label.tags=標籤
+label.tags2=(逗號,隔開)
+label.directory=目錄
+label.path=路徑
+label.oldName=舊的命名
+label.newname=新的命名
+label.currentName=目前命名
+label.filename=檔案名稱
+label.statistics=統計
+label.statistics=標的目錄
+label.yes=是
+label.no=否
+label.in=於
+sizeUnit.byte=bytes
+sizeUnit.kilobyte=KB
+sizeUnit.megabyte=MB
+sizeUnit.gigabyte=GB
+decimalFractPoint=.
+
+# common buttons
+button.create=建立
+button.cancel=取消
+button.rename=改名
+button.renmove=移動
+button.closewin=關閉視窗
+button.return=返回
+button.save=儲存
+button.saveAndClose=儲存後關閉
+button.ok=好
+button.next=下一個
+button.previous=上一個
+button.reload=重新載入
+
+# menu bar labels
+label.fastpath=新近造訪目錄
+label.returnToPrevDir=回後先前目錄
+label.processes=作業系統進程
+label.fsstat=檔案系統統計
+label.oscmd=執行作業系統命令
+label.admin=管理
+label.refreshDrives=檢查加入/刪除的硬碟
+label.directPath=輸入檔案系統路徑
+label.diskQuotaUsage=帳戶已用容量
+label.thumbnails=縮圖
+label.thumbinvite=縮圖和訪客邀請
+label.slideshow=圖檔幻燈片
+label.story=圖片記事
+label.ftpBackup=目錄樹FTP備份
+label.calendar=日曆
+label.downloadCommentStats=下載和評論統計
+label.commentStats=評論統計
+label.mobileVersion=手機版
+label.help=說明
+label.about=關於Web檔案總管
+label.logout=登出
+label.jumpDestPath=跳轉路徑
+button.directPath=前往
+invalidDirectPath=是為效的檔案路徑!
+
+# directory context menu labels
+label.mkdir=建立子目錄l
+abel.copydir=拷貝目錄
+label.movedir=移動目錄
+label.deldir=刪除目錄
+label.renamedir=目錄改名
+label.pastedir=貼上
+label.statistics=統計
+label.subdirStats=子目錄統計
+label.statSunburst=樹狀放射環狀圖
+label.ageStats=檔案時間統計
+label.sizeStats=檔案尺寸統計
+label.typeStats=檔案類別統計
+label.search=搜尋
+label.createfile=建立新檔
+label.upload=上傳
+label.zipdir=目錄壓縮
+label.editdesc=編輯說明
+label.editMetaInfo=編輯基本訊息
+label.refresh=更新
+label.createthumbs=建立縮圖
+label.clearthumbs=移除舊縮圖
+label.driveinfo=硬碟屬性
+label.publish=公開
+label.winCmdLine=命令提示
+label.menuMore=更多 ...
+label.menuSynchronize=同步
+label.menuCancelSync=取消同步
+label.watchFolder=監視目錄變更
+label.cloneFolder=複製目錄
+
+# file context menu labels
+label.view=顯示
+label.download=下載
+label.playVideo=影片播放
+label.delete=刪除
+label.renameFile=改名
+label.copyToClip=拷貝
+label.cutToClip=移動
+label.copyToClipAdd=拷貝 +
+label.cutToClipAdd=移動 +
+label.copymove=拷貝/移動e
+label.edit=編輯
+label.viewzip=檢視壓縮檔內容
+label.run=執行程式
+label.open=執行關聯程式
+label.rights=存取權限
+label.zip=壓縮
+label.unzip=解壓縮
+label.compress=壓縮
+label.uncompress=解壓縮
+label.untar=從tar檔解開
+label.setro=設為唯讀
+label.setrw=設為可讀寫
+label.switchReadOnly=切換 讀/寫
+label.owner=擁有者
+label.group=群組
+label.accessrights=擁有者 與 權限
+label.attributes=屬性
+label.sendfile=以電子郵件傳送
+label.renameLink=鏈結改名
+label.deleteLink=刪除鏈結
+label.origDir=原始目錄
+label.diffSource=比對 (diff)
+label.diffTarget=開始比對
+label.cancelDiff=取消比對
+label.compSource=目錄比對
+label.compTarget=開始比對
+label.cancelComp=取消比對
+label.cloneFile=檔案複製
+label.cloneFolder=目錄複製
+label.touch=touch (設為最新)
+label.hexView=16進位檢視
+label.encrypt=加密 (AES)
+label.decrypt=解密 (AES)
+label.tail=tail (最後幾行)
+label.grep=grep (過濾器)
+label.copyPath=複製路徑到剪貼簿
+label.downloadFolder=zip檔下載
+title.addCopyToClip=把拷貝操作加到剪貼簿
+title.addMoveToClip=把移動操作加到剪貼簿
+
+# video list labels
+playVideoLocally=以本地播放器
+errorVideoPlayer=無法啟動本機影片播放器
+playerStartedInBackground=影片播放器可能在瀏覽器之後
+
+# directory tree tooltips
+tooltip.folder=開啟目錄選項
+tooltip.listFiles=顯示本目錄檔案
+label.loginHint=提示: 點擊目錄圖示可以打開目錄選單!
+
+# description window buttons and labels
+button.setdesc=儲存
+button.close=取消
+button.closeMap=關閉
+label.textColor=文字顏色
+label.folderIcon=目錄圖示
+noCustomIcon=無自訂圖示
+noCustomColor=無自訂顏色
+
+# file list labels and buttons
+label.listPageSize=每頁檔案
+label.lastModified=最後修改時間
+label.fileSize=大小 (bytes)
+label.page=頁
+button.tar=建立tar壓縮檔
+button.zip=建立zip壓縮檔
+button.delete=刪除
+button.compress=壓縮
+button.copy=拷貝
+button.move=&nbsp;剪下&nbsp;
+button.paste=貼上
+button.pasteLink=貼上鏈結
+button.upload=上傳
+label.selectedFiles=選取檔案
+action.diff=比較 (diff)
+selectTwoFilesForDiff=選取兩個檔案比對!
+confirm.deleteFiles=刪除已選取檔案 selected files?
+switchfileAgeColoring=顯示/隱藏檔案時間顏色
+folderContentModified=目前目錄已變更是否重新載入?
+folderTreeModified=目錄結構已變更是否重新載入?
+noVideosInFolder=沒有支授的影片檔(MP4,MPG,MOV)
+
+# file list checkboxes
+checkbox.selectall=全部選取
+checkbox.confirmdel=確認刪除
+
+# file list view modes
+label.modelist=檔案清單
+label.modethumb=縮圖
+label.modestory=圖片記事
+label.modeSlideshow=幻燈片
+label.modeVideo=影片
+label.fileStats=統計
+
+# sorting types for files
+sort.name=以名稱排序
+sort.name.ignorecase=以名稱排序 (忽略大小寫)
+sort.name.respectcase=以名稱排序 (區分大小寫)
+sort.extension=以附檔名排序
+sort.size=以大小排序
+sort.date=以變更日期排序
+sort.voteCount=以投票數排序
+sort.voteValue=以投票結果排序
+
+# create file/subdir labels
+label.parentDir=父目錄
+label.newDirName=新目錄名稱
+label.newFileName=新檔名
+
+# upload parameter window labels
+label.uploadfile=上傳檔案
+label.upload.localFile=要上傳的檔案
+label.upload.serverFileName=主機上的檔名
+label.upload.description=檔案說明
+label.xfermode=移轉模式
+label.xferbin=二進位
+label.xfertext=文字
+button.startUpload=開始上傳
+hint.upload.multizip=要一次上傳多個檔案或整個目錄，請在您的電腦上創建一個 ZIP 檔並上傳。
+label.upload.unzip=上傳後解開
+link.multiUpload=多檔上傳
+headline.multiUpload=多檔上傳
+upload.selected.pictures=選擇要上傳的圖檔
+upload.dropZone=檔案拖拉到此上傳!
+upload.lastSent=最後上傳的檔案
+upload.selectedFiles=選擇上傳的檔案
+upload.selectFilePrompt=選擇的檔案(s)
+upload.button.done=完成
+label.uploadStatus=上傳狀態
+upload.file.too.large=檔案太大，無法使用擴展上傳功能上傳。使用基本的上傳對話框來處理非常大的檔案！
+upload.file.exists=已存在同名檔案 - 覆蓋?
+uploadTargetFileNameExt=本地檔案的附檔名將附加到目標主機的檔名. 繼續?
+upload.total.status=總狀態
+upload.error=上傳檔案失敗
+upload.conflictHead=下列檔案已存在於標的目錄中
+upload.overwrite=覆寫?
+
+# switch Read/Only labels
+label.readWriteStatus=讀/寫 狀態
+label.statusWritable=可寫
+label.statusReadOnly=唯讀
+
+# directory zip window label
+label.zippingdir=壓縮目錄
+label.ziparchive=ZIP壓縮檔
+label.currentfile=處理檔案
+label.zipratio=壓縮比 (原始大小的 % )
+label.zipnofile=目錄樹內不包含檔案
+
+# file zip/unzip/tar/compress labels and buttons
+label.ziphead=建立ZIP壓縮檔
+label.unziphead=解開zip檔
+label.tarhead=建立tar壓縮檔
+label.untarhead=從tar檔解開
+label.extractfrom=解開自
+label.currentzip=處理檔案
+label.unzipresult=檔案已解壓縮
+label.zipCount=檔案已ZIP
+label.untarResult=檔案已解壓縮
+label.tararchive=tar壓縮檔
+label.sourcefile=來源檔案
+label.targetfile=標的檔案
+button.delzip=刪除ZIP檔案
+button.keepzip=保留ZIP檔案
+button.delTarArchive=刪除TAR檔案
+button.keepTarArchive=保留TAR檔案
+button.delsource=刪除來源檔案
+button.keepsource=保留來源檔案
+button.downloadAsZip=Zip後下載
+label.sizeorig=原始大小
+label.sizecompressed=壓縮後大小
+label.unzipError=unzip檔案錯誤
+label.untarError=無法從 TAR 檔案中解開
+
+# statistics window labels
+label.subdirs=子目錄
+label.subdirlevels=子目錄階層
+label.firstlevelfiles=最上層檔案
+label.firstlevelbytes=最上層bytes
+label.treefiles=目錄樹檔案
+label.treebytes=目錄樹bytes
+label.countComments=評論統計
+label.topdownloads=下載統計
+label.nodownloads=此目錄尚未被下載過
+label.downloads=顯示/下載
+label.since=從
+button.resetStats=重置統計
+label.commentNum=評論數
+label.noComments=本目錄內檔案尚無評論
+
+stats.sizeWinTitle=按檔案大小劃分的目錄統計
+stats.typeWinTitle=按檔案類別劃分的目錄統計
+stats.ageWinTitle=按檔案時間劃分的目錄統計
+stats.fileSize=size檔案大小
+stats.fileNum=# 檔案
+stats.percentFileNum=% 檔案編號
+stats.sizeSum=大小總和
+stats.percentSizeSum=% 大小
+stats.fileType=檔案類別
+stats.fileAge=檔案時間
+stats.age.day=天
+stats.age.days=天
+stats.age.week=週
+stats.age.weeks=週
+stats.age.year=年
+stats.age.years=年
+
+# sunburst chart
+sunburst.noSubFolders=This folder does not contain any subfolders!
+sunburst.parentFolderLink=父目錄
+sunburst.hideSubLink=隱藏子目錄
+sunburst.showSubLink=顯示子目錄
+
+# drive info labels
+label.driveinfo=硬碟屬性
+label.drive=硬碟
+label.drivelabel=硬碟標籤
+label.driveType=硬碟種類
+label.diskTotalSpace=全部Bytes
+label.bytesfree=可用Bytes
+
+# search window labels and buttons
+label.searchHead=文件和全文撿索
+label.searchTitle=WebFileSys: 尋找
+label.searchPath=在目錄下尋找
+label.filemask=檔名過濾
+label.searcharg=檔案/基本 訊息內的文字
+label.argdesc1=尋找包含上述所有單詞的檔案
+label.includeSubdirs=尋找包含子目錄
+label.includemetainf=尋找包含基本資訊 (說明, 標籤)
+label.metainfonly=只在基本資訊(說明, 標籤) 內尋找
+label.dateRangeFrom=修改日期從
+label.dateRangeUntil=修改日期到
+label.dateRange=修改日期範圍
+label.and=與
+label.searchCalendar=從日曆中選擇日期
+label.searchDateConflict=結束日期必須晚於開始日期！
+button.startsearch=開始尋找
+label.searchresults=尋找結果
+label.matches=找到匹配項
+label.assignedToCategory=指定到類別
+label.currentSearchDir=在目錄中搜索
+label.selectCategory=- 選擇類別 -
+label.searchResultAsTree=將搜索結果以樹狀顯示
+button.keepSearchResults=保留尋找結果
+button.discardSearchResults=取消尋找結果
+datePickerFormat=mm/dd/yy
+
+# copy/rename/move/delete/clone labels and buttons
+label.copymovehead=拷貝/改名/移動
+label.renameFolderHead=目錄改名
+label.destfile=目標檔名
+label.destdir=標的目錄
+label.sourcepath=來源路徑
+label.seldestdir=選擇標的目錄
+label.copyOf=-拷貝
+label.renameLinkHead=鏈結改名
+label.cloneSource=來源檔案
+label.cloneFolderSource=來源目錄
+label.cloneFolderTarget=目錄目錄
+button.clone=建立複製
+button.rename=改名
+error.renameFailed=無法改名為
+alert.destEqualsSource=必需是不相同的新檔名
+alert.destFolderEqualsSource=必需是不相同的新目錄名
+alert.newFolderNameEmpty= 輸入新的目錄名!
+alert.newLinkNameEmpty=輸入新的鏈結名!
+alert.missingDestDir=缺少新目錄名
+msg.delDirStarted=已開始目錄的刪除操作。
+label.cloneFolderTitle=目錄複製 ...
+
+# upload labels and buttons
+label.uploadhead=上傳檔案
+label.uploadbytes=已轉移
+label.uploadsize=檔案大小
+alert.uploadLimitExceeded=上傳的檔案大小超出限制
+error.upload=寫入上傳文件時出錯
+
+# download labels
+label.download.link=點擊這裡開始下載
+label.download.text1=of the file
+label.download.text2=下載完畢後關閉本視窗.
+label.download.text3=of the selected files in
+
+# paste from clipboard labels
+label.currentcopy=處理中的檔案
+label.copyfromclip=拷貝中的檔案
+label.movefromclip=移動中的檔案
+label.copyresult=檔案已拷貝
+label.moveresult=檔案已移動
+bytesCopied=bytes已拷貝
+bytesMoved=bytes已移轉
+morePasteConflicts=... 更多
+pasteConflictHead=標的目錄中已存在下列檔案
+pasteConflictHeadFolder=標的目錄中已存在下列子目錄
+pasteOverwrite=覆寫?
+destFolderFileConflict=無法複製目錄，因為標的目錄中存在同名檔案。
+targetEqualsSource=標的目錄不可以是來源目錄.
+targetIsSubOfSource=標的目錄不可以是來源目錄的子目錄。
+pathCopiedToClip=路徑已拷貝到剪貼薄
+
+# remote editor labels
+saveSuccess=編輯資料儲存成功
+saveFaailed=編輯資料儲存失敗
+
+# thumbnail window labels
+label.thumbtitle=圖檔縮圖檢視
+label.zoomin=放大
+label.zoomout=縮小
+label.editPicture=編輯/轉換 圖檔
+label.savethumbs=儲存縮圖
+label.invite=發送邀請
+label.of=of
+label.pagesize=每頁檔案
+error.compselect=至少選取2個圖檔以比對!
+label.compare=比對
+label.comparehead=比對影像
+label.renameImage=圖檔更名
+label.exifRename=重命名為曝光日期
+viewFullSize=在新 頁籤/視窗 檢視
+label.noThumbRefresh=不要更新縮圖檢視
+label.selectedPictures=選取圖檔
+label.selectFunction=- 選擇功能 -
+button.copyLinks=拷貝鏈結檔
+tooltip.copyLinks=用原始檔案的副本替換檔案鏈結
+confirm.copyLinks=用原始檔案的副本替換所有檔案鏈結?
+msg.createThumbsStarted=已開始為目錄生成永久圖片縮圖
+msg.concurrentThumbThread=另一個縮圖創建線程在在運行。稍後再試！
+confirm.deleteImages=刪除所選定的圖片檔案?
+confirm.deleteAllImages=您已選擇要刪除的所有圖片檔案。確定嗎？
+button.rotateByExif=按 Exif 旋轉
+title.rotateByExif=根據相機EXIF數據中的方向值旋轉圖片
+confirm.rotateByExif=方向與存儲在相機 EXIF 數據中的方向值不匹配的圖片將被無損旋轉，是否繼續？
+rotateByExif.noop=沒有圖片被旋轉!
+multiImgToVideo=建立幻燈片影片
+imgToVideoNoJPEG=只能用JPEG圖檔建立幻燈片影片.
+opOnlySupportedOnTypes=所選操作僅適用於以下類型的檔案:
+selectTwoOrMorePics=至少選取2個JPEG圖檔!
+slideshowToVideoStarted=已開始建立幻燈片影片，需要一些時間才能完成。建立的建立幻燈片影片會在子目錄中
+slideshowVideoErrorMissmatch=僅可選擇像素分辨率相同的 JPEG 圖片!
+slideshowVideoErrorProcess=建立幻燈片影片失敗.
+
+#picture comparision
+compImg.deleteTitle=刪除圖檔
+compImg.closeTitle=保留並關閉圖檔
+
+# picture transformation
+label.rotateFlip=旋轉/鏡射
+label.rotateright=向右旋轉
+label.rotateleft=向左旋轉
+label.rotate180=180度旋轉
+label.rotateFreeAngle=自由角度旋轉
+rotationHelp=請輸入介於 -179 和 179 之間的度數。正值表示順時針旋轉，負值表示逆時針旋轉。
+rotationAngle=以度為單位的角度
+button.rotate=旋轉
+invalidRotationDegrees=無效的度數。數值應介於 -179 和 179 之間。
+label.mirrorhoriz=水平鏡射
+label.mirrorvert=垂直鏡射
+label.makethumb=建立縮圖
+label.operation=操作
+label.imgtransform=圖像變換
+label.picTransformed=圖片檔 縮放/轉換
+
+# view picture window labels
+alt.origsize=原始尺寸檢視
+label.origSize=原始尺寸
+alt.delpicture=刪除影像檔
+alt.cameradata=相機日期
+alt.printpict=影像列印
+label.picDimensions=圖片尺寸
+label.geoLocation=地理位置
+label.action=動作
+pictureMenuIconTitle=圖檔信息/動作
+
+# picture manipulation 
+label.resizetitle=圖檔 調整尺寸/轉換
+label.allpictures=所有圖檔在
+label.selectedpictures=選擇的圖檔在
+label.picturefile=圖檔
+label.newsize=新影像尺寸
+label.keepOrigSize=不調整大小
+resizeDifferentSize=不同的尺寸
+label.newformat=新影像格式
+button.start=開始
+label.jpegcreated=已建立 JPEG 檔案
+label.pngcreated=已建立 PNG 檔案
+label.gifcreated=已建立 GIF 檔案
+label.scaledFolder=縮放/轉換的圖像存儲在目錄中
+button.gotoScaled=檢視 縮放/轉換 的圖片
+error.scaleSize=原始圖像的尺寸小於目標尺寸
+error.scaleTargetSize=新的圖像尺寸值無效
+label.addCopyRight=加入版權文字
+label.copyRightText=版權文字
+label.copyRightPos=版權文字位置
+label.copyRightColor=版權文字顏色
+label.copyRightFontSize=版權文字大小
+label.posUpperLeft=左上角
+label.posUpperRight=右上角
+label.posLowerLeft=左下角
+label.posLowerRight=右下角
+label.colorBlack=黑色
+label.colorBlue=藍色
+label.colorRed=紅色
+label.colorGreen=綠色
+label.colorYellow=黃色
+label.colorWhite=白色
+label.cropArea=選取裁剪區域
+label.cropAreaQuadratic=正方形
+label.cropKeepAspectRatio=保持長寬比例
+keepExifData=保留 EXIF 數據（如果存在）
+resetExifOrientation=方向設置為 1
+resetExifOrientationSuccess=EXIF 數據中的方向已成功更改
+resetExifOrientationFailed=EXIF 數據中的方向已更改常敗
+
+# slideshow labels and buttons
+label.slideparmhead=幻燈片參數
+label.delay=延遲 (秒)
+label.recurse=包括子目錄
+label.autoForward=自動前進
+label.fullScreen=全螢幕
+label.crossfade=淡出淡入
+label.randomize=隨機順序
+button.startshow=幻燈片開始
+alt.exitslideshow=結束幻燈片
+alt.pause=暫停幻燈片
+alt.continue=繼續幻燈片
+alt.next=下一張圖片
+alt.back=上一張圖片
+startSlideshowHere=在此處開始幻燈片放映
+label.startPic=圖片開始
+slideshowHeadline=Web檔案總管幻燈片
+fullScreenMode=全螢幕模式
+
+# co-browsing labels
+titleCoBrowsingMaster=Web檔案總管協同瀏覽 (主)
+exitCoBrowsing=停止協同瀏覽
+titleCoBrowsingClient==Web檔案總管協同瀏覽 (從)
+headCoBrowsingClient=Web檔案總管幻燈片協同瀏覽: 等待首張圖
+
+# camera exif data window
+label.manufacturer=相機製造商
+label.cameramodel=相機型號
+label.exposuredate=曝光日期
+label.exposuretime=曝光時間
+label.aperture=光圈
+label.isoValue=ISO 等效
+label.flashfired=閃光燈
+label.focalLength=焦距
+label.exposureBias=曝光校正
+apertureStops=快門
+label.imgheight=圖像高度 (像素)
+label.imgwidth=圖像寬度 (像素)
+label.thumbexists=包括縮圖
+label.gpsLatitude=GPS緯度
+label.gpsLongitude=GPS經度
+label.imgOrientation=方向
+orientation.landscape=橫向
+orientation.portrait=直向
+
+# picture album invitation and publish folders/files
+label.invitehead=發布圖片
+label.picturedir=圖片目錄
+label.receiver=收件人（以逗號分隔的電子郵件地址列表）
+label.subject=主旨
+label.invitationtext=邀請文字
+label.expiration=幾天後過期
+label.publishtree=發布包含子目錄的目錄
+label.publishFile=發布檔案
+label.fileToPublish=要發布的檔案
+label.filePublished=發布的檔案可以通過網址查看
+button.invite=發布/邀請
+button.publish=發布
+label.publishhead=發布目錄內容
+label.publishdesc=正在發送一封包含網柾和唯讀訪問代碼的電子郵件以邀請某人查看此目錄內容。
+alt.openpicture=以原始尺寸查看圖片
+alert.noreceiver=輸入至少一位收件人
+alert.emailsyntax=無效的電郵地址
+alert.nomsgtext=請輸入邀請文字
+alert.expinvalid=過期日必須是數字
+alert.pageSizeInvalid=頁面尺寸必須是數字
+subject.invitation=邀請觀看我的相薄
+subject.publish=邀請觀看我的網站
+label.publishList=發布目錄與檔案
+nothingPublished=還沒有發布的目錄。
+copyPublicUrl=複製網址
+publicUrlCopied=鏈結已複製到剪貼薄
+label.cancelpublish=取消發布
+label.expires=逾期
+label.published=目錄已發布
+label.accesscode=帶有訪問碼的網址
+label.picture=圖片
+label.sendInvitationMail=發送邀請電郵
+label.publishType=發布為
+label.publishTypeExplorer=檔案總管
+label.publishTypeAlbum=相薄
+button.copyPublicUrl=拷貝到剪貼薄
+
+# user comments
+label.commentList=用戶評論
+confirm.delcomments=刪除此檔案的所有評論?
+label.nocomments=該檔案沒有評論
+label.addcomment=加入您的評論
+button.addComment=加入評論
+button.delComments=刪除評論
+label.allowcomments=允許訪問者添加評論
+label.comments=評論
+label.guestuser=訪客
+label.commentAuthor=您的大名
+comments.unread=未讀
+
+# send file as e-mail
+label.sendfilehead=以電郵發送檔案
+label.filetosend=要發送的檔案
+label.sendEmailSync=等待發送確認
+button.sendfile=發送
+label.confirmsend=以電郵發送
+alert.nosubject=電郵缺少主旨
+error.sendEmail=傳迗電郵時發生錯誤!
+success.sendEmail=檔案已由電郵發送.
+
+# file system statistics window
+label.filesyshead=檔案系統統計
+label.filesys=檔案系統
+label.usage=已用
+label.capacity=容量 (KByte)
+label.freespace=可用 (KByte)
+label.percentUsed=% 已用
+label.free=可用
+label.used=已用
+
+# OS command window labels
+label.cmdhead=執行作業系統命令
+label.cmdprompt=作業系統命令
+button.run=執行
+button.clearCmd=清除
+
+# fastpath window
+label.fastpathhead=Fastpath - 最近造訪過的目錄
+
+# category assignment
+label.category=類別
+label.manageCategories=管理檔案類別
+button.manageCategories=管理類別
+label.newCategory=新類別
+label.categoryName=類別名稱
+button.createCategory=建立類別
+label.assignCategories=指定類別
+label.assignedCats=類別已指定
+label.unassignedCats=其它類別
+label.noCategoryDefined=未定義任何類別
+alert.noCategorySelected=沒有選擇任何類別!
+confirm.delCategory=您將無法通過此類別名稱找到文件。還是要刪除？
+error.duplicateCategory=同名類別已存在!
+error.missingCategoryName=為新類別輸入名稱!
+
+# filesystem bookmarks
+label.noBookmarksDefined=您還沒有任何書籤.
+label.bookmarks=書籤目錄
+label.deleteBookmark=刪除書籤
+label.addBookmark=收藏此目錄
+mobile.addBookmark=新增書籤
+label.bookmarkName=書籤名稱
+alert.bookmarkMissingName=書籤名稱不能為空！
+button.bookmark=書籤
+title.bookmarkButton=為當前目錄建立書籤
+alert.bookmarkCreated=已為目錄建立書籤
+bookmark.destFolderMissing=書籤目錄不存在。
+
+# diff labels
+title.diff=比對檔案 (diff)
+compareFileSizeExceeded=一個或兩個文件太大，無法進行比較操作！
+compareResult=比對結果
+differences=差異
+noDifferences=沒有不同.
+selectDiffSourceResult=移到比較目標文件並從上下文選單中選擇開始比較！
+
+# user self-registration
+label.registerself=我是新用戶
+label.editregistration=編輯用戶資料Edit user data
+label.regtitle=新用戶註冊
+label.login=用戶名/登錄
+label.passwordconfirm=密碼確認
+label.ropassword=唯讀密碼
+label.ropwconfirm=唯讀密碼確認
+label.firstname=名
+label.lastname=姓
+label.email=電郵地址
+label.phone=手機
+label.language=語言
+label.settings=設定
+label.oldpassword=舊密碼
+label.newpassword=新密碼
+label.css=佈局
+label.selectLanguage=- 選取語言 -
+label.userRole=用戶角色
+button.register=登記
+registrationConfirmation=初步註冊成功。請到提供的電子郵件地址收取郵件並照指示完成註冊。
+button.registrationToLogin=前往登錄
+activationSuccessful=已啟用您的帳戶。
+registrationAdminActivation=新註冊的帳戶必須由管理員啟用（發送電子郵件已停用）。
+error.missinglogin=登錄帳號最小要 3 個字元長
+error.spacesinlogin=登錄帳號不可包含空白字元
+error.passwordlength=密碼最少要 5 個字元
+error.spacesinpw=密碼不可包含空白字元
+error.pwmissmatch=確認密碼不吻合
+error.duplicatelogin=同名用戶已存在
+error.email=必須是有效的電郵地址
+error.invalidpassword=目前密碼無效
+error.missingLanguage=必要選擇語言
+
+# MP3 labels
+label.editmp3=編輯MP3標籤
+label.mp3title=曲名
+label.mp3artist=藝人
+label.mp3album=樂曲集
+label.mp3year=年
+label.mp3genre=音樂類型
+label.mp3comment=註釋
+label.mp3Picture=圖片
+label.play=播放/下載
+
+# ftp backup labels
+label.ftpBackupHead=備份到 FTP 主機
+label.ftpServerName=FTP 主機的名稱或 IP
+label.ftpLocalDir=備份到本機目錄
+label.ftpUserid=用戶名
+label.ftpPassword=密栺
+label.ftpDir=遠端目錄（可選）
+label.ftpRecurse=包括子目錄
+label.xferStatus=已轉移
+button.ftpBackup=開始FTP備份
+alert.missingFtpServer=FTP主機是必填欄位
+alert.missingFtpUserid=用戶名是必填欄位
+alert.missingFtpPassword=密碼是必填欄位
+
+# disk quota labels
+label.accountSize=帳戶已用大小
+label.user=用戶
+label.diskQuota=硬碟配額
+label.spaceUsed=已用空間
+
+# folder watch
+folderWatchStatusOn=開始監控目錄內容是否有更改。
+folderWatchStatusOff=監控目錄變更時以電郵通知。
+button.startWatch=開始監控
+button.stopWatch=停止監控
+changeType.newFile=新檔案建立
+changeType.newFolder=新目錄建立
+changeType.fileRemoved=檔案移資
+changeType.dateChanged=更改時間為
+changeType.sizeChanged=更改時間為檔案size changed for
+watchList=已監控目錄
+watchListHeadline=正在監視目錄是否變更
+watchListEmpty=目前沒有目錄被監控。要開始監控目錄，請在目錄的上下文選單中選擇“監視目錄變更”選項！
+
+# rating 
+rating.owner=擁有者評價
+rating.visitor=訪客評價
+rating.myself=我的評價
+rating.notYetRated=尚未評價
+rating.rateNow=立刻評價
+rating.1star=1 顆星 - 爛
+rating.2stars=2 顆星
+rating.3stars=3 顆星
+rating.4stars=4 顆星
+rating.5stars=5 顆星 - 讚
+rating.any=-- 任一 --
+rating.count=投票
+rating.starSum=星
+vote.count=投票
+vote.confirm=投票完成。
+
+# picture album
+label.albumTitle=Web檔案總管相薄
+details.album=細節
+details.show=顯示更多細節
+details.hide=隱藏細節
+showPictureOrigSize=以全尺寸顯示圖片
+albumOptions=選項
+button.returnToAlbum=回到相薄
+albumPageSize=圖片/頁
+nextAlbumImgLink=下張圖片
+
+# maintanance mode text
+label.maintanance.head=維護模式
+label.maintanance.info=主機正在維護，數分鐘再重試!
+alert.maintanance=主機進入維護，請先登出!
+
+# e-mail subjects
+subject.welcome=歡迎來到Web檔案總管
+subject.diskquota=超過硬碟配額
+subject.folderChange=目錄變更
+
+# Google Maps, Google Earth, Open street Maps
+button.googleMap=顯示地圖位置
+label.geoMapLink=在地圖上顯示地理位置
+geoMapLinkShort=地圖上的位置
+selectMapType=- 選擇地圖種類 -
+mapTypeOSM=開放街圖
+mapTypeGoogleMap=谷哥地圖
+mapTypeGoogleEarth=谷哥地球
+label.googleEarthAllFiles=在 Google 地球中顯示所有圖片的地理位置
+label.OSMapAllFiles=在開放街圖中顯示所有圖片的地理位置
+label.googleMapAllFiles=在 Google 地圖中顯示所有圖片的地理位置
+label.geoTag=地理標籤資料
+label.latitude=十進制度的緯度（例如：高雄柴山盤榕在 22.65）
+label.longitude=十進制度的經度（例如：高雄柴山盤榕在 120.26）
+label.zoomFactor=縮放係數 (1 = 最遠, 16 = 最近)
+label.geoTagInfoText=地圖上訊息窗口的文字
+alert.missingLatitude=緯度是必填欄位
+alert.missingLongitude=經度是必填欄位
+button.preview=地圖預覽
+button.selectFromMap=在地圖上選取
+label.hintGoogleMapSelect=點擊選擇地理坐標！
+noFilesWithGeoData=此目錄不包含帶有地理坐標的圖片！
+button.hideMapInfo=隱藏訊息文字
+button.showMapInfo=顯示
+viewTrackOnMap=在地圖顯示 GPX 軌跡
+viewMultipleGPX=在地圖顯示 GPX
+nonGPXFile=此功能僅適用於 GPX 文件（文件附檔名為 .GPX）。
+slowMotionLink=慢動作
+slowMotionTitle=慢動作繪製軌跡
+
+# folder synchronization
+label.selectSyncSourceResult=選擇同步標的目錄，然後從上下文選單中選擇同步！
+headline.syncCompare=同步目錄
+headline.syncResult=同步目錄
+label.syncSource=來源目錄
+label.syncTarget=目錄目錄
+sync.noDifference=未發現不同(目錄在同步狀態).
+button.startSync=開始同步
+diffType.missingSourceFile=來源目錄缺少文件
+diffType.missingTargetFile=標的目錄缺少文件
+diffType.missingSourceFolder=來源目錄缺少文件
+diffType.missingTargetFolder=標的目錄缺少文件
+diffType.size=尺寸已變動
+diffType.modified=最後修改時間變動
+diffType.sizeAndModified=尺寸與最後修改時間變動
+diffType.accessRights=存取權限變動
+sync.tableHeadPath=路徑
+sync.tableHeadSource=來源
+sync.tableHeadTarget=標的
+sync.missing=丟失
+sync.bytes=bytes
+sync.access.none=禁止存取
+sync.access.readonly=讀取
+sync.access.readwrite=讀+寫
+sync.nothingSelected=至少選擇一個文件/目錄進行同步!
+sync.folderCreated=目錄建立
+sync.fileCopied=檔案完成拷貝
+sync.fileCopiedFailed=檔案完成失敗
+sync.action.createMissingTarget=建立丟失的目標目錄並複制丟失的標的檔案
+sync.action.createMissingSource=建立丟失的來源目錄並複制丟失的來源檔案
+sync.action.removeExtraTarget=刪除來源目錄中不存在的標的檔案夾和文件
+sync.action.copyNewerToTarget=從來源目錄中拷貝更新的檔案到標的目錄
+sync.action.copyNewerToSource=從標的目錄中拷貝更新的檔案到來源目錄
+sync.action.copyDateChangeToTarget=從來源目錄中拷貝所有日期變更的檔案到標的目錄
+sync.action.copySizeChangeToTarget=從來源目錄中拷貝所有尺寸變更的檔案到標的目錄
+sync.action.copyAccessRights=從來源目錄中拷貝所有權限變更的檔案到標的目錄
+sync.fileDeleted=已刪除檔案
+sync.fileDeleteError=刪除檔案失敗
+sync.dirDeleted=已刪除目錄
+sync.dirDeleteError=刪除目錄失敗
+sync.switchedToReadonly=存取權變更為唯讀
+sync.switchedToReadWrite=存取權變更為可寫入
+sync.confirmStartSync=您確定要開始同步嗎？
+sync.confirmRemoveExtraTarget=同步可能會刪除標的目錄中的檔案和目錄。您確定嗎？
+sync.invisibleItems=不同步的文件數量相當龐大。此處並未顯示所有差異。
+sync.complete=目錄同步完成
+sync.summary=同步總結
+sync.summaryNoChange=來源和標的目錄並未修改
+sync.foldersCreatedTarget=在標的中建立目錄
+sync.foldersDeletedTarget=在標的中的目錄已刪除
+sync.filesDeletedTarget=在標的中的檔案已刪除
+sync.foldersCreatedSource=在來源中建立目錄
+sync.copiedToTarget=已拷貝檔案到標的
+sync.copiedToSource=已拷貝檔案到來源
+sync.readWriteChanges=讀/寫 權限變更
+sync.wait=確定目錄樹之間的差異 ...
+
+# compare folders
+label.selectCompSourceResult=從標的目錄的上下文選單中選擇比對!
+label.compSourceFolder=來源目錄
+label.compTargetFolder=標的目錄
+checkboxCompIgnoreDate=忽略修改日期的差異
+checkboxCompShowAsTree=將差異顯示為目錄樹
+checkboxCompIgnoreMetainf=忽略Web檔案總管的metainf檔案
+checkboxCompIgnorePattern=忽略匹配此模式的檔案:
+headline.compareFolders=比對目錄結果
+button.compare=開始比對
+title.folderDiffTree=Web檔案總管: 目錄差異樹
+headline.folderDiffTree=目錄差異樹
+folderDiffNew=來源漏失
+folderDiffRemoved=標的漏失
+folderDiffModified=修改
+timeLastModified=最後修改
+excludePattern=排除模式
+
+# hex viewer
+title.hexView=十六進位檢視
+
+# AES encryption/decryption
+label.fileToEncrypt=檔案加密
+label.fileToDecrypt=檔案解密
+label.cryptoKey=密鑰
+button.encrypt=加密
+button.decrypt=解密
+alert.illegalCryptoKey=無效的密鑰格式!
+error.invalidSecretKey=密鑰不正確!
+
+# tail
+tail.lineCount=從檔案末尾開始的行數
+tail.autoRefresh=自動更新
+tail.noTextFile=檔案似乎不是文字檔
+
+# grep
+grepNotAllowed=檔案似乎是二進位檔案. grep 函式只適用於文字檔.
+grepPrompt=只顯示包含此文字的行數
+button.startGrep=開始grep
+grepResultEmpty=找不到包含的行數
+grepFilterMissing=請輸入grep過濾值
+grepReadError=無法讀取檔案的某些行
+
+# edit/convert video
+contextMenuEditVideo=編輯/轉換 影片
+contextMenuDeshakeVideo=穩定影片
+contextMenuTextOnVideo=在影片輸出文字
+contextMenuFadeAdioInOut=淡入/淡出音頻
+contextMenuAddSilentAudio=添加靜音音頻
+titleEditVideo=編輯/轉換 影片
+titleConcatVideoParams=合併影片
+titleTextOnVideo=在影片輸出文字
+label.videoFile=影片檔
+label.videoResolution=解析度（寬 x 高）
+label.fps=幀率
+label.duration=延時
+label.codec=編解碼器
+label.newResolution=新的解析度（寬 x 高）
+label.newFps=新的幀率
+label.newCodec=新編解碼器
+label.newVideoContainerFormat=新容器格式
+label.reencode=高配置文件重新編碼
+keepOrigFrameRate=不變
+keepOrigCodec=不變
+label.timeRange=時間範圍 (hh:mm:ss)
+label.videoHeightAuto=自動高度 (保持長寬比)
+videoText=要在影片中輸出的文字
+videoTextSize=文字尺寸 (px)
+videoTextColor=文字顏色
+videoTextColorByName=- 顏色名稱 -
+videoTextPosition=文字位置
+videoTextPositionTop=頁
+videoTextPositionCenter=中
+videoTextPositionBottom=底
+fadeInDuration=淡入的持續時間
+fadeOutDuration=淡出的持續時間
+maxVideoWidth=最大影片高度
+maxVideoHeight=最大影片寬度
+videoConversionStarted=已經開始轉換影片。可能需要一些時間才能完成。請於子目錄查看結果檔案
+textOnVideoStarted=已經開始處理影片的文字。可能需要一些時間才能完成。請於子目錄查看結果檔案
+videoFadeAudioStarted=影片音頻的淡出淡入處理已經開始。可能需要一些時間才能完成。請於子目錄查看結果檔案
+addSilentAudioStarted=已經開始添加靜音音頻到影片。可能需要一些時間才能完成。請於子目錄查看結果檔案
+fadeInValueInvalid=無效的淡出淡入值。
+fadeOutValueInvalid=無效的淡出值。
+validationError.videoStartEndTime=截止時間不應在開始時間之前。
+validationError.videoTimeRange=選取的時間範圍超出影片的範圍。
+selectTwoOrMoreVideoFiles=合併影片至少要選取兩個影片檔。
+concatVideos=合併影片
+joinVideos=合併不同格式的影片
+videoConcatStarted=已經開始合併影片。可能需要一些時間才能完成。請於子目錄查看結果檔案
+videoConcatErrorCodec=合併的影片必須使用相同編碼。
+videoConcatErrorFrameRate=合併的影片必須有相同的幀率。
+videoConcatErrorResolution=合併的影片必須有相同的尺寸。
+videoConcatErrorProcess=合併影片檔時發生錯誤。
+videoConcatErrorNoAudio=下列影片檔不包含音頻資料
+videoDeshakeStarted=已經開始影片穩定。可能需要一些時間才能完成。請於子目錄查看結果檔案
+errorVideoDeshake=影片穩定失敗。
+errorAddSilentAudio=無法將靜音音頻添加到影片。
+
+# slideshow video
+titleSlideshowVideo=建立幻燈片影片
+slideshowVideoResolution=影片解析度
+videoResolutionFromPic=保留圖片解析度
+slideshowVideoPicCount=已選擇圖片檔數量
+slideshowVideoDelay=每張圖片的持續時間
+slideshowVideoPicDimensions=圖片解析度
+
+# extract video frame
+contextMenuExtractVideoFrame=提取影片幀
+titleExtractVideoFrame=提取影片幀
+label.frameResolution=幀解析度 (寬 x 高)
+label.extractFrameTime=影片中的時間 (hh:mm:ss)
+button.startExtract=提取幀
+button.previewVideoExtract=預覽
+videoFrameExtractionStarted=已經開始提取影片幀。可能需要一些時間才能完成。請於子目錄查看結果檔案
+validationError.videoFrameExtractTime=所選時間超出影片範圍。
+
+# add audio to video
+contextMenuAddAudioToVideo=從 MP3 添加音頻
+errorMissingAudioInClipboard=在執行此操作前將音頻檔複製到剪貼薄！ 
+addAudioToVideoStarted=已經開始進行影片/音頻 混合。可能需要一些時間才能完成。請於子目錄查看結果檔案
+
+# mobile version
+label.mobileWindowTitle=Web檔案總管手機版
+label.bookmarksMobile=書籤
+classicView=傳統/桌面檢視
+menuView=檢視檔案
+menuViewZip=檢視ZIP檔內容
+menuDownload=下載
+menuComments=評論
+menuPlay=播放
+menuDelete=刪除
+menuEditDesc=編輯基本資料
+menuRename=更名
+menuCopy=拷貝
+menuCut=移動
+menuZip=壓縮
+menuUnzip=解壓縮
+menuSendFile=以電郵發送
+menuEdit=編輯
+menuDelLink=刪除鏈結
+menuRenLink=鏈結更名
+menuEditMP3=編輯 MP3 標籤e
+menuOrigDir=原始位置
+menuCreateDir=建立子目錄
+menuDelDir=刪除目錄
+menuCopyDir=拷貝目錄
+menuMoveDir=移動目錄
+menuRenameDir=目錄更名
+menuSearch=搜尋
+menuCreateFile=建立新檔案
+menuZipDir=建立ZIP壓縮檔
+menuThumbnails=圖片縮圖
+folderIsEmpty=此目錄沒有匹配過濾條件的檔案或子目錄
+mobileFolderMenuHint=目前目錄選單
+mobileMainMenuHint=主選單
+showSortMenu=顯示排序選單
+mobileFileList=檔案清單
+
+# alert messages
+alert.regsuccess=新用戶已注冊成功。
+alert.invalidlogin=無效的用戶名或密碼
+alert.confirm.delete=核取複選框以確認刪除!
+alert.delete.failed=無法刪除檔案
+alert.dircopied=已被選取以作為拷貝操作
+alert.dirmoved=已被選取以作為刪除操作
+alert.nofileselected=您沒有選擇檔案
+alert.nopictures=沒有圖檔 (JPG,GIF,PNG,BMP)
+alert.noPicturesInAlbum=相薄內沒有圖片。
+alert.thumbclean=目錄開始縮圖垃圾蒐集
+alert.filescopied=已選取檔案以作為拷貝操作
+alert.filesmoved=已選取檔案以作為移動操作
+alert.filesAddedForCopy=已選取檔案以作為拷貝操作
+alert.filesAddedForMove=已選取檔案以作為移動操作
+alert.filesInClipboard=目前選取的檔案。
+alert.uploadtimeout=上傳超時。\\n瀏覽器已停止傳送資料。
+alert.sessionexpired=登錄已過期。\\n您必須重新登錄!
+alert.untarerror=解開tar壓縮檔時發生錯誤!
+alert.compresserror=壓縮/解壓縮 時發生錯誤!
+alert.delmovederror=無法刪除已移動的檔案
+alert.delMovedDirError=無法刪除移動操作的來源目錄!
+alert.copyDirError=拷貝目錄失敗!
+alert.copycliperror=無法拷貝到
+alert.movecopyerror=無法拷貝/移動到
+alert.copytosubdir=不能複製到自己的子目錄
+alert.copyToSelf=無法將檔案複製到自身之上
+alert.destIsDir=同名目錄已存在!
+alert.mkdirfail=無法建立目錄
+alert.mkfileFail=無法建立檔案
+alert.mkfileDuplicate=同名檔案已存在
+alert.delFileError=無法刪除檔案!
+alert.delFileFailedPart1=無法刪除檔案
+alert.delFileFailedPart2=在目錄中
+alert.delFileFailedPart3=!
+alert.delDirError=無法被刪除!
+alert.removeDirError=無法刪除目錄!
+alert.delhomedir=無法刪除家目錄!
+alert.renamehomedir=無法更名家目錄!
+alert.nocameradata=沒有可用的相機數據
+alert.zipformat=ZIP 壓縮檔案格式錯誤
+alert.noFilesSelected=未選擇任何檔案
+alert.createDirError=無法建立目錄。
+alert.dirNotFound=目錄不是可讀取
+alert.iframeSupport=您的瀏覽器不支援IFRAMEs.\\n您不能使用所有功能.\\n檢查您的瀏覽器設定!
+alert.linkDestAccessDenied=您無權造訪問此鏈結的目標檔案。
+alert.linkDestRemoved=此鏈結的目標檔案已被刪除. 該鏈結也將一併刪除.
+alert.outOfMemory=記憶體不足，無法執行請求的操作
+alert.saveEditError=變改的文件無法寫入
+alert.saveEditReadOnly=檔案有防寫保護
+alert.illegalCharInFilename=新的檔名/目錄名包含了無效字元。
+alert.descriptionTooLong=說明文字太長(不要超過1024個字元)!
+alert.editFileSize=檔案太大，無法遠端編輯.\\n先下載檔案，編輯後再重新從本機上傳變更後的檔案!
+alert.assocProgramFailed=無法啟動關聯的應用程式
+alert.cloneTargetExists=標的檔案已存在，無法複製!
+alert.cloneTargetFolderExists=標的目錄已存在，無法複製!
+alert.cloneFailed=複製檔案失敗。
+alert.cloneFolderFailed=複製目錄失敗。
+alert.touchFailed=變標檔案時間失敗!
+alert.enablePopups=此功能需要您在瀏覽器設置中允許彈出視窗口! 
+alert.communicationFailure=通訊失敗
+
+# confirmation messages
+confirm.deldir=您確定要刪除目錄
+confirm.removeDir=您確定要刪除此目錄?
+confirm.forcedirdel=不為空， 無論如何也要刪除?
+confirm.delfile=您確定要刪除此檔案?
+confirm.forcefiledel=該檔有防寫， 無論如何也要刪除?
+confirm.overwritedir=目錄已經存在 - 覆寫?
+confirm.overwriteFile=標的檔案已存在， 覆寫?
+confirm.print=您確定要列該本圖檔?
+
+# calendar
+calendar.titleMonth=日曆月
+calendar.titleYear=日曆年
+calendar.monday=週一
+calendar.tuesday=週二
+calendar.wednesday=週三
+calendar.thursday=週四
+calendar.friday=週五
+calendar.saturday=週六
+calendar.sunday=週日
+calendar.mon=一
+calendar.tue=二
+calendar.wed=三
+calendar.thu=四
+calendar.fri=五
+calendar.sat=六
+calendar.sun=日
+calendar.january=一月
+calendar.february=二月
+calendar.march=三月
+calendar.april=四月
+calendar.may=五月
+calendar.june=六月
+calendar.july=七月
+calendar.august=八月
+calendar.september=九月
+calendar.october=十月
+calendar.november=十一月
+calendar.december=十二月
+calendar.year=年
+calendar.today=今天
+calendar.week=週
+calendar.to=到
+calendar.prevYear=去年
+calendar.nextYear=來年
+appointment.reminder=Web檔案總管提醒
+appointment.reminderCloseButton=好
+appointment.dontRemindAgain=不要再提醒
+appointment.remindAgain=再次提醒
+appointment.minute=分
+appointment.hour=時
+appointment.day=日
+appointment.week=週
+appointment.startTime=開始時間
+appointment.endTime=截止時間
+appointment.fullDay=整日
+appointment.multiDay=數天
+appointment.numOfDays=天數
+appointment.subject=主旨
+appointment.description=說明
+appointment.repeatPeriod=重覆週期
+appointment.repeatNone=無
+appointment.repeatDaily=每日
+appointment.repeatWeekday=工作日
+appointment.repeatWeekly=每週
+appointment.repeatMonthly=每月
+appointment.repeatYearly=每年
+appointment.alarmType=示警類型
+appointment.alarmNone=不要示警
+appointment.alarmVisual=視覺
+appointment.alarmSound=聲音
+appointment.alarmMail=電子郵件
+appointment.alarmAll=所有類型
+appointment.alarmAhead=事件前的示警時間
+appointment.duration=期間
+appointment.buttonCreate=建立活動
+appointment.buttonSave=儲存變更
+appointment.buttonDelete=刪除活動
+appointment.buttonCancel=取消
+appointment.buttonMove=移動活動
+appointment.buttonPaste=貼上活動
+appointment.hintPaste=打開移動操作的目標日期，然後點擊貼上按鈕！
+appointment.confirmDelete=刪除此活動?
+calender.reminderSubjectPrefix=Web檔案總管提醒
+
+mapMarkerTitle=顯示與此位置相關的圖檔
+
+# WebReminder plugin labels
+plugin.webreminder.title=Web日曆和管理器提醒
+
+error.latitudeInvalid=緯度必須是介於 -90.0 和 90.0 之間的數字
+error.longitudeInvalid=經度必須是介於 -180.0 和 180.0 之間的數字

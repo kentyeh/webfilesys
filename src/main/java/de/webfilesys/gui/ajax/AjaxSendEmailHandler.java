@@ -9,19 +9,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.mail.EmailUtils;
 import de.webfilesys.mail.SmtpEmail;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AjaxSendEmailHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(AjaxSendEmailHandler.class);
 	public AjaxSendEmailHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -32,6 +34,7 @@ public class AjaxSendEmailHandler extends XmlRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process()
 	{
         // filePath is used from file link context menu
@@ -64,7 +67,7 @@ public class AjaxSendEmailHandler extends XmlRequestHandlerBase
 
         String sendSynchronous = getParameter("sendSynchronous");
         
-        ArrayList<String> mailReceivers = new ArrayList<String>();
+        ArrayList<String> mailReceivers = new ArrayList<>();
 
         String emailList = getParameter("receiver");
 
@@ -80,7 +83,7 @@ public class AjaxSendEmailHandler extends XmlRequestHandlerBase
             }
             else
             {
-                Logger.getLogger(getClass()).warn("invalid e-mail address: " + email);
+                logger.warn("invalid e-mail address: " + email);
             }
         }
 
@@ -91,7 +94,7 @@ public class AjaxSendEmailHandler extends XmlRequestHandlerBase
             subject = fileName;
         }
 
-        StringBuffer mailSenderName = new StringBuffer();
+        StringBuilder mailSenderName = new StringBuilder();
 
         String firstName = userMgr.getFirstName(uid);
         String lastName = userMgr.getLastName(uid);

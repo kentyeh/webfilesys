@@ -12,15 +12,15 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import de.webfilesys.ViewHandlerConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Prettyprints JSON files using the Google GSON library.
@@ -28,15 +28,18 @@ import de.webfilesys.ViewHandlerConfig;
  * @author Frank Hoehnel
  */
 public class JsonViewHandler implements ViewHandler {
+    private static final Logger logger = LogManager.getLogger(JsonViewHandler.class);
+	@Override
 	public void process(String filePath, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req,
 			HttpServletResponse resp) {
 
-		try {
-			FileReader jsonReader = new FileReader(new File(filePath));
+		try (FileReader jsonReader = new FileReader(new File(filePath))){
 			processJson(resp, jsonReader);
 		} catch (FileNotFoundException e) {
-			Logger.getLogger(getClass()).error("JSON file not found: " + e);
-		}
+			logger.error("JSON file not found: " + e);
+		} catch (IOException e){
+                    logger.error("JSON file not found: " + e);
+                }
 	}
 
 	private void processJson(HttpServletResponse resp, InputStreamReader jsonIn) {
@@ -54,16 +57,15 @@ public class JsonViewHandler implements ViewHandler {
 			output.println("<body>");
 			output.println("<pre>");
 
-			JsonParser parser = new JsonParser();
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 			try {
-				JsonElement el = parser.parse(jsonReader);
+				JsonObject el = JsonParser.parseReader​(jsonReader).getAsJsonObject();
 				output.println(gson.toJson(el));			
 			} catch (JsonSyntaxException jsonEx) {
 				output.println("<span style=\"color:red\">The file does not contain valid JSON data.</span>");
-				if (Logger.getLogger(getClass()).isDebugEnabled()) {
-					Logger.getLogger(getClass()).debug("invalid JSON data: " + jsonEx.toString());
+				if (logger.isDebugEnabled()) {
+					logger.debug("invalid JSON data: " + jsonEx.toString());
 				}
 			}
 			
@@ -73,14 +75,7 @@ public class JsonViewHandler implements ViewHandler {
 
 			output.flush();
 		} catch (IOException e) {
-			Logger.getLogger(getClass()).error("JSON formatting failed: " + e);
-		} finally {
-			if (jsonReader != null) {
-				try {
-					jsonIn.close();
-				} catch (Exception ex) {
-				}
-			}
+			logger.error("JSON formatting failed: " + e);
 		}
 	}
 
@@ -97,6 +92,7 @@ public class JsonViewHandler implements ViewHandler {
 	 * @param resp
 	 *            the servlet response
 	 */
+        @Override
 	public void processZipContent(String zipFilePath, InputStream zipIn, ViewHandlerConfig viewHandlerConfig,
 			HttpServletRequest req, HttpServletResponse resp) {
 		InputStreamReader jsonReader = new InputStreamReader(zipIn);
@@ -110,6 +106,7 @@ public class JsonViewHandler implements ViewHandler {
 	 * 
 	 * @return true if reading from ZIP archive is supported, otherwise false
 	 */
+        @Override
 	public boolean supportsZipContent() {
 		return true;
 	}

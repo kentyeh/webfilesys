@@ -32,6 +32,7 @@ public class AdminRegisterUserRequestHandler extends AdminRequestHandler
         this.errorMsg = errorMsg;
 	}
 	
+        @Override
 	protected void process()
 	{
 		output.println("<html>");
@@ -277,17 +278,13 @@ public class AdminRegisterUserRequestHandler extends AdminRequestHandler
 
 		output.println("<option value=\"\">- select -</option>");
 
-		for (int i = 0; i < languages.size(); i++)
-		{
-			if ((errorMsg != null) && getParameter("language").equals(languages.get(i)))
-			{
-				output.println("<option selected>" + languages.get(i) + "</option>");
-			}
-			else
-			{
-				output.println("<option>" + languages.get(i) + "</option>");
-			}
-		}
+            for (String language : languages) {
+                if ((errorMsg != null) && getParameter("language").equals(language)) {
+                    output.println("<option selected>" + language + "</option>");
+                } else {
+                    output.println("<option>" + language + "</option>");
+                }
+            }
 		output.println("</select></td>");
         output.println("</tr>");
 
@@ -297,18 +294,13 @@ public class AdminRegisterUserRequestHandler extends AdminRequestHandler
         output.println("<td class=\"formParm1\"><b>layout (CSS file)</b></td>");
 		output.println("<td class=\"formParm2\"><select id=\"css\" name=\"css\" size=\"1\">");
 
-		for (int i = 0; i < cssList.size(); i++)
-		{
-			if (((errorMsg != null) && getParameter("css").equals(cssList.get(i))) ||
-				((errorMsg == null) && cssList.get(i).equals(CSSManager.DEFAULT_LAYOUT)))
-			{
-				output.println("<option selected=\"selected\">" + cssList.get(i) + "</option>");
-			}
-			else
-			{
-				output.println("<option>" + cssList.get(i) + "</option>");
-			}
-		}
+            for (String cssList1 : cssList) {
+                if (((errorMsg != null) && getParameter("css").equals(cssList1)) || ((errorMsg == null) && cssList1.equals(CSSManager.DEFAULT_LAYOUT))) {
+                    output.println("<option selected=\"selected\">" + cssList1 + "</option>");
+                } else {
+                    output.println("<option>" + cssList1 + "</option>");
+                }
+            }
 		output.println("</select></td>");
         output.println("</tr>");
 

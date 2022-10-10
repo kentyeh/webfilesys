@@ -11,17 +11,18 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 public class TrustAllCertificatesSocketFactory extends SSLSocketFactory  {
 
-	private static Logger LOG = Logger.getLogger(LdapAuthenticatedXmlUserManager.class);
+	private static final Logger logger = LogManager.getLogger(LdapAuthenticatedXmlUserManager.class);
 
 	private SSLSocketFactory socketFactory;
 	
 	public TrustAllCertificatesSocketFactory() {
-   		LOG.warn("do not use TrustAllCertificatesSocketFactory in production");
+   		logger.warn("do not use TrustAllCertificatesSocketFactory in production");
 		
 		TrustManager[] trustAllCerts = new TrustManager[] {
 			new X509TrustManager() {
@@ -42,7 +43,7 @@ public class TrustAllCertificatesSocketFactory extends SSLSocketFactory  {
 		    sslCtx.init(null, trustAllCerts, new java.security.SecureRandom());
 			socketFactory = sslCtx.getSocketFactory();
 		} catch(Exception ex) {
-		  	LOG.error("failed to disable SSL certificate check",ex);
+		  	logger.error("failed to disable SSL certificate check",ex);
 	    }
 	}
 	

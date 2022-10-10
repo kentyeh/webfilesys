@@ -2,10 +2,12 @@ package de.webfilesys.unix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ProcessTree
 {
+    private static final Logger logger = LogManager.getLogger(ProcessTree.class);
     private HashMap<String, UnixProcess> processList = null;
 
     private UnixProcess rootProcess=null;
@@ -17,7 +19,7 @@ public class ProcessTree
     public ProcessTree(String userid)
     {
         forUserid=userid;
-        processList = new HashMap<String, UnixProcess>();
+        processList = new HashMap<>();
         readProcessList();
     }
 
@@ -37,7 +39,7 @@ public class ProcessTree
             newProcess.childList=existingProcess.childList;
             processList.put(pid, newProcess);
 
-            if ((rootProcess==null) || (existingProcess.getPid()==rootProcess.getPid()))
+            if ((rootProcess==null) || (existingProcess.getPid().equals(rootProcess.getPid())))
             {
                 rootProcess=newProcess;
             }
@@ -63,7 +65,7 @@ public class ProcessTree
         }
         else
         {
-            if (rootProcess.getPid()==newProcess.getPid())
+            if (rootProcess.getPid().equals(newProcess.getPid()))
             {
                 rootProcess=parent;
             }
@@ -71,6 +73,7 @@ public class ProcessTree
 
     }
 
+    @Override
     public String toString()
     {
         if (rootProcess==null)
@@ -107,31 +110,31 @@ public class ProcessTree
     {
         if (rootProcess==null)
         {
-            Logger.getLogger(getClass()).error("ProcessTree.toHTML(): rootProcess is null");
+            logger.error("ProcessTree.toHTML(): rootProcess is null");
             return "";
         }
-        outBuffer=new StringBuffer(); 
+        StringBuilder outString=new StringBuilder(); 
 
-        outBuffer.append("<table class=\"processList\">\n");
-        outBuffer.append("<tr>\n");
+        outString.append("<table class=\"processList\">\n");
+        outString.append("<tr>\n");
         
         if (allowKill)
         {
-            outBuffer.append("<th class=\"processList\">op</th>");
+            outString.append("<th class=\"processList\">op</th>");
         }
-        outBuffer.append("<th class=\"processList\">PID</th>\n");
-        outBuffer.append("<th class=\"processList\">UID</th>\n");
-        outBuffer.append("<th class=\"processList\">CMD</th>\n");
-        outBuffer.append("<th class=\"processList\">Start Time</th>\n");
-        outBuffer.append("<th class=\"processList\">CPU Time</th>\n");
-        outBuffer.append("<th class=\"processList\">TTY</th>\n");
-        outBuffer.append("</tr>\n");
+        outString.append("<th class=\"processList\">PID</th>\n");
+        outString.append("<th class=\"processList\">UID</th>\n");
+        outString.append("<th class=\"processList\">CMD</th>\n");
+        outString.append("<th class=\"processList\">Start Time</th>\n");
+        outString.append("<th class=\"processList\">CPU Time</th>\n");
+        outString.append("<th class=\"processList\">TTY</th>\n");
+        outString.append("</tr>\n");
 
         treeToHTML(rootProcess,0,allowKill);
 
-        outBuffer.append("</table>\n");
+        outString.append("</table>\n");
 
-        return(outBuffer.toString());
+        return(outString.toString());
     }
  
     private void treeToHTML(UnixProcess actProcess, int level, boolean allowKill) 
@@ -146,15 +149,15 @@ public class ProcessTree
             rowClass = "processRowOtherUser";
         }
 
-        outBuffer.append("<tr class=\"" + rowClass + "\">\n");
+        outBuffer.append("<tr class=\"").append(rowClass).append("\">\n");
 
         if (allowKill)
         {
-            outBuffer.append("<td class=\"processKill\"> <a href=\"javascript:confirmKill('" + actProcess.getPid() + "')\"><img align=\"center\" border=\"0\" src=\"images/redx2.gif\" alt=\"kill process\"></a></td>\n");
+            outBuffer.append("<td class=\"processKill\"> <a href=\"javascript:confirmKill('").append(actProcess.getPid()).append("')\"><img align=\"center\" border=\"0\" src=\"images/redx2.gif\" alt=\"kill process\"></a></td>\n");
         }
    
-        outBuffer.append("<td class=\"processPID\">" + actProcess.getPid() + "</td>");
-        outBuffer.append("<td class=\"processUID\">" + actProcess.getUID() + "</td>");
+        outBuffer.append("<td class=\"processPID\">").append(actProcess.getPid()).append("</td>");
+        outBuffer.append("<td class=\"processUID\">").append(actProcess.getUID()).append("</td>");
 
         outBuffer.append("<td class=\"processCMD\">");
 
@@ -173,10 +176,10 @@ public class ProcessTree
         }
         else
         {
-            outBuffer.append("<td class=\"processStartTime\">" + startTime + "</td>");
+            outBuffer.append("<td class=\"processStartTime\">").append(startTime).append("</td>");
         }
-        outBuffer.append("<td class=\"processCPUTime\">" + actProcess.getCPUTime() + "</td>");
-        outBuffer.append("<td class=\"processTTY\">" + actProcess.getTTY() + "</td>");
+        outBuffer.append("<td class=\"processCPUTime\">").append(actProcess.getCPUTime()).append("</td>");
+        outBuffer.append("<td class=\"processTTY\">").append(actProcess.getTTY()).append("</td>");
 
         outBuffer.append("</tr>\n");
         

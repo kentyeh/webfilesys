@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.calendar.Appointment;
@@ -14,8 +13,11 @@ import de.webfilesys.calendar.AppointmentManager;
 import de.webfilesys.gui.ajax.XmlRequestHandlerBase;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class XmlDeleteAppointmentHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(XmlDeleteAppointmentHandler.class);
 	public XmlDeleteAppointmentHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -35,7 +37,7 @@ public class XmlDeleteAppointmentHandler extends XmlRequestHandlerBase {
 
 		String eventId = getParameter("eventId");
 		if (CommonUtils.isEmpty(eventId)) {
-			Logger.getLogger(getClass()).warn("missing parameter eventId");
+			logger.warn("missing parameter eventId");
 			return;
 		}
 
@@ -45,7 +47,7 @@ public class XmlDeleteAppointmentHandler extends XmlRequestHandlerBase {
 		
 		if (appointment == null) 
 		{
-			Logger.getLogger(getClass()).warn("appointment to be deleted not found with id :" + eventId);
+			logger.warn("appointment to be deleted not found with id :" + eventId);
 			return;
 		}
 		

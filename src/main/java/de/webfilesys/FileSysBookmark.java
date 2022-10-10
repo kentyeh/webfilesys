@@ -83,7 +83,7 @@ public class FileSysBookmark
 
     public boolean searchMatch(String searchArg)
     {
-        if ((name != null) && (name.toLowerCase().indexOf(searchArg)>=0))
+        if ((name != null) && (name.toLowerCase().contains(searchArg)))
         {
             return(true);
         }

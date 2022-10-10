@@ -10,13 +10,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Iterator;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -25,6 +23,10 @@ import org.xml.sax.SAXException;
 
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Voting by anonymous visitors is obsolet now.
@@ -35,6 +37,9 @@ import de.webfilesys.util.XmlUtil;
  */
 public class MetaInfManager extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(MetaInfManager.class);
+
+    private final ReentrantLock lock = new ReentrantLock();
     public static final String METAINF_FILE = "_metainf.fmweb";
 
 	/** maximum length of description meta info text */
@@ -44,9 +49,9 @@ public class MetaInfManager extends Thread
 
     private static MetaInfManager metaInfMgr=null;
 
-    private Hashtable<String, Element> dirList = null;
+    private ConcurrentHashMap<String, Element> dirList = null;
 
-    private Hashtable<String, Boolean> cacheDirty = null;
+    private ConcurrentHashMap<String, Boolean> cacheDirty = null;
 
     DocumentBuilder builder;
 
@@ -61,12 +66,12 @@ public class MetaInfManager extends Thread
        }
        catch (ParserConfigurationException pcex)
        {
-           Logger.getLogger(getClass()).error(pcex);
+           logger.error(pcex);
        }
 
-       dirList = new Hashtable<String, Element>();
+       dirList = new ConcurrentHashMap<>();
 
-       cacheDirty = new Hashtable<String, Boolean>();
+       cacheDirty = new ConcurrentHashMap<>();
 
        this.start();
     }
@@ -81,14 +86,15 @@ public class MetaInfManager extends Thread
 
     public void saveMetaInfFile(String path)
     {
-        Element metaInfRoot=(Element) dirList.get(path);
+        Element metaInfRoot=dirList.get(path);
 
         if (metaInfRoot==null)
         {
             return;
         }
         
-        synchronized(this) {
+        try{
+            this.lock.lock();
             String metaInfFileName=null;
 
             if (path.endsWith(File.separator))
@@ -108,10 +114,7 @@ public class MetaInfManager extends Thread
 
                 if (metaInfFile.exists() && metaInfFile.canWrite())
                 {
-                    if (Logger.getLogger(getClass()).isDebugEnabled())
-                    {
-                        Logger.getLogger(getClass()).debug("removing empty meta inf file " + metaInfFileName);
-                    }
+                    logger.debug("removing empty meta inf file " + metaInfFileName);
                     
                     metaInfFile.delete();
                 }
@@ -119,10 +122,7 @@ public class MetaInfManager extends Thread
                 return;
             }
 
-            if (Logger.getLogger(getClass()).isDebugEnabled())
-            {
-                Logger.getLogger(getClass()).debug("saving meta info to file: " + metaInfFileName);
-            }
+            logger.debug("saving meta info to file: " + metaInfFileName);
 
             OutputStreamWriter xmlOutFile = null;
             
@@ -138,7 +138,7 @@ public class MetaInfManager extends Thread
             }
             catch (IOException ioex)
             {
-                Logger.getLogger(getClass()).error("error saving metainf file : " + metaInfFileName, ioex);
+                logger.error("error saving metainf file : " + metaInfFileName, ioex);
             }
             finally
             {
@@ -148,11 +148,13 @@ public class MetaInfManager extends Thread
                     {
                         xmlOutFile.close();
                     }
-                    catch (Exception ex) 
+                    catch (IOException ex) 
                     {
                     }
                 }
             }
+        } finally {
+            this.lock.unlock();
         }
         
     }
@@ -177,7 +179,8 @@ public class MetaInfManager extends Thread
            return(null);
        }
        
-       synchronized(this) {
+       try {
+           this.lock.lock();
            Document doc = null;
 
            FileInputStream fis = null;
@@ -190,20 +193,13 @@ public class MetaInfManager extends Thread
                
                inputSource.setEncoding("UTF-8");
 
-               if (Logger.getLogger(getClass()).isDebugEnabled())
-               {
-                   Logger.getLogger(getClass()).debug("reading meta info from " + metaInfFileName);
-               }
+               logger.debug("reading meta info from " + metaInfFileName);
 
                doc = builder.parse(inputSource);
            }
-           catch (SAXException saxex)
+           catch (SAXException | IOException saxex)
            {
-               Logger.getLogger(getClass()).error("Failed to load metainf file : " + metaInfFileName, saxex);
-           }
-           catch (IOException ioex)
-           {
-               Logger.getLogger(getClass()).error("Failed to load metainf file : " + metaInfFileName, ioex);
+               logger.error("Failed to load metainf file : " + metaInfFileName, saxex);
            }
            finally 
            {
@@ -225,13 +221,15 @@ public class MetaInfManager extends Thread
            }
 
            return doc.getDocumentElement();
+       } finally {
+           this.lock.unlock();
        }
     	   
     }
 
     public boolean dirHasMetaInf(String path)
     {
-        Element metaInfRoot=(Element) dirList.get(path);
+        Element metaInfRoot = dirList.get(path);
 
         if (metaInfRoot==null)
         {
@@ -256,7 +254,7 @@ public class MetaInfManager extends Thread
     {
         Element metaInfRoot = null;
         
-        metaInfRoot = (Element) dirList.get(path);
+        metaInfRoot = dirList.get(path);
 
         if (metaInfRoot==null)
         {
@@ -303,8 +301,9 @@ public class MetaInfManager extends Thread
 
     protected Element createMetaInfElement(String path, String fileName)
     {
-        synchronized(this) {
-        	Element metaInfRoot=(Element) dirList.get(path);
+        try {
+            this.lock.lock();
+        	Element metaInfRoot = dirList.get(path);
 
             if (metaInfRoot==null)
             {
@@ -329,6 +328,8 @@ public class MetaInfManager extends Thread
             cacheDirty.put(path, Boolean.TRUE);
 
             return(metaInfElement);
+        } finally {
+            this.lock.unlock();
         }
     }
 
@@ -402,7 +403,8 @@ public class MetaInfManager extends Thread
 
     public void setDescription(String path,String fileName,String newDescription)
     {
-    	synchronized(this) {
+    	try{
+            this.lock.lock();
             Element metaInfElement=getMetaInfElement(path,fileName);
             
             if (metaInfElement==null)
@@ -414,11 +416,14 @@ public class MetaInfManager extends Thread
             
             cacheDirty.put(path,Boolean.TRUE);
             // saveMetaInfFile(path);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 
     public void setTitlePic(String path, String titlePicFileName) {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             Element metaInfElement = getMetaInfElement(path, ".");
             
             if (metaInfElement == null) {
@@ -428,7 +433,9 @@ public class MetaInfManager extends Thread
             XmlUtil.setChildText(metaInfElement, "titlePic", titlePicFileName);
             
             cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
     
     public String getTitlePic(String path) {
@@ -442,7 +449,8 @@ public class MetaInfManager extends Thread
     }
 
     public void unsetTitlePic(String path) {
-    	synchronized(this) {
+    	try{
+            this.lock.lock();
             Element metaInfElement = getMetaInfElement(path, ".");
             
             if (metaInfElement == null) {
@@ -455,12 +463,15 @@ public class MetaInfManager extends Thread
             }
             
             cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
     
     
     public boolean moveMetaInf(String currentPath, String srcFileName, String destFileName) {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             Element destMetaInfElement = getMetaInfElement(currentPath, destFileName);
             
             if (destMetaInfElement != null) {
@@ -479,7 +490,9 @@ public class MetaInfManager extends Thread
             cacheDirty.put(currentPath, Boolean.TRUE);
             
             return moved;
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
     
     public void removeMetaInf(String absoluteFileName)
@@ -503,23 +516,27 @@ public class MetaInfManager extends Thread
 
     public void removeMetaInf(String path,String fileName)
     {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
         	Element metaInfElement = getMetaInfElement(path,fileName);
         	
         	if (metaInfElement!=null)
         	{
-    			Element metaInfRoot=(Element) dirList.get(path);
+    			Element metaInfRoot= dirList.get(path);
 
     			metaInfRoot.removeChild(metaInfElement);                
                     
     			cacheDirty.put(path,Boolean.TRUE);
         	}
-    	}    	
+    	} finally {
+            this.lock.unlock();
+        }
     }
     
     public void removeDescription(String absoluteFileName)
     {
-    	synchronized(this) {
+    	try{
+            this.lock.lock();
         	Element metaInfElement = getMetaInfElement(absoluteFileName);
     		
     		if (metaInfElement!=null)
@@ -531,15 +548,20 @@ public class MetaInfManager extends Thread
     				metaInfElement.removeChild(descElement);
     			}
     		}
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 
     public void removePath(String path)
     {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             dirList.remove(path);
             cacheDirty.remove(path);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 
     public void addComment(String absoluteFileName,Comment newComment) {
@@ -549,7 +571,8 @@ public class MetaInfManager extends Thread
 
     public void addComment(String path,String fileName,Comment newComment)
     {
-    	synchronized(this) {
+    	try{
+            this.lock.lock();
             Element metaInfElement=getMetaInfElement(path,fileName);
             
             if (metaInfElement==null)
@@ -577,7 +600,9 @@ public class MetaInfManager extends Thread
             XmlUtil.setChildText(commentElement,"message",newComment.getMessage(),true);
             
             cacheDirty.put(path,Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 
     public void removeComments(String absoluteFileName) {
@@ -587,7 +612,8 @@ public class MetaInfManager extends Thread
 
     public void removeComments(String path,String fileName)
     {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             Element metaInfElement=getMetaInfElement(path,fileName);
             
             if (metaInfElement==null)
@@ -605,7 +631,9 @@ public class MetaInfManager extends Thread
             metaInfElement.removeChild(commentListElement);
 
             cacheDirty.put(path,Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 
     public void setCommentsSeenByOwner(String absoluteFileName, boolean newVal) {
@@ -697,7 +725,7 @@ public class MetaInfManager extends Thread
             return(null);
         }
 
-        ArrayList<Comment> listOfComments = new ArrayList<Comment>();
+        ArrayList<Comment> listOfComments = new ArrayList<>();
 
         for (int i=0;i<listLength;i++)
         {
@@ -716,7 +744,7 @@ public class MetaInfManager extends Thread
             }
             catch (NumberFormatException nfex)
             {
-                Logger.getLogger(getClass()).warn("invalid creation time: " + tmp);
+                logger.warn("invalid creation time: " + tmp);
             }
 
             Comment comment=new Comment(user,new Date(creationTime),message);
@@ -765,7 +793,8 @@ public class MetaInfManager extends Thread
 
 	public void setOwnerRating(String path, String fileName, int rating)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path, fileName);
             
     		if (metaInfElement == null)
@@ -787,7 +816,9 @@ public class MetaInfManager extends Thread
     		XmlUtil.setChildText(ratingElement, "owner", Integer.toString(rating));
             
     		cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 
 	public int getOwnerRating(String path)
@@ -833,7 +864,8 @@ public class MetaInfManager extends Thread
 	
 	public void addIdentifiedVisitorRating(String visitorId, String path, String fileName, int rating)
 	{
-    	synchronized(this) {
+    	try{
+            this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path, fileName);
             
     		if (metaInfElement == null)
@@ -862,7 +894,9 @@ public class MetaInfManager extends Thread
             XmlUtil.setElementText(visitorElem, Integer.toString(rating));
 
     		cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 	
 	public int getIdentifiedVisitorRating(String visitorId, String path) {
@@ -889,7 +923,7 @@ public class MetaInfManager extends Thread
 		try {
 			return Integer.parseInt(voteVal);
 		} catch (Exception ex) {
-			Logger.getLogger(getClass()).error("failed to get identified visitor rating for visitor " + visitorId, ex);
+			logger.error("failed to get identified visitor rating for visitor " + visitorId, ex);
 		}
 
 		return(-1);
@@ -923,7 +957,8 @@ public class MetaInfManager extends Thread
 
 	public void addVisitorRating(String path, String fileName, int rating)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path, fileName);
             
     		if (metaInfElement == null)
@@ -958,7 +993,9 @@ public class MetaInfManager extends Thread
             XmlUtil.setElementText(voteElement, Integer.toString(rating));
 
     		cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 
 	public PictureRating getPictureRating(String path) {
@@ -989,7 +1026,7 @@ public class MetaInfManager extends Thread
                 pictureRating = new PictureRating();
                 pictureRating.setOwnerRating(rating);
             } catch (NumberFormatException nfe) {
-            	Logger.getLogger(getClass()).error("invalid owner rating value: " + ownerRating, nfe);
+            	logger.error("invalid owner rating value: " + ownerRating, nfe);
             }
         }
 		
@@ -1018,7 +1055,7 @@ public class MetaInfManager extends Thread
 		            	voteSum += voteVal;
 		            	voteCount++;
 		            } catch (NumberFormatException nfe) {
-		            	Logger.getLogger(getClass()).error("invalid vote value: " + vote);
+		            	logger.error("invalid vote value: " + vote);
 		            }
 				}
 			}
@@ -1038,7 +1075,7 @@ public class MetaInfManager extends Thread
 	            	voteSum += voteVal;
 	            	voteCount++;
 	            } catch (NumberFormatException nfe) {
-	            	Logger.getLogger(getClass()).error("invalid vote value: " + vote);
+	            	logger.error("invalid vote value: " + vote);
 	            }
 			}
 		}
@@ -1131,7 +1168,7 @@ public class MetaInfManager extends Thread
 					try {
 						starSum += Integer.parseInt(vote);
 					} catch (Exception ex) {
-		            	Logger.getLogger(getClass()).error("invalid vote value: " + vote);
+		            	logger.error("invalid vote value: " + vote);
 					}
 				}
 			}
@@ -1149,7 +1186,7 @@ public class MetaInfManager extends Thread
 				try {
 					starSum += Integer.parseInt(vote);
 				} catch (Exception ex) {
-	            	Logger.getLogger(getClass()).error("invalid vote value: " + vote);
+	            	logger.error("invalid vote value: " + vote);
 				}
 			}
 		}
@@ -1167,7 +1204,8 @@ public class MetaInfManager extends Thread
 	}
 	
 	public void setTags(String path, String fileName, String[] newTags) {
-		synchronized(this) {
+		try {
+                    this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path, fileName);
             
     		if (metaInfElement == null) {
@@ -1208,7 +1246,9 @@ public class MetaInfManager extends Thread
     		if (modified) {
         		cacheDirty.put(path, Boolean.TRUE);
     		}
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 	
 	public ArrayList<String> getTags(String absoluteFileName) {
@@ -1237,7 +1277,7 @@ public class MetaInfManager extends Thread
 			return null;
 		}
 
-		ArrayList<String> listOfTags = new ArrayList<String>();
+		ArrayList<String> listOfTags = new ArrayList<>();
 
 		for (int i = 0; i < listLength; i++) {
 			listOfTags.add(XmlUtil.getElementText((Element) tagList.item(i)));
@@ -1253,7 +1293,8 @@ public class MetaInfManager extends Thread
 
 	public void addCategory(String path, String fileName, Category newCategory)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement=getMetaInfElement(path,fileName);
             
     		if (metaInfElement==null)
@@ -1279,7 +1320,9 @@ public class MetaInfManager extends Thread
     		XmlUtil.setChildText(categoryElement,"name",newCategory.getName(),false);
             
     		cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 
 	public void removeCategoryByName(String absoluteFileName, String categoryName) {
@@ -1289,7 +1332,8 @@ public class MetaInfManager extends Thread
 	
 	public boolean removeCategoryByName(String path, String fileName, String categoryName)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path, fileName);
             
     		if (metaInfElement == null)
@@ -1342,8 +1386,9 @@ public class MetaInfManager extends Thread
             }
             
             return(false);
-    	}
-    		
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 
 	public void removeCategories(String absoluteFileName) {
@@ -1353,7 +1398,8 @@ public class MetaInfManager extends Thread
 
 	public void removeCategories(String path,String fileName)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path,fileName);
             
     		if (metaInfElement==null)
@@ -1371,7 +1417,9 @@ public class MetaInfManager extends Thread
     		metaInfElement.removeChild(catListElement);
 
     		cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 
 	public boolean isCategoryAssigned(String absoluteFileName, Category category) {
@@ -1459,7 +1507,7 @@ public class MetaInfManager extends Thread
 			return(null);
 		}
 
-		ArrayList<Category> listOfCategories = new ArrayList<Category>();
+		ArrayList<Category> listOfCategories = new ArrayList<>();
 
 		for (int i=0; i<listLength; i++)
 		{
@@ -1484,7 +1532,8 @@ public class MetaInfManager extends Thread
 
     public void setGeoTag(String path, String fileName, GeoTag newGeoTag)
     {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             Element metaInfElement = getMetaInfElement(path, fileName);
             
             if (metaInfElement == null)
@@ -1513,7 +1562,9 @@ public class MetaInfManager extends Thread
             }
             
             cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 
     public void removeGeoTag(String absoluteFileName) {
@@ -1523,7 +1574,8 @@ public class MetaInfManager extends Thread
 
     public void removeGeoTag(String path, String fileName)
     {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             Element metaInfElement = getMetaInfElement(path,fileName);
             
             if (metaInfElement == null)
@@ -1541,7 +1593,9 @@ public class MetaInfManager extends Thread
             metaInfElement.removeChild(geoTagElement);
 
             cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 	
     public GeoTag getGeoTag(String absoluteFileName) {
@@ -1590,7 +1644,8 @@ public class MetaInfManager extends Thread
 	public void createLink(String path, FileLink newLink, boolean suppressReverseLink)
 	throws FileNotFoundException
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		File destFile = new File(newLink.getDestPath());
     		
     		if ((!destFile.exists()) || (!destFile.isFile()) || (!destFile.canRead()))
@@ -1634,7 +1689,9 @@ public class MetaInfManager extends Thread
     		}
     		
     		cacheDirty.put(path,Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     		
 	}
 
@@ -1645,7 +1702,8 @@ public class MetaInfManager extends Thread
 	 */
 	private void createReverseLinkRef(String sourcePath, FileLink newLink)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             String linkingFilePath = null;
             
             if (sourcePath.endsWith(File.separator)) 
@@ -1711,7 +1769,9 @@ public class MetaInfManager extends Thread
                 
                 cacheDirty.put(CommonUtils.getParentDir(newLink.getDestPath()), Boolean.TRUE);
             }
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     		
 	}
 	
@@ -1724,7 +1784,8 @@ public class MetaInfManager extends Thread
 	 */
 	public void removeReverseLink(String sourcePath, String linkName, String linkTargetPath) 
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     	    String linkPath = null;
     	    if (sourcePath.endsWith(File.separator))
     	    {
@@ -1777,8 +1838,9 @@ public class MetaInfManager extends Thread
                      return;
                  }
             }   
-    	}
-    		
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 	
 	/**
@@ -1825,7 +1887,7 @@ public class MetaInfManager extends Thread
 	            }
 	            catch (IOException ex)
 	            {
-	                Logger.getLogger(getClass()).error("cannot update link " + linkName + " after file move: " + oldPath + " - " + newPath);
+	                logger.error("cannot update link " + linkName + " after file move: " + oldPath + " - " + newPath);
 	            }
 	        }
 	    }
@@ -1851,7 +1913,7 @@ public class MetaInfManager extends Thread
         }
         catch (IOException ex)
         {
-            Logger.getLogger(getClass()).error("cannot update link " + linkName + " newPath=" + newLinkTargetPath);
+            logger.error("cannot update link " + linkName + " newPath=" + newLinkTargetPath);
         }
 	}
 	
@@ -1862,12 +1924,13 @@ public class MetaInfManager extends Thread
 	 */
 	public void addLinkingFiles(String path, ArrayList newLinkingFiles)
 	{
-	    if ((newLinkingFiles == null) || (newLinkingFiles.size() == 0)) 
+	    if ((newLinkingFiles == null) || (newLinkingFiles.isEmpty())) 
 	    {
 	        return;
 	    }
 	    
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             Element metaInfElement = getMetaInfElement(path);
             
             if (metaInfElement == null)
@@ -1899,7 +1962,9 @@ public class MetaInfManager extends Thread
     	    }
     	    
             cacheDirty.put(CommonUtils.getParentDir(path), Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     		
 	}
 	
@@ -1976,7 +2041,7 @@ public class MetaInfManager extends Thread
 			return(null);
 		}
 
-		ArrayList<FileLink> listOfLinks = new ArrayList<FileLink>();
+		ArrayList<FileLink> listOfLinks = new ArrayList<>();
 
 		for (int i=0;i<listLength;i++)
 		{
@@ -1996,7 +2061,7 @@ public class MetaInfManager extends Thread
 			}
 			catch (NumberFormatException nfex)
 			{
-				Logger.getLogger(getClass()).warn("invalid creation time: " + tmp);
+				logger.warn("invalid creation time: " + tmp);
 			}
 
             FileLink link = new FileLink(name, destPath, creator, new Date(creationTime));
@@ -2050,7 +2115,7 @@ public class MetaInfManager extends Thread
 				try {
 					creationTime = Long.parseLong(tmp);
 				} catch (NumberFormatException nfex) {
-					Logger.getLogger(getClass()).warn("invalid creation time: " + tmp);
+					logger.warn("invalid creation time: " + tmp);
 				}
 
 	            FileLink link = new FileLink(name, destPath, creator, new Date(creationTime));
@@ -2062,7 +2127,8 @@ public class MetaInfManager extends Thread
 	
 	public boolean removeLink(String path, String linkToRemove)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement=getMetaInfElement(path,".");
 
     		if (metaInfElement==null)
@@ -2115,13 +2181,16 @@ public class MetaInfManager extends Thread
     		}
 
     		return(false);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     		
 	}
 
 	public boolean renameLink(String path, String oldLinkName, String newLinkName)
 	{
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement=getMetaInfElement(path,".");
 
     		if (metaInfElement==null)
@@ -2167,7 +2236,9 @@ public class MetaInfManager extends Thread
     		}
 
     		return(false);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     		
 	}
 
@@ -2213,7 +2284,8 @@ public class MetaInfManager extends Thread
 
     public void incrementDownloads(String path,String fileName)
     {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
             Element metaInfElement=getMetaInfElement(path,fileName);
             
             if (metaInfElement==null)
@@ -2242,7 +2314,9 @@ public class MetaInfManager extends Thread
             
             cacheDirty.put(path,Boolean.TRUE);
             // saveMetaInfFile(path);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
 
 	public int getNumberOfDownloads(String absoluteFileName)
@@ -2274,7 +2348,7 @@ public class MetaInfManager extends Thread
 
     public ArrayList<Element> getTopDownloadList(String path)
     {
-        Element metaInfRoot=(Element) dirList.get(path);
+        Element metaInfRoot= dirList.get(path);
 
         if (metaInfRoot==null)
         {
@@ -2290,7 +2364,7 @@ public class MetaInfManager extends Thread
             }
         }
 
-        ArrayList<Element> sortedTopList = new ArrayList<Element>();
+        ArrayList<Element> sortedTopList = new ArrayList<>();
 
         NodeList metaInfList=metaInfRoot.getElementsByTagName("metainf");
 
@@ -2339,7 +2413,7 @@ public class MetaInfManager extends Thread
 
 	public Date getStatisticsResetDate(String path)
 	{
-		Element metaInfRoot=(Element) dirList.get(path);
+		Element metaInfRoot= dirList.get(path);
 
 		if (metaInfRoot==null)
 		{
@@ -2375,8 +2449,9 @@ public class MetaInfManager extends Thread
 
     public void resetStatistics(String path)
     {
-    	synchronized(this) {
-    		Element metaInfRoot=(Element) dirList.get(path);
+    	try {
+            this.lock.lock();
+    		Element metaInfRoot= dirList.get(path);
 
     		if (metaInfRoot==null)
     		{
@@ -2414,7 +2489,9 @@ public class MetaInfManager extends Thread
     		}
 
     		cacheDirty.put(path,Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
     
     public boolean isStagedPublication(String path) {
@@ -2435,7 +2512,8 @@ public class MetaInfManager extends Thread
     }
 
 	public void setStagedPublication(String path, boolean publicateStaged) {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path, ".");
             
     		if (metaInfElement == null) {
@@ -2454,7 +2532,9 @@ public class MetaInfManager extends Thread
     		XmlUtil.setElementText(stagedPublicationElement, Boolean.toString(publicateStaged));
             
     		cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
     
 	public int getStatus(String absoluteFileName) {
@@ -2484,7 +2564,8 @@ public class MetaInfManager extends Thread
 	}
 
 	public void setStatus(String path, String fileName, int newStatus) {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		Element metaInfElement = getMetaInfElement(path, fileName);
             
     		if (metaInfElement == null) {
@@ -2503,7 +2584,9 @@ public class MetaInfManager extends Thread
     		XmlUtil.setElementText(statusElement, Integer.toString(newStatus));
             
     		cacheDirty.put(path, Boolean.TRUE);
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
 	}
 	
     /**
@@ -2514,23 +2597,25 @@ public class MetaInfManager extends Thread
      * @param forceDirty release metainf even if it unsaved
      */
     public void releaseMetaInf(String dirPath, boolean forceReleaseDirty) {
-    	synchronized(this) {
+    	try {
+            this.lock.lock();
     		
         	if ((!cacheDirty.containsKey(dirPath)) || forceReleaseDirty) {
             	if (dirList.get(dirPath) != null) {
             		dirList.remove(dirPath);
-            		// if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            		//    Logger.getLogger(getClass()).debug("released metainf for path " + dirPath);
-                    // }
+            		//    logger.debug("released metainf for path " + dirPath);
                 }
             	
                 if (forceReleaseDirty && cacheDirty.containsKey(dirPath)) {
                     cacheDirty.remove(dirPath);
                 }
         	}
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     }
     
+    @Override
     public synchronized void run()
     {
         int counter = 0;
@@ -2558,14 +2643,16 @@ public class MetaInfManager extends Thread
                 {
                     counter=0;
 
-                    if (dirList.size()>0)
+                    if (!dirList.isEmpty())
                     {
-                        synchronized (dirList)
-                        {
-                            Logger.getLogger(getClass()).debug("removing " + dirList.size() + " elements from metainf cache");
+                        try {
+                            this.lock.lock();
+                            logger.debug("removing " + dirList.size() + " elements from metainf cache");
 
                             dirList.clear();
-                        }
+                        } finally {
+            this.lock.unlock();
+        }
                     }
                 }
 
@@ -2582,7 +2669,7 @@ public class MetaInfManager extends Thread
 					saveMetaInfFile(path);
 				}
 				
-				Logger.getLogger(getClass()).debug("MetaInfmanager ready for shutdown");
+				logger.debug("MetaInfmanager ready for shutdown");
 
 				stop = true;
             }

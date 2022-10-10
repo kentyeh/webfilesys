@@ -34,13 +34,14 @@ public class XmlFileSizeStatsHandler extends XmlRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
 		String currentPath = getParameter("actpath");
 
 		DirStatsBySize dirStats = new DirStatsBySize(currentPath);
 
-		ArrayList statisticResults = dirStats.getResults();
+		ArrayList<SizeCategory> statisticResults = dirStats.getResults();
 		
 		Element treeStatsElement = doc.createElement("treeStats");
 			
@@ -69,9 +70,7 @@ public class XmlFileSizeStatsHandler extends XmlRequestHandlerBase
         
         long sizeSumCategoryMax = dirStats.getSizeSumCategoryMax();
         
-        for (int i = 0; i < statisticResults.size(); i++) {
-            SizeCategory sizeCat = (SizeCategory) statisticResults.get(i);
-
+        for (SizeCategory sizeCat : statisticResults) {
             Element clusterElem = doc.createElement("cluster");
             XmlUtil.setChildText(clusterElem, "minSize", formatSize(sizeCat.getMinSize()));
             XmlUtil.setChildText(clusterElem, "maxSize", formatSize(sizeCat.getMaxSize()));
@@ -79,20 +78,18 @@ public class XmlFileSizeStatsHandler extends XmlRequestHandlerBase
             XmlUtil.setChildText(clusterElem, "sizeSum", numFormat.format(sizeCat.getSizeSum()));
             XmlUtil.setChildText(clusterElem, "numberPercent", Integer.toString(sizeCat.getFileNumPercent()));
             XmlUtil.setChildText(clusterElem, "sizePercent", Integer.toString(sizeCat.getSizePercent()));
-            
             long fileNumPercentOfMax;
             if (fileNumCategoryMax == 0) {
-            	fileNumPercentOfMax = 0;
+                fileNumPercentOfMax = 0;
             } else {
-            	fileNumPercentOfMax = (sizeCat.getFileNum() * 100L) / fileNumCategoryMax;
+                fileNumPercentOfMax = (sizeCat.getFileNum() * 100L) / fileNumCategoryMax;
             }
             XmlUtil.setChildText(clusterElem, "fileNumPercentOfMax", Long.toString(fileNumPercentOfMax));
-            
             long sizeSumPercentOfMax;
             if (sizeSumCategoryMax == 0) {
-            	sizeSumPercentOfMax = 0;
+                sizeSumPercentOfMax = 0;
             } else {
-            	sizeSumPercentOfMax = (sizeCat.getSizeSum() * 100L) / sizeSumCategoryMax;
+                sizeSumPercentOfMax = (sizeCat.getSizeSum() * 100L) / sizeSumCategoryMax;
             }
             XmlUtil.setChildText(clusterElem, "sizeSumPercentOfMax", Long.toString(sizeSumPercentOfMax));
             sizeStatsElem.appendChild(clusterElem);

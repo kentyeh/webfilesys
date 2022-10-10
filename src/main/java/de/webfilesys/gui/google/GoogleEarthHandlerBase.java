@@ -11,7 +11,6 @@ import javax.servlet.http.HttpSession;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -22,12 +21,14 @@ import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.gui.user.UserRequestHandler;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * @author Frank Hoehnel
  */
 public abstract class GoogleEarthHandlerBase extends UserRequestHandler
 {
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(GoogleEarthHandlerBase.class);
     protected static final String GOOGLE_KML_CONTENT_TYPE = "application/vnd.google-earth.kml+xml";
     
 	protected Document doc;
@@ -58,11 +59,12 @@ public abstract class GoogleEarthHandlerBase extends UserRequestHandler
 		}
 		catch (ParserConfigurationException pcex)
 		{
-			Logger.getLogger(getClass()).error(pcex.toString());
-			System.out.println(pcex.toString());
+			logger.error(pcex.toString());
+			logger.error(pcex.toString());
 		}
 	}
 
+        @Override
 	protected void process()
 	{
 		resp.setContentType(GOOGLE_KML_CONTENT_TYPE);
@@ -79,13 +81,11 @@ public abstract class GoogleEarthHandlerBase extends UserRequestHandler
         
         XmlUtil.setChildText(googleDocElement, "name", "WebFileSys Placemarks");
 		
-		List placemarkElementList = createPlacemarkXml();
+		List<Element> placemarkElementList = createPlacemarkXml();
 		
-		for (int i = 0; i < placemarkElementList.size(); i++)
-		{
-		    Element placemarkElement = (Element) placemarkElementList.get(i);
-		    googleDocElement.appendChild(placemarkElement);
-		}
+        for (Element placemarkElement : placemarkElementList) {
+            googleDocElement.appendChild(placemarkElement);
+        }
 		
         XmlUtil.writeToStream(doc, xmlOutFile);
 
@@ -95,7 +95,7 @@ public abstract class GoogleEarthHandlerBase extends UserRequestHandler
 	/**
      * @return List of Placemark Element objects
 	 */
-    protected abstract ArrayList createPlacemarkXml(); 
+    protected abstract ArrayList<Element> createPlacemarkXml(); 
 	
 	protected Element createPlacemark(String imgPath) 
 	{
@@ -103,7 +103,7 @@ public abstract class GoogleEarthHandlerBase extends UserRequestHandler
 	    
         String description = metaInfMgr.getDescription(imgPath);
 
-        StringBuffer coordinatesBuff = new StringBuffer();
+        StringBuilder coordinatesBuff = new StringBuilder();
         
         GeoTag geoTag = metaInfMgr.getGeoTag(imgPath);
 

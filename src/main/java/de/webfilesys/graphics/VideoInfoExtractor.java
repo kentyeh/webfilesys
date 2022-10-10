@@ -1,20 +1,21 @@
 package de.webfilesys.graphics;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VideoInfoExtractor {
 
-    private static final Logger LOG = Logger.getLogger(VideoInfoExtractor.class);
+    private static final Logger logger= LogManager.getLogger(VideoInfoExtractor.class);
 
-    private ArrayList<String> cmdOutput = new ArrayList<>();
+    private final ArrayList<String> cmdOutput = new ArrayList<>();
     
     public VideoInfo getVideoInfo(String videoFilePath) 
     throws IllegalArgumentException {
@@ -28,9 +29,7 @@ public class VideoInfoExtractor {
         } else {
             String numberOfVideoStream = getNumberOfVideoStream();
             if (numberOfVideoStream == null) {
-            	if (LOG.isDebugEnabled()) {
-            		LOG.debug("no video stream info found in ffprobe result for file " + videoFilePath);
-            	}
+            	logger.debug("no video stream info found in ffprobe result for file " + videoFilePath);
             	videoInfo.setFfprobeEmptyOutput(true);
             } else {
                 String videoWidth = null;
@@ -49,7 +48,7 @@ public class VideoInfoExtractor {
                         try {
                             videoInfo.setWidth(Integer.parseInt(videoWidth));
                         } catch (Exception ex) {
-                            LOG.warn("invalid video width: " + videoWidth);
+                            logger.warn("invalid video width: " + videoWidth);
                         }
                     } else if ((videoHeight == null) && outLine.contains(streamPrefix + "height")) {
                         String[] tokens = outLine.split("=");
@@ -57,7 +56,7 @@ public class VideoInfoExtractor {
                         try {
                             videoInfo.setHeight(Integer.parseInt(videoHeight));
                         } catch (Exception ex) {
-                            LOG.warn("invalid video height: " + videoHeight);
+                            logger.warn("invalid video height: " + videoHeight);
                         }
                     } else if ((codec == null) && outLine.contains(streamPrefix + "codec")) {
                         String[] tokens = outLine.split("=");
@@ -76,7 +75,7 @@ public class VideoInfoExtractor {
                                     int durationSeconds = (Integer.parseInt(partsOfDuration[0]) * 3600) + (Integer.parseInt(partsOfDuration[1]) * 60) + Integer.parseInt(partsOfDuration[2]);
                                     videoInfo.setDurationSeconds(durationSeconds);
                                 } catch (Exception ex) {
-                                    Logger.getLogger(getClass()).warn("invalid video duration: " + duration);
+                                    logger.warn("invalid video duration: " + duration);
                                 }
                             }
                         }
@@ -90,7 +89,7 @@ public class VideoInfoExtractor {
                                 int frameRatePart2 = Integer.parseInt(tokens[1]);
                                 videoInfo.setFrameRate(frameRatePart1 / frameRatePart2);
                             } catch (Exception ex) {
-                                Logger.getLogger(getClass()).warn("invalid frame rate for " + videoFilePath + ": " + averageFrameRate);
+                                logger.warn("invalid frame rate for " + videoFilePath + ": " + averageFrameRate);
                             }
                         }
                     } else if ((audioCodec == null) && outLine.contains("_codec")) {
@@ -111,7 +110,7 @@ public class VideoInfoExtractor {
         File videoFile = new File(videoFilePath);
 
         if ((!videoFile.exists()) || (!videoFile.isFile()) || (!videoFile.canRead())) {
-            LOG.warn("not a readable file: " + videoFilePath);
+            logger.warn("not a readable file: " + videoFilePath);
             throw new IllegalArgumentException("video file is not a readable file: " + videoFilePath);
         }        
 
@@ -124,7 +123,7 @@ public class VideoInfoExtractor {
         try {
             // String progNameAndParams = ffprobeExePath +  " -v error -of flat=s=_ -select_streams v:0 -show_entries stream=height,width,codec_name,duration,avg_frame_rate -sexagesimal " + videoFile.getAbsolutePath();
             
-            ArrayList<String> progNameAndParams = new ArrayList<String>();
+            ArrayList<String> progNameAndParams = new ArrayList<>();
             progNameAndParams.add(ffprobeExePath);
             progNameAndParams.add("-v");
             progNameAndParams.add("error");
@@ -137,38 +136,32 @@ public class VideoInfoExtractor {
             progNameAndParams.add("-sexagesimal");
             progNameAndParams.add(videoFile.getAbsolutePath());
             
-            if (Logger.getLogger(getClass()).isDebugEnabled()) {
-            	StringBuilder buff = new StringBuilder();
-                for (String cmdToken : progNameAndParams) {
-                	buff.append(cmdToken);
-                	buff.append(' ');
-                }
-                Logger.getLogger(getClass()).debug("ffprobe call with params: " + buff.toString());
+            StringBuilder buff = new StringBuilder();
+            for (String cmdToken : progNameAndParams) {
+                buff.append(cmdToken);
+                buff.append(' ');
             }
+            logger.debug("ffprobe call with params: " + buff.toString());
             
             Process ffprobeProcess = Runtime.getRuntime().exec(progNameAndParams.toArray(new String[0]));
             
-            DataInputStream ffprobeOut = new DataInputStream(ffprobeProcess.getInputStream());
+            BufferedReader ffprobeOut = new BufferedReader(new InputStreamReader(ffprobeProcess.getInputStream()));
             
             String outLine = null;
             
             while ((outLine = ffprobeOut.readLine()) != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("ffprobe output: " + outLine);
-                }
+                logger.debug("ffprobe output: " + outLine);
                 cmdOutput.add(outLine);
             }
             
             int ffprobeResult = ffprobeProcess.waitFor();
             if (ffprobeResult != 0) {
-                LOG.warn("ffprobe returned error " + ffprobeResult);
+                logger.warn("ffprobe returned error " + ffprobeResult);
             }
             
             return ffprobeResult;
-        } catch (IOException ioex) {
-            LOG.error("failed to get video info for file " + videoFile, ioex);
-        } catch (InterruptedException iex) {
-            LOG.error("failed to get video info for file " + videoFile, iex);
+        } catch (IOException | InterruptedException ioex) {
+            logger.error("failed to get video info for file " + videoFile, ioex);
         }
         
         return -1;

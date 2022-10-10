@@ -9,18 +9,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import com.ice.tar.TarEntry;
 import com.ice.tar.TarOutputStream;
 
 import de.webfilesys.gui.user.MultiFileRequestHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MultiTarArchiveHandler extends MultiFileRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(MultiTarArchiveHandler.class);
 	public MultiTarArchiveHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -31,6 +33,7 @@ public class MultiTarArchiveHandler extends MultiFileRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -50,16 +53,12 @@ public class MultiTarArchiveHandler extends MultiFileRequestHandler
 
 		headLine(getResource("label.tarhead","create tar archive"));
 
-        FileOutputStream tarStream = null;
-        TarOutputStream tarFile = null;
-
         try 
 		{
             File tarArchiveFile = new File(actPath, "SELECT_.tar");
 
-	        tarStream = new FileOutputStream(tarArchiveFile);
-	        
-	        tarFile = new TarOutputStream(tarStream);
+	        try(FileOutputStream tarStream = new FileOutputStream(tarArchiveFile);
+                        TarOutputStream tarFile = new TarOutputStream(tarStream)){
 
 	        byte [] buff = new byte[4096];
 
@@ -91,33 +90,10 @@ public class MultiTarArchiveHandler extends MultiFileRequestHandler
 
             tarFile.flush();
 		}
-		catch (Exception ex) 
+                }catch (Exception ex) 
 		{
-		    Logger.getLogger(getClass()).error("failed to create tar archive", ex);
+		    logger.error("failed to create tar archive", ex);
             output.println("error creating tar archive");
-		}
-		finally
-		{
-		    if (tarFile != null) 
-		    {
-		        try
-		        {
-		            tarFile.close();
-		        }
-		        catch (Exception ex)
-		        {
-		        }
-		    }
-            if (tarStream != null) 
-            {
-                try
-                {
-                    tarStream.close();
-                }
-                catch (Exception ex)
-                {
-                }
-            }
 		}
 
         output.println("<br/>");

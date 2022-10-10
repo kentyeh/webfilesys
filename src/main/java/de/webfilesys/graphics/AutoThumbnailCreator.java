@@ -1,12 +1,16 @@
 package de.webfilesys.graphics;
 
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnable
 {
+    private static final Logger logger = LogManager.getLogger(AutoThumbnailCreator.class);
+
     private ArrayList<QueueElem> queue = null;
     
     boolean shutdownFlag = false;
@@ -14,6 +18,7 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
     private Thread thumbnailThread = null;
     
     private static AutoThumbnailCreator thumbCreator = null;
+    private final ReentrantLock lock = new ReentrantLock();
     
     private AutoThumbnailCreator()
     {
@@ -24,7 +29,7 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
 			imgFileMasks[1]="*.jpeg";
 		}
     	
-    	queue = new ArrayList<QueueElem>();
+    	queue = new ArrayList<>();
     	
     	shutdownFlag = false;
 
@@ -61,26 +66,29 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
         }
     }
     
+    @Override
     public void run()
     {
-        Logger.getLogger(getClass()).info("AutoThumbnailCreator started");
+        logger.info("AutoThumbnailCreator started");
 
         Thread.currentThread().setPriority(1);
 
     	while (!shutdownFlag)
     	{
-    		while (queue.size() > 0)
+    		while (!queue.isEmpty())
     		{
     			QueueElem elem = (QueueElem) queue.get(0);
     			
     			updateThumbnails(elem);
     			
-    			synchronized (queue)
-    			{
+    			try {
+                            this.lock.lock();
     				queue.remove(0);
-    			}
+    			} finally {
+                            this.lock.unlock();
+                        }
     			
-    			Logger.getLogger(getClass()).debug("size of AutoThumbnailCreator queue: " + queue.size());
+    			logger.debug("size of AutoThumbnailCreator queue: " + queue.size());
     		}
 
             try
@@ -96,25 +104,24 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
             }
     	}
 
-		Logger.getLogger(getClass()).info("AutoThumbnailCreator shutting down");
+		logger.info("AutoThumbnailCreator shutting down");
     }
     
     public synchronized void queuePath(String path, int scope)
     {
-    	synchronized (queue)
-    	{
+    	try {
+            this.lock.lock();
 			queue.add(new QueueElem(path, scope));
-    	}
+    	} finally {
+            this.lock.unlock();
+        }
     	
 		notify();
     }
     
     private void updateThumbnails(QueueElem queueElem)
     {
-        if (Logger.getLogger(getClass()).isDebugEnabled())
-        {
-            Logger.getLogger(getClass()).debug("updating thumbnail(s) of " + queueElem.getPath());
-        }
+        logger.debug("updating thumbnail(s) of " + queueElem.getPath());
 		
 		if (queueElem.getScope() == SCOPE_TREE)
 		{

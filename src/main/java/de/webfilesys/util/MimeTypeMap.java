@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.WebFileSys;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MimeTypeMap 
 {
+    private static final Logger logger = LogManager.getLogger(MimeTypeMap.class);
     private HashMap<String, String> mimeTable;
 
     static final public String MIME_FILE = "mimetypes.conf";
@@ -20,37 +22,35 @@ public class MimeTypeMap
 
     private MimeTypeMap()
     {
-        mimeTable = new HashMap<String, String>();
+        mimeTable = new HashMap<>();
 
         try
         {
         	String mimeFilePath = WebFileSys.getInstance().getConfigBaseDir() + "/" + MIME_FILE;
         	
-            BufferedReader mimeReader = new BufferedReader(new FileReader(mimeFilePath));
-
-            String line  = null;
-
-            while ((line = mimeReader.readLine())!=null)
-            {
-                if (line.trim().length() > 0)
+            try (BufferedReader mimeReader = new BufferedReader(new FileReader(mimeFilePath))) {
+                String line  = null;
+                
+                while ((line = mimeReader.readLine())!=null)
                 {
-                    StringTokenizer tokener = new StringTokenizer(line);
-
-                    String type = tokener.nextToken();
-
-                    while (tokener.hasMoreTokens())
+                    if (line.trim().length() > 0)
                     {
-                        mimeTable.put(tokener.nextToken().toUpperCase(),type);
+                        StringTokenizer tokener = new StringTokenizer(line);
+                        
+                        String type = tokener.nextToken();
+                        
+                        while (tokener.hasMoreTokens())
+                        {
+                            mimeTable.put(tokener.nextToken().toUpperCase(),type);
+                        }
                     }
                 }
             }
 
-            mimeReader.close();
-
         }
         catch (IOException ioex)
         {
-            Logger.getLogger(getClass()).error("Failed to read mimetype configuration", ioex);
+            logger.error("Failed to read mimetype configuration", ioex);
         }
     }
 

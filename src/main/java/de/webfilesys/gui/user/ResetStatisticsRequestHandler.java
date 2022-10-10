@@ -34,6 +34,7 @@ public class ResetStatisticsRequestHandler extends UserRequestHandler
         this.uid = uid;
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -41,7 +42,7 @@ public class ResetStatisticsRequestHandler extends UserRequestHandler
 			return;
 		}
 
-		session.setAttribute("viewMode", new Integer(Constants.VIEW_MODE_STATS));
+		session.setAttribute("viewMode", Constants.VIEW_MODE_STATS);
 
 		String actPath = getParameter("actPath");
 

@@ -8,16 +8,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.util.MimeTypeMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class ExifThumbRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(ExifThumbRequestHandler.class);
 	protected HttpServletResponse resp = null;
 	
 	public ExifThumbRequestHandler(
@@ -32,6 +34,7 @@ public class ExifThumbRequestHandler extends UserRequestHandler
         this.resp = resp;
 	}
 
+        @Override
 	protected void process()
 	{
 		String imgFileName = getParameter("imgFile");
@@ -58,17 +61,15 @@ public class ExifThumbRequestHandler extends UserRequestHandler
 		
 		resp.setContentType(mimeType);
 
-		try
+		try(OutputStream byteOut = resp.getOutputStream())
 		{
-			OutputStream byteOut = resp.getOutputStream();
-
 			byteOut.write(imgData, 0, docLength);
 
 			byteOut.flush();
 		}
         catch (IOException ioEx)
         {
-        	Logger.getLogger(getClass()).warn(ioEx);
+        	logger.warn(ioEx);
         }
 	}
 }

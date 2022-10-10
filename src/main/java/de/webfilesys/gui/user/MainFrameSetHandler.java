@@ -32,6 +32,7 @@ public class MainFrameSetHandler extends UserRequestHandler
 		this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
 	    session.removeAttribute("mobile");
@@ -271,7 +272,6 @@ public class MainFrameSetHandler extends UserRequestHandler
 
         output.println("</html>");
         output.flush();
-        return;
 	}
 	
     private void maintananceMode()

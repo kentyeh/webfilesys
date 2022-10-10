@@ -7,17 +7,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.graphics.VideoFrameExtractor;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class ExtractVideoFrameHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(ExtractVideoFrameHandler.class);
     
 	public ExtractVideoFrameHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
 			PrintWriter output, String uid) {
@@ -69,7 +71,7 @@ public class ExtractVideoFrameHandler extends XmlRequestHandlerBase {
 
                 extractTime = numFormat.format(startHour) + ":" + numFormat.format(startMin) + ":" + numFormat.format(startSec) + ".00";
             } catch (Exception ex) {
-                Logger.getLogger(getClass()).warn("invalid video extract time value", ex);
+                logger.warn("invalid video extract time value", ex);
                 return;
             }
         }

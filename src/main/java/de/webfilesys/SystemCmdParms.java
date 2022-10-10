@@ -1,9 +1,11 @@
 package de.webfilesys;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SystemCmdParms extends Thread
 {
+    private static final Logger logger = LogManager.getLogger(SystemCmdParms.class);
 	String prog_name_parms[];
 
 	public SystemCmdParms(String prog_name,String parm)
@@ -13,6 +15,7 @@ public class SystemCmdParms extends Thread
 		prog_name_parms[1]=parm;
 	}
 
+        @Override
 	public void run()
 	{
 		Runtime rt=Runtime.getRuntime();
@@ -23,7 +26,7 @@ public class SystemCmdParms extends Thread
 		}
 		catch (Exception e)
 		{
-			Logger.getLogger(getClass()).error(e);
+			logger.error(e);
 		}
 	}
 }

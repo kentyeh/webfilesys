@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -16,12 +15,14 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLDecoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MultiGPXTrackHandler extends XslRequestHandlerBase {
-	private static final Logger LOG = Logger.getLogger(MultiGPXTrackHandler.class);
+	private static final Logger logger= LogManager.getLogger(MultiGPXTrackHandler.class);
 
 	public MultiGPXTrackHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
 			PrintWriter output, String uid) {
@@ -45,7 +46,7 @@ public class MultiGPXTrackHandler extends XslRequestHandlerBase {
 					String fileName = UTF8URLDecoder.decode(paramKey);
 					selectedFiles.add(fileName);
 				} catch (Exception ue1) {
-					LOG.error(ue1);
+					logger.error(ue1);
 				}
 			}
 		}

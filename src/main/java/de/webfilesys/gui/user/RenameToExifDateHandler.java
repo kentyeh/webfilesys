@@ -9,12 +9,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Category;
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.gui.xsl.XslThumbnailHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Rename JPEG files according to the exposure date extracted from the Camera Exif
@@ -23,6 +24,7 @@ import de.webfilesys.gui.xsl.XslThumbnailHandler;
  */
 public class RenameToExifDateHandler extends MultiImageRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(RenameToExifDateHandler.class);
 	private static final String DATE_FORMAT = "yyyy-MM-dd-HH-mm-ss";
 	
 	boolean clientIsLocal = false;
@@ -40,6 +42,7 @@ public class RenameToExifDateHandler extends MultiImageRequestHandler
 		this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -77,7 +80,7 @@ public class RenameToExifDateHandler extends MultiImageRequestHandler
 						
 						if (!imgFile.renameTo(newImgFile))
 						{
-							Logger.getLogger(getClass()).error("could not rename image file " + imgFileName + " to exif exposure date: + " + newImgFile);
+							logger.error("could not rename image file " + imgFileName + " to exif exposure date: + " + newImgFile);
 						}
 						else
 						{
@@ -96,12 +99,9 @@ public class RenameToExifDateHandler extends MultiImageRequestHandler
 		
 							if (assignedCategories != null)
 							{
-								for (int k=0;k<assignedCategories.size();k++)
-								{
-									Category cat = (Category) assignedCategories.get(k);
-				
-									metaInfMgr.addCategory(newImgFile.getAbsolutePath(), cat);
-								}
+                                                            for (Category cat : assignedCategories) {
+                                                                metaInfMgr.addCategory(newImgFile.getAbsolutePath(), cat);
+                                                            }
 							}
 
 							metaInfMgr.removeMetaInf(imgFileName);

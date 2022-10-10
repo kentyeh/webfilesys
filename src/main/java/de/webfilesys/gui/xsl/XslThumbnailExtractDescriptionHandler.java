@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -29,18 +28,22 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslThumbnailExtractDescriptionHandler extends XslFileListHandlerBase {
+    private static final Logger logger = LogManager.getLogger(XslThumbnailExtractDescriptionHandler.class);
 	public XslThumbnailExtractDescriptionHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
 			PrintWriter output, String uid, boolean clientIsLocal) {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
-		session.setAttribute("viewMode", new Integer(Constants.VIEW_MODE_THUMBS));
+		session.setAttribute("viewMode", Constants.VIEW_MODE_THUMBS);
 
 		MetaInfManager metaInfMgr = MetaInfManager.getInstance();
 
@@ -181,7 +184,7 @@ public class XslThumbnailExtractDescriptionHandler extends XslFileListHandlerBas
 		File dirFile = new File(currentPath);
 
 		if ((!dirFile.exists()) || (!dirFile.isDirectory()) || (!dirFile.canRead())) {
-			Logger.getLogger(getClass()).warn("folder is not a readable directory: " + currentPath);
+			logger.warn("folder is not a readable directory: " + currentPath);
 			XmlUtil.setChildText(fileListElement, "dirNotFound", "true", false);
 			processResponse("xsl/folderTree.xsl");
 			return;
@@ -236,14 +239,14 @@ public class XslThumbnailExtractDescriptionHandler extends XslFileListHandlerBas
 			DecimalFormat numFormat = new DecimalFormat("#,###,###,###,###");
 
 			long sizeSum = 0l;
-			
+
 			for (int i = 0; i < selectedFiles.size(); i++) {
 
 				Element fileElement = doc.createElement("file");
 
 				fileListElement.appendChild(fileElement);
 
-				FileContainer fileCont = (FileContainer) selectedFiles.get(i);
+				FileContainer fileCont = selectedFiles.get(i);
 
 				String picFilename = fileCont.getName();
 
@@ -399,14 +402,13 @@ public class XslThumbnailExtractDescriptionHandler extends XslFileListHandlerBas
 		ArrayList<FileContainer> selectedFiles = selectionStatus.getSelectedFiles();
 
 		if (selectedFiles != null) {
-			for (int i = 0; i < selectedFiles.size(); i++) {
-				FileContainer fileCont = (FileContainer) selectedFiles.get(i);
-				if (fileCont.isLink()) {
-					if (!accessAllowed(fileCont.getRealFile().getAbsolutePath())) {
-						filteredOutList.add(fileCont);
-					}
-				}
-			}
+                    for (FileContainer fileCont : selectedFiles) {
+                        if (fileCont.isLink()) {
+                            if (!accessAllowed(fileCont.getRealFile().getAbsolutePath())) {
+                                filteredOutList.add(fileCont);
+                            }
+                        }
+                    }
 
 			if (filteredOutList.size() > 0) {
 				selectionStatus.setNumberOfFiles(selectionStatus.getNumberOfFiles() - filteredOutList.size());

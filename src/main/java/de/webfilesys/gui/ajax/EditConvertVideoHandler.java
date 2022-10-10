@@ -7,17 +7,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.graphics.VideoConverterThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class EditConvertVideoHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(EditConvertVideoHandler.class);
     
 	public EditConvertVideoHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
 			PrintWriter output, String uid) {
@@ -79,7 +81,7 @@ public class EditConvertVideoHandler extends XmlRequestHandlerBase {
 
                 videoConverter.setStartTime(numFormat.format(startHour) + ":" + numFormat.format(startMin) + ":" + numFormat.format(startSec));
             } catch (Exception ex) {
-                Logger.getLogger(getClass()).warn("invalid video time range value", ex);
+                logger.warn("invalid video time range value", ex);
                 return;
             }
         }
@@ -94,7 +96,7 @@ public class EditConvertVideoHandler extends XmlRequestHandlerBase {
 
                 videoConverter.setEndTime(numFormat.format(endHour) + ":" + numFormat.format(endMin) + ":" + numFormat.format(endSec));
             } catch (Exception ex) {
-                Logger.getLogger(getClass()).warn("invalid video time range value", ex);
+                logger.warn("invalid video time range value", ex);
                 return;
             }
         }

@@ -13,20 +13,20 @@ public class DirTreeStatus
 
     public DirTreeStatus()
     {
-    	expandedDirs = new HashMap<String, Boolean>();
-    	subdirNameLengthSumMap = new HashMap<String, Long>();
+    	expandedDirs = new HashMap<>();
+    	subdirNameLengthSumMap = new HashMap<>();
     }
     
     public void expandDir(String path)
     {
-        expandedDirs.put(path,new Boolean(true)); 
+        expandedDirs.put(path, true); 
     }
 
     public void collapseDir(String path)
     {
         expandedDirs.remove(path);
 
-        ArrayList<String> collapsedSubdirs = new ArrayList<String>();
+        ArrayList<String> collapsedSubdirs = new ArrayList<>();
 
         for (String dirName : expandedDirs.keySet()) {
             if (dirName.indexOf(path) == 0) {
@@ -34,8 +34,8 @@ public class DirTreeStatus
             }
         }
 
-        for (int i = 0; i < collapsedSubdirs.size(); i++) {
-            expandedDirs.remove(collapsedSubdirs.get(i));
+        for (String collapsedSubdir : collapsedSubdirs) {
+            expandedDirs.remove(collapsedSubdir);
         }
     }
 
@@ -48,13 +48,13 @@ public class DirTreeStatus
     {
         StringTokenizer pathParser=new StringTokenizer(path,File.separator);
 
-        StringBuffer partOfPath=new StringBuffer();
+        StringBuilder partOfPath=new StringBuilder();
         
         boolean firstToken=true;
         
         if (File.separatorChar=='/')
         {
-            expandedDirs.put("/",new Boolean(true)); 
+            expandedDirs.put("/", true); 
             firstToken=false;
         }
 
@@ -65,24 +65,24 @@ public class DirTreeStatus
             if (firstToken)
             {
                 partOfPath.append(dirName);
-                expandedDirs.put(partOfPath.toString() + File.separator,new Boolean(true)); 
+                expandedDirs.put(partOfPath.toString() + File.separator, true); 
                 firstToken=false;
             }
             else
             {
                 partOfPath.append(File.separatorChar);
                 partOfPath.append(dirName);
-                expandedDirs.put(partOfPath.toString(),new Boolean(true)); 
+                expandedDirs.put(partOfPath.toString(), true); 
             }
         }
     }
 
     public ArrayList<String> getExpandedFolders() {
-    	ArrayList<String> expandedFolders = new ArrayList<String>();
+    	ArrayList<String> expandedFolders = new ArrayList<>();
     	
     	for (String path : expandedDirs.keySet()) {
     		Boolean expanded = expandedDirs.get(path);
-    		if ((expanded != null) && expanded.booleanValue()) {
+    		if ((expanded != null) && expanded) {
     			expandedFolders.add(path);
     		}
     	}
@@ -95,7 +95,7 @@ public class DirTreeStatus
     }
     
     public void setSubdirNameLengthSum(String path, long nameLengthSum) {
-    	subdirNameLengthSumMap.put(path, Long.valueOf(nameLengthSum));
+    	subdirNameLengthSumMap.put(path, nameLengthSum);
     }
     
     public HashMap<String, Long> getSubdirNameLengthSumMap() {
@@ -107,6 +107,6 @@ public class DirTreeStatus
     	if (nameLengthSum == null) {
     		return (-1);
     	}
-    	return nameLengthSum.longValue();
+    	return nameLengthSum;
     }
 }

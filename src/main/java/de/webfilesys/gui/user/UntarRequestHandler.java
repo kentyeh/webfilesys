@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import com.ice.tar.TarEntry;
 import com.ice.tar.TarInputStream;
@@ -20,6 +19,8 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.graphics.AutoThumbnailCreator;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Extract files from a TAR archive.
@@ -27,6 +28,7 @@ import de.webfilesys.util.UTF8URLEncoder;
  */
 public class UntarRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(UntarRequestHandler.class);
 	public UntarRequestHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -37,6 +39,7 @@ public class UntarRequestHandler extends UserRequestHandler
         super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -109,9 +112,7 @@ public class UntarRequestHandler extends UserRequestHandler
 
         boolean dirCreated = false;
         
-        try {
-            TarInputStream tarFile = new TarInputStream(new FileInputStream(filePath));
-
+        try (TarInputStream tarFile = new TarInputStream(new FileInputStream(filePath))){
             TarEntry tarEntry = null;
 
             byte buff[] = new byte[4096];
@@ -127,10 +128,7 @@ public class UntarRequestHandler extends UserRequestHandler
                 File untarOutFile = createUntarFile(tarEntry.getName());
 
                 if (!(untarOutFile.isDirectory())) {
-                    FileOutputStream destination = null;
-                    try {
-                        destination = new FileOutputStream(untarOutFile);
-
+                    try (FileOutputStream destination = new FileOutputStream(untarOutFile)){
                         boolean done = false;
                         while (!done) {
                             int bytesRead = tarFile.read(buff);
@@ -144,7 +142,7 @@ public class UntarRequestHandler extends UserRequestHandler
 
                         destination.close();
                     } catch (IOException ioex) {
-                        Logger.getLogger(getClass()).error("untar error in file " + untarOutFile, ioex);
+                        logger.error("untar error in file " + untarOutFile, ioex);
 
                         output.println("<font class=\"error\">");
                         output.println(getResource("label.untarError", "Failed to extract from TAR archive") + ": " + untarOutFile);
@@ -152,9 +150,6 @@ public class UntarRequestHandler extends UserRequestHandler
                         untarOkay = false; 
                         
                         try {
-                            if (destination != null) {
-                                destination.close();
-                            }
                             untarOutFile.delete(); 
                         } catch (Exception ex) {
                         }
@@ -168,7 +163,7 @@ public class UntarRequestHandler extends UserRequestHandler
             
             tarFile.close();
         } catch (IOException ioex) {
-            Logger.getLogger(getClass()).error("failed to extract from tar archive", ioex);
+            logger.error("failed to extract from tar archive", ioex);
 
             output.println("<font class=\"error\">");
             output.println(getResource("label.untarError", "Failed to extract from TAR archive"));
@@ -274,7 +269,7 @@ public class UntarRequestHandler extends UserRequestHandler
             }
 
             if (!dir.mkdirs()) {
-                Logger.getLogger(getClass()).error(
+                logger.error(
                         "Cannot create output directory " + dir);
             }
             return (tarOutFile);

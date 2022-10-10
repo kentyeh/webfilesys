@@ -16,7 +16,7 @@ public class FileSelectionStatus
     private String lastFileName;
     
 	/** The start indices of all pages. */
-	private ArrayList<Integer> pageStartIndices;
+	private final ArrayList<Integer> pageStartIndices;
 	
 	private long fileSizeSum = 0;
 	
@@ -32,7 +32,7 @@ public class FileSelectionStatus
         isLastPage=false;
         firstFileName=null;
         lastFileName=null;
-        pageStartIndices = new ArrayList<Integer>();
+        pageStartIndices = new ArrayList<>();
     }
 
     public void setSelectedFiles(ArrayList<FileContainer> newList)
@@ -55,7 +55,7 @@ public class FileSelectionStatus
     
     public ArrayList<FileContainer> getRandomizedFiles() {
     	
-    	ArrayList<FileContainer> randomizedList = new ArrayList<FileContainer>();
+    	ArrayList<FileContainer> randomizedList = new ArrayList<>();
     	
     	while (selectedFiles.size() > 0) {
     		int randomIdx = randomInt(selectedFiles.size());
@@ -169,7 +169,7 @@ public class FileSelectionStatus
 	 */
 	public void addStartIndex(int startIndex) 
 	{
-		pageStartIndices.add(new Integer(startIndex));
+		pageStartIndices.add(startIndex);
 	}
 
     public ArrayList<Integer> getPageStartIndices()

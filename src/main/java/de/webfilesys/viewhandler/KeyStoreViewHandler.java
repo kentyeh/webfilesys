@@ -23,10 +23,10 @@ import javax.security.auth.x500.X500Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.ViewHandlerConfig;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Show the content of Java keystore files.
@@ -35,8 +35,9 @@ import de.webfilesys.util.CommonUtils;
  */
 public class KeyStoreViewHandler implements ViewHandler {
 	
-	private static Logger LOG = Logger.getLogger(KeyStoreViewHandler.class);
+	private static final Logger logger = LogManager.getLogger(KeyStoreViewHandler.class);
 	
+        @Override
 	public void process(String filePath, ViewHandlerConfig viewHandlerConfig, HttpServletRequest req,
 			HttpServletResponse resp) {
 
@@ -59,11 +60,9 @@ public class KeyStoreViewHandler implements ViewHandler {
 
 			output.println("<div style=\"font-family:Arial,Helvetica;font-size:16px;color:navy;margin-bottom:16px\">Contents of keystore " + CommonUtils.extractFileName(filePath) + "</div>");
 			
-		    FileInputStream fis = null;
-		    try {
+		    try (FileInputStream fis = new java.io.FileInputStream(filePath)){
 			    KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
 
-		        fis = new java.io.FileInputStream(filePath);
 		        keyStore.load(fis, keyStorePassword.toCharArray());
 		        
 		        Enumeration<String> aliases = keyStore.aliases();
@@ -75,7 +74,7 @@ public class KeyStoreViewHandler implements ViewHandler {
 		        	empty = false;
 		        }
 
-                ArrayList<String> sortList = new ArrayList<String>();
+                ArrayList<String> sortList = new ArrayList<>();
                 
 		        while (aliases.hasMoreElements()) {
 		            sortList.add(aliases.nextElement());
@@ -97,8 +96,8 @@ public class KeyStoreViewHandler implements ViewHandler {
                     } catch (UnrecoverableKeyException ukEx) {
     		        	try {
     		        		entry = keyStore.getEntry(alias,  new KeyStore.PasswordProtection(keyStorePassword.toCharArray()));
-    		        	} catch (Exception ex) {
-    		        		LOG.warn("failed to determine type of keystore entry", ex);
+    		        	} catch (NoSuchAlgorithmException | UnrecoverableEntryException | KeyStoreException ex) {
+    		        		logger.warn("failed to determine type of keystore entry", ex);
     		        	}
                     }
 		        	
@@ -125,9 +124,7 @@ public class KeyStoreViewHandler implements ViewHandler {
 			        	
 			        	try {
 			        	    x509Cert.checkValidity();
-			        	} catch (CertificateExpiredException expEx) {
-			        		valid = false;
-			        	} catch (CertificateNotYetValidException nyvEx) {
+			        	} catch (CertificateExpiredException | CertificateNotYetValidException expEx) {
 			        		valid = false;
 			        	}
 			        	
@@ -152,35 +149,16 @@ public class KeyStoreViewHandler implements ViewHandler {
 		        if (!empty) {
 		        	output.println("</table>");
 		        }
-		    } catch (KeyStoreException keyEx) {
-		    	LOG.warn("failed to load keystore " + filePath, keyEx);
+		    } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException | UnrecoverableEntryException keyEx) {
+		    	logger.warn("failed to load keystore " + filePath, keyEx);
 		    	output.println("failed to load keystore: " + keyEx);
-		    } catch (CertificateException certEx) {
-		    	LOG.warn("failed to load keystore " + filePath, certEx);
-		    	output.println("failed to load keystore: " + certEx);
-		    } catch (NoSuchAlgorithmException nsaEx) {
-		    	LOG.warn("failed to load keystore " + filePath, nsaEx);
-		    	output.println("failed to load keystore: " + nsaEx);
-		    } catch (IOException ioEx) {
-		    	LOG.warn("failed to load keystore " + filePath, ioEx);
-		    	output.println("failed to load keystore: " + ioEx);
-			} catch (UnrecoverableEntryException ueEx) {
-		    	LOG.warn("failed to load keystore " + filePath, ueEx);
-		    	output.println("failed to load keystore: " + ueEx);
-			} finally {
-		        if (fis != null) {
-		        	try {
-			            fis.close();
-		        	} catch (Exception ex) {
-		        	}
-		        }
 		    }
 
 		    output.println("</body>");
 			output.println("</html>");
 			output.flush();
 		} catch (IOException ex) {
-	    	LOG.warn("failed to list keystore content" + filePath, ex);
+	    	logger.warn("failed to list keystore content" + filePath, ex);
 		}
 	}
 
@@ -203,7 +181,7 @@ public class KeyStoreViewHandler implements ViewHandler {
 			output.println("</html>");
 			output.flush();
 		} catch (IOException e) {
-			Logger.getLogger(getClass()).error("failed to send keystore password prompt",e);
+			logger.error("failed to send keystore password prompt",e);
 		}		
 	}
 
@@ -213,10 +191,12 @@ public class KeyStoreViewHandler implements ViewHandler {
 	 * 
 	 * @return true if reading from ZIP archive is supported, otherwise false
 	 */
+        @Override
 	public boolean supportsZipContent() {
 		return false;
 	}
 
+        @Override
 	public void processZipContent(String fileName, InputStream zipIn, ViewHandlerConfig viewHandlerConfig,
 			HttpServletRequest req, HttpServletResponse resp) {
 		// ZIP not supported

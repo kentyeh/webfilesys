@@ -8,25 +8,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.ClipBoard;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CheckPasteOverwriteHandler extends XmlRequestHandlerBase {
 	
-    private static final Logger LOG = Logger.getLogger(CheckPasteOverwriteHandler.class);
+    private static final Logger logger = LogManager.getLogger(CheckPasteOverwriteHandler.class);
 	
 	public CheckPasteOverwriteHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
 			PrintWriter output, String uid) {
 		super(req, resp, session, output, uid);
 	}
 
+        @Override
 	protected void process() {
 		if (!checkWriteAccess()) {
 			return;
@@ -46,7 +48,7 @@ public class CheckPasteOverwriteHandler extends XmlRequestHandlerBase {
 		
 		if (clipBoard == null) {
 			// should never happen
-			LOG.warn("paste request for empty clipboard for path " + path);
+			logger.warn("paste request for empty clipboard for path " + path);
             return;
 		}
 		
@@ -55,7 +57,7 @@ public class CheckPasteOverwriteHandler extends XmlRequestHandlerBase {
 		boolean targetEqualsSource = false;
 		boolean targetIsSubOfSource = false;
 		
-		ArrayList<String> conflictingFiles = new ArrayList<String>();
+		ArrayList<String> conflictingFiles = new ArrayList<>();
 		
 		ArrayList<String> clipFiles = clipBoard.getAllFiles();
 

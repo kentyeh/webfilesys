@@ -3,13 +3,10 @@ package de.webfilesys;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Hashtable;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -17,12 +14,16 @@ import org.xml.sax.SAXException;
 
 import de.webfilesys.util.PatternComparator;
 import de.webfilesys.util.XmlUtil;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ViewHandlerManager 
 {
+    private static final Logger logger = LogManager.getLogger(ViewHandlerManager.class);
 	private static final String CONFIG_FILE_NAME = "viewHandler.xml";
 	
-	private Hashtable viewHandlerMap = null;
+	private ConcurrentHashMap<String,ViewHandlerConfig> viewHandlerMap = null;
 	
 	private static ViewHandlerManager manager = null;
 	
@@ -42,7 +43,7 @@ public class ViewHandlerManager
 	
 	private ViewHandlerManager()
 	{
-		viewHandlerMap = new Hashtable();
+		viewHandlerMap = new ConcurrentHashMap<>();
 		
 		registerViewHandlers();
 	}
@@ -66,7 +67,7 @@ public class ViewHandlerManager
 
                 if (handlerList == null)
                 {
-                	Logger.getLogger(getClass()).debug("no view handler defined in registry");
+                	logger.debug("no view handler defined in registry");
                     return;
                 }
 
@@ -124,20 +125,20 @@ public class ViewHandlerManager
                         		
                                 viewHandlerMap.put(pattern, handlerConfig);        
 
-                                Logger.getLogger(getClass()).info("registering view handler for file pattern " + pattern + ": " + handlerConfig.getHandlerClass());
+                                logger.info("registering view handler for file pattern " + pattern + ": " + handlerConfig.getHandlerClass());
                         	}
                         }
                     }
                     catch (ClassNotFoundException cnfex)
                     {
-                    	Logger.getLogger(getClass()).error("view handler class not found: " + handlerClass);
+                    	logger.error("view handler class not found: " + handlerClass);
                     }
                 }
             }
         }
         catch (ParserConfigurationException pcex)
         {
-        	Logger.getLogger(getClass()).error(pcex.toString());
+        	logger.error(pcex.toString());
         }
 	}
 	
@@ -147,7 +148,7 @@ public class ViewHandlerManager
 
        if ((!configFile.exists()) || (!configFile.canRead()))
        {
-    	   Logger.getLogger(getClass()).debug("view handler config file does not exist");
+    	   logger.debug("view handler config file does not exist");
     	   
            return(null);
        }
@@ -165,7 +166,7 @@ public class ViewHandlerManager
            configFileUrl = "file:///" + absoluteFileName;
        }
 
-       Logger.getLogger(getClass()).info("reading view handler config from URL " + configFileUrl);
+       logger.info("reading view handler config from URL " + configFileUrl);
 
        doc = null;
 
@@ -173,13 +174,9 @@ public class ViewHandlerManager
        {
            doc = builder.parse(configFileUrl);
        }
-       catch (SAXException saxex)
+       catch (SAXException | IOException saxex)
        {
-    	   Logger.getLogger(getClass()).error("cannot load view handler config: " + saxex);
-       }
-       catch (IOException ioex)
-       {
-    	   Logger.getLogger(getClass()).error("cannot load view handler config: " + ioex);
+    	   logger.error("cannot load view handler config: " + saxex);
        }
 
        if (doc == null)

@@ -13,11 +13,12 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.log4j.Logger;
 
 import com.ctc.wstx.exc.WstxParsingException;
 
 import de.webfilesys.util.ISO8601DateParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Delivers data extracted from GPX track as JSON.
@@ -26,7 +27,9 @@ import de.webfilesys.util.ISO8601DateParser;
  */
 public class GPXTrackHandler extends UserRequestHandler {
 
-	private static final int DISTANCE_SMOOTH_FACTOR = 12;
+    private static final Logger logger = LogManager.getLogger(GPXTrackHandler.class);
+
+    private static final int DISTANCE_SMOOTH_FACTOR = 12;
 	
 	private static final int SPEED_SMOOTH_FACTOR = 5;
 	
@@ -246,7 +249,7 @@ public class GPXTrackHandler extends UserRequestHandler {
 											}
 										} catch (NumberFormatException numEx) {
 											dataInvalid = true;
-											Logger.getLogger(getClass()).debug(numEx, numEx);
+											logger.debug(numEx, numEx);
 										}
 									}
 								}
@@ -327,7 +330,7 @@ public class GPXTrackHandler extends UserRequestHandler {
 										}
 										output.print(",\n\"recordedSpeed\": \"" + smoothedRecordedSpeed + "\"");
 									} catch (NumberFormatException ex) {
-										Logger.getLogger(getClass()).warn("invalid speed value: " + recordedSpeed, ex);
+										logger.warn("invalid speed value: " + recordedSpeed, ex);
 										output.print(",\n\"recordedSpeed\": \"" + recordedSpeed + "\"");
 									}
 								}
@@ -449,7 +452,7 @@ public class GPXTrackHandler extends UserRequestHandler {
 
 										prevTime = trackPointTime;
 									} catch (Exception ex) {
-										Logger.getLogger(getClass()).error(ex, ex);
+										logger.error(ex, ex);
 
 										prevTime = 0L;
 									}
@@ -464,10 +467,10 @@ public class GPXTrackHandler extends UserRequestHandler {
 						
 						break;
 					default:
-						// Logger.getLogger(getClass()).debug("unhandled event: " + event);
+						// logger.debug("unhandled event: " + event);
 					}
 				} catch (WstxParsingException epex) {
-					Logger.getLogger(getClass()).warn("GPX parsing error", epex);
+					logger.warn("GPX parsing error", epex);
 					fatalError = true;
 				}
 			}
@@ -479,19 +482,19 @@ public class GPXTrackHandler extends UserRequestHandler {
 			output.flush();
 			
 			if (dataInvalid) {
-			    Logger.getLogger(getClass()).warn("GPX file contains invalid data: " + filePath);
+			    logger.warn("GPX file contains invalid data: " + filePath);
 			}
 			
 			if (invalidTime) {
-				Logger.getLogger(getClass()).warn(
+				logger.warn(
 						"invalid trkpt time (before previous timestamp) in GPX file: " + filePath);
 			}
 		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error("failed to read target file", ioex);
+			logger.error("failed to read target file", ioex);
 		} catch (XMLStreamException xmlEx) {
-			Logger.getLogger(getClass()).error("error parsing XML stream", xmlEx);
+			logger.error("error parsing XML stream", xmlEx);
 		} catch (Exception e) {
-			Logger.getLogger(getClass()).error("failed to transform GPX file", e);
+			logger.error("failed to transform GPX file", e);
 		} finally {
 			if (gpxReader != null) {
 				try {

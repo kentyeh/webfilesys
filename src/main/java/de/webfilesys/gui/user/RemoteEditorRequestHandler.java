@@ -11,14 +11,16 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class RemoteEditorRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(RemoteEditorRequestHandler.class);
 	public static final int MAX_FILE_SIZE = 512000;
 	
 	public static String SESSION_KEY_FILE_ENCODING = "fileEncoding";
@@ -121,25 +123,19 @@ public class RemoteEditorRequestHandler extends UserRequestHandler
 			String fileEncoding = guessFileEncoding(editFile);
 			
 			if (fileEncoding != null) {
-			    Logger.getLogger(getClass()).debug("reading editor file " + editFile + " with character encoding " + fileEncoding);
+			    logger.debug("reading editor file " + editFile + " with character encoding " + fileEncoding);
 			}
 			
 			boolean readError = false;
 			
-			BufferedReader fin = null;
-
-			try
+			try (FileInputStream fis = new FileInputStream(editFile);
+                                BufferedReader fin = fileEncoding == null?new BufferedReader(new FileReader(editFile))
+                                        :new BufferedReader(new InputStreamReader(fis, fileEncoding)))
 			{
-				if (fileEncoding == null) 
-				{
-				    // unknown - use OS default encoding
-	                fin = new BufferedReader(new FileReader(editFile));
-				}
-				else 
+				if (fileEncoding != null) 
 				{
 				    req.getSession(true).setAttribute(SESSION_KEY_FILE_ENCODING, fileEncoding);
 				    
-		            FileInputStream fis = new FileInputStream(editFile);
 		            
 		            if (fileEncoding.equals("UTF-8-BOM")) {
                         // skip over BOM
@@ -149,7 +145,6 @@ public class RemoteEditorRequestHandler extends UserRequestHandler
                         fileEncoding = "UTF-8";
 		            }
 		            
-                    fin = new BufferedReader(new InputStreamReader(fis, fileEncoding));
 				}
 
 				String line = null;
@@ -163,11 +158,10 @@ public class RemoteEditorRequestHandler extends UserRequestHandler
 
 				output.println();
 
-				fin.close();
 			}
 			catch (IOException ioex)
 			{
-				Logger.getLogger(getClass()).error("cannot read file for remote editing", ioex);
+				logger.error("cannot read file for remote editing", ioex);
 				readError = true;
 			}
 
@@ -218,7 +212,7 @@ public class RemoteEditorRequestHandler extends UserRequestHandler
 		}
 		*/
 
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 
 		for (int i = 0; i < line.length(); i++)
 		{

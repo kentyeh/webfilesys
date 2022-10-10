@@ -3,7 +3,7 @@ package de.webfilesys;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-public class Paging
+public final class Paging<E>
 {
     public static final String PARAM_PAGE_SIZE   = "pageSize";
     public static final String PARAM_START_INDEX = "startIndex";
@@ -41,7 +41,7 @@ public class Paging
 
     ArrayList<Integer> pageStartIndices = null;
 
-    ArrayList<Object> elementsOnPage=null;
+    ArrayList<E> elementsOnPage=null;
 
     String listServletClass=null;
 
@@ -54,22 +54,22 @@ public class Paging
         endIndex=0;
         nextStartIndex=0;
         prevStartIndex=0;
-        pageStartIndices = new ArrayList<Integer>();
+        pageStartIndices = new ArrayList<>();
         listServletClass=null;
     }
 
-    public Paging(ArrayList<?> elementList, int pageSize, int startIdx)
+    public Paging(ArrayList<E> elementList, int pageSize, int startIdx)
     {
         init();
 
         preparePaging(elementList, pageSize, startIdx);
     }
 
-    public Paging(Enumeration elementList, int pageSize, int startIdx)
+    public Paging(Enumeration<E> elementList, int pageSize, int startIdx)
     {
         init();
 
-        ArrayList<Object> elements = new ArrayList<Object>();
+        ArrayList<E> elements = new ArrayList<>();
 
         while (elementList.hasMoreElements())
         {
@@ -79,7 +79,7 @@ public class Paging
         preparePaging(elements, pageSize, startIdx);
     }
 
-    public void preparePaging(ArrayList<?> elementList, int pageSize, int startIdx)
+    public void preparePaging(ArrayList<E> elementList, int pageSize, int startIdx)
     {
         if (startIdx > (elementList.size()-1)) {
             // element(s) removed from list - locate the previous page begin index
@@ -143,7 +143,7 @@ public class Paging
             setPrevStartIndex(0);
         }
 
-        elementsOnPage = new ArrayList<Object>();
+        elementsOnPage = new ArrayList<>();
 
         for (int i=startIdx;i<=endIdx;i++)
         {
@@ -238,7 +238,7 @@ public class Paging
 
     public void addStartIndex(int startIndex)
     {
-        pageStartIndices.add(new Integer(startIndex));
+        pageStartIndices.add(startIndex);
     }
 
     public ArrayList<Integer> getStartIndices()
@@ -253,7 +253,7 @@ public class Paging
     }
     */
 
-    public ArrayList<Object> getElementList()
+    public ArrayList<E> getElementList()
     {
         return(elementsOnPage);
     }

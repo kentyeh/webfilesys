@@ -8,18 +8,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Comment;
 import de.webfilesys.InvitationManager;
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.gui.user.UserRequestHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AddAlbumCommentHandler extends UserRequestHandler
 {
+    	private static final Logger logger = LogManager.getLogger(AddAlbumCommentHandler.class);
 	protected HttpServletRequest req = null;
 
 	protected HttpServletResponse resp = null;
@@ -54,7 +56,7 @@ public class AddAlbumCommentHandler extends UserRequestHandler
 			
 		if (!InvitationManager.getInstance().commentsAllowed(uid))
 		{
-			Logger.getLogger(getClass()).warn("attempt to add comments for " + actPath + " from virtual user " + uid + " without permission");
+			logger.warn("attempt to add comments for " + actPath + " from virtual user " + uid + " without permission");
 			return;
 		}
 

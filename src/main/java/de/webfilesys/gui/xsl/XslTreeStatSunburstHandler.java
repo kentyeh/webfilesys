@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -17,12 +16,15 @@ import org.w3c.dom.ProcessingInstruction;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslTreeStatSunburstHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslTreeStatSunburstHandler.class);
     private DecimalFormat numFormat = new DecimalFormat("#,###,###,###,###");
     
     private int depthOfTree;
@@ -54,7 +56,7 @@ public class XslTreeStatSunburstHandler extends XslRequestHandlerBase
         File dirFile = new File(path);
         if ((!dirFile.exists()) || (!dirFile.isDirectory()))
         {
-		    Logger.getLogger(getClass()).warn("folder is not a readable directory: " + path);
+		    logger.warn("folder is not a readable directory: " + path);
             return;
         }
 		
@@ -114,17 +116,14 @@ public class XslTreeStatSunburstHandler extends XslRequestHandlerBase
         
         if (fileList != null)
         {
-            for (int i = 0; i < fileList.length; i++)
-            {
-            	File file = fileList[i];
-            	
+            for (File file : fileList) {
                 if (file.isDirectory())
                 {
-            		Element folderElem = doc.createElement("folder");
-
-            		folderElem.setAttribute("name", file.getName().replace('\'', '_'));
-            		folderElem.setAttribute("shortName", CommonUtils.shortName(file.getName(), 23).replace('\'', '_'));
-            		
+                    Element folderElem = doc.createElement("folder");
+                    
+                    folderElem.setAttribute("name", file.getName().replace('\'', '_'));
+                    folderElem.setAttribute("shortName", CommonUtils.shortName(file.getName(), 23).replace('\'', '_'));
+                    
                     if (level > depthOfTree) 
                     {
                         depthOfTree = level;
@@ -133,36 +132,36 @@ public class XslTreeStatSunburstHandler extends XslRequestHandlerBase
                     // long subFolderTreeSize = processFolder(folderElem, file.getAbsolutePath(), level + 1);
 
                     FolderInfo subTreeInfo = processFolder(folderElem, file.getAbsolutePath(), level + 1);
-
+                    
                     if (level == 1) 
                     {
-                    	// insert sort for folders of first level
-                		NodeList folderList = parentFolderElem.getChildNodes();
+                        // insert sort for folders of first level
+                        NodeList folderList = parentFolderElem.getChildNodes();
                         
-                		int listLength = folderList.getLength();
-                		
-            			boolean inserted = false;
-            			for (int k = 0; (!inserted) && (k < listLength); k++) 
-            			{
-            				Node childNode = folderList.item(k);
-            				if (childNode instanceof Element)
-            				{
-            					Element compElem = (Element) childNode;
-            					if (compElem.getTagName().equals("folder"))
-            					{
-                    				long compSize = Long.parseLong(compElem.getAttribute("treeSize"));
-                    				if (subTreeInfo.getTreeFileSize() > compSize)
-                    				{
-                    					parentFolderElem.insertBefore(folderElem, compElem);
-                    					inserted = true;
-                    				}
-            					}
-            				}
-            			}
-            			if (!inserted) 
-            			{
+                        int listLength = folderList.getLength();
+                        
+                        boolean inserted = false;
+                        for (int k = 0; (!inserted) && (k < listLength); k++)
+                        {
+                            Node childNode = folderList.item(k);
+                            if (childNode instanceof Element)
+                            {
+                                Element compElem = (Element) childNode;
+                                if (compElem.getTagName().equals("folder"))
+                                {
+                                    long compSize = Long.parseLong(compElem.getAttribute("treeSize"));
+                                    if (subTreeInfo.getTreeFileSize() > compSize)
+                                    {
+                                        parentFolderElem.insertBefore(folderElem, compElem);
+                                        inserted = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (!inserted)
+                        {
                             parentFolderElem.appendChild(folderElem);
-            			}
+                        }
                     }
                     else
                     {
@@ -177,17 +176,17 @@ public class XslTreeStatSunburstHandler extends XslRequestHandlerBase
                 {
                     if (file.isFile())
                     {
-                    	// folderTreeSize += file.length();
-                    	treeInfo.addTreeFileSize(file.length());
-                    	treeInfo.addTreeFileNum(1);
-
-                    	if (level == 1) 
-                    	{
-                    		rootFileSize += file.length();
-                    		rootFileNum++;
-                    	}
-                    	
-                    	treeFileNum++;
+                        // folderTreeSize += file.length();
+                        treeInfo.addTreeFileSize(file.length());
+                        treeInfo.addTreeFileNum(1);
+                        
+                        if (level == 1)
+                        {
+                            rootFileSize += file.length();
+                            rootFileNum++;
+                        }
+                        
+                        treeFileNum++;
                     }
                 }
             }

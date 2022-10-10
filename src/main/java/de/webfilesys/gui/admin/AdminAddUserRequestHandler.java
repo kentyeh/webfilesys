@@ -6,18 +6,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
 import de.webfilesys.mail.EmailUtils;
 import de.webfilesys.user.TransientUser;
 import de.webfilesys.user.UserMgmtException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AdminAddUserRequestHandler extends AdminRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(AdminAddUserRequestHandler.class);
 	public AdminAddUserRequestHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -28,9 +29,10 @@ public class AdminAddUserRequestHandler extends AdminRequestHandler
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process()
 	{
-		StringBuffer errorMsg=new StringBuffer();
+		StringBuilder errorMsg=new StringBuilder();
 
 		String login=getParameter("username");
 
@@ -132,7 +134,7 @@ public class AdminAddUserRequestHandler extends AdminRequestHandler
 
 				if ((!docRootFile.exists()) || (!docRootFile.isDirectory()))
 				{
-					errorMsg.append("the document root directory " + insertDoubleBackslash(documentRoot) + " does not exist\\n");
+					errorMsg.append("the document root directory ").append(insertDoubleBackslash(documentRoot)).append(" does not exist\\n");
 				}
 			}
 		}
@@ -185,7 +187,7 @@ public class AdminAddUserRequestHandler extends AdminRequestHandler
 
 		if (userMgr.userExists(login))
 		{
-			errorMsg.append("user " + login + " already exists");
+			errorMsg.append("user ").append(login).append(" already exists");
 
 			(new AdminRegisterUserRequestHandler(req, resp, session, output, uid, errorMsg.toString())).handleRequest(); 
 
@@ -216,8 +218,8 @@ public class AdminAddUserRequestHandler extends AdminRequestHandler
 		try {
 			userMgr.createUser(newUser);
 		} catch (UserMgmtException ex) {
-        	Logger.getLogger(getClass()).warn("failed to create new user " + newUser.getUserid(), ex);
-			errorMsg.append("failed to create new user " + newUser.getUserid());
+        	logger.warn("failed to create new user " + newUser.getUserid(), ex);
+			errorMsg.append("failed to create new user ").append(newUser.getUserid());
 			(new AdminRegisterUserRequestHandler(req, resp, session, output, uid, errorMsg.toString())).handleRequest(); 
 			return;
 		}

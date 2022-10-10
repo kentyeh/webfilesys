@@ -6,18 +6,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Constants;
 import de.webfilesys.DirTreeStatus;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XmlCollapseDirHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XmlCollapseDirHandler.class);
 	public XmlCollapseDirHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -39,7 +41,7 @@ public class XmlCollapseDirHandler extends XmlRequestHandlerBase
 		
 		if (!accessAllowed(collapsePath))
 		{
-			Logger.getLogger(getClass()).warn("user " + this.getUid() + " tried to access directory outside the home directory: " + collapsePath);
+			logger.warn("user " + this.getUid() + " tried to access directory outside the home directory: " + collapsePath);
 			
             // todo: create "access denied" XML response before returning
 			

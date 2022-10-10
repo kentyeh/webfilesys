@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.Constants;
@@ -23,12 +22,15 @@ import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslDirTreeHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslDirTreeHandler.class);
 	protected int dirCounter;
 	protected int currentDirNum;
 	
@@ -99,7 +101,7 @@ public class XslDirTreeHandler extends XslRequestHandlerBase
         String viewModeParam = getParameter("viewMode");
         if (!CommonUtils.isEmpty(viewModeParam)) {
         	try {
-    			session.setAttribute("viewMode", new Integer(Integer.parseInt(viewModeParam)));
+    			session.setAttribute("viewMode", Integer.parseInt(viewModeParam));
         	} catch (Exception ex) {
         	}
         }
@@ -150,7 +152,7 @@ public class XslDirTreeHandler extends XslRequestHandlerBase
 
 		if (fileList == null)
 		{
-			Logger.getLogger(getClass()).warn("filelist is null for " + partOfPath);
+			logger.warn("filelist is null for " + partOfPath);
 			
 			dirTreeStatus.collapseDir(partOfPath);
 			return;
@@ -170,7 +172,7 @@ public class XslDirTreeHandler extends XslRequestHandlerBase
 			pathWithSlash = partOfPath + File.separator;
 		}
 
-		ArrayList<String> subdirList = new ArrayList<String>();
+		ArrayList<String> subdirList = new ArrayList<>();
 
 		for (File file : fileList) {
 		
@@ -193,7 +195,7 @@ public class XslDirTreeHandler extends XslRequestHandlerBase
 			}
 		}
 
-		if (subdirList.size() == 0) {
+		if (subdirList.isEmpty()) {
 			return;
 		}
 
@@ -203,110 +205,103 @@ public class XslDirTreeHandler extends XslRequestHandlerBase
 
 		DecorationManager decoMgr = DecorationManager.getInstance();
 		
-		for (int i=0;i<subdirList.size();i++)
-		{
-			String subdirPath=(String) subdirList.get(i);
-
-			boolean access = (belowDocRoot || accessAllowed(subdirPath));
-
-            Element parentForSubdirs = parentFolder;
-
-			Element folderElement = null;
-
-			if (access)
-			{
-				dirCounter++;
-				
-				Integer subdirExist = SubdirExistCache.getInstance().existsSubdir(subdirPath);
-
-				if (subdirExist == null)
-				{
-			        SubdirExistTester.getInstance().queuePath(subdirPath, 1, false);	        
-				}
-
-                folderElement = doc.createElement("folder");
-                
-                parentFolder.appendChild(folderElement);
-                
-                String folderName = subdirPath.substring(subdirPath.lastIndexOf(File.separatorChar) + 1);
-                
-				folderElement.setAttribute("name", folderName);                
-
-				folderElement.setAttribute("id", Integer.toString(dirCounter));
-
-				String encodedPath = null;
-				
-	            if (subdirPath.indexOf('\'') > 0) {
-	                encodedPath = UTF8URLEncoder.encode(subdirPath.replace('\'', '`'));
-	            } else {
-	                encodedPath = UTF8URLEncoder.encode(subdirPath);
-	            }
-				
-				folderElement.setAttribute("path", encodedPath);      
-
-				folderElement.setAttribute("menuPath", insertDoubleBackslash(subdirPath));  
-				
-				if (subdirExist == null) {
-					folderElement.setAttribute("leaf", "unknown");    
-				} else if (subdirExist.intValue() != 1) {
-					folderElement.setAttribute("leaf", "true");    
-				}
-
-				if (subdirPath.equals(actPath))
-				{
-					currentDirNum = dirCounter;
-					
-					folderElement.setAttribute("current","true");
-				}
-				
-				if (subdirPath.replace('\\','/').equals(docRoot)) {
-					folderElement.setAttribute("root", "true");
-				}
-				
-				Decoration deco = decoMgr.getDecoration(subdirPath);
-				
-				if (deco != null) 
-				{
-					if (deco.getIcon() != null) 
-					{
-		                folderElement.setAttribute("icon", deco.getIcon());
-					}
-					if (deco.getTextColor() != null) 
-					{
-		                folderElement.setAttribute("textColor", deco.getTextColor());
-					}
-				}
-				
-				if (File.separatorChar=='/')
-				{
-		            // there is no way to detect NTFS symbolic links / junctions with Java functions
-		            // see http://stackoverflow.com/questions/3249117/cross-platform-way-to-detect-a-symbolic-link-junction-point
-	                
-				    File linkTestFile = new File(subdirPath);
-
-	                if (dirIsLink(linkTestFile))
-	                {
-	                    try
-	                    {
-	                        folderElement.setAttribute("link", "true");
-	                    
-	                        folderElement.setAttribute("linkDir", linkTestFile.getCanonicalPath());
-	                    }
-	                    catch (IOException ioex)
-	                    {
-	                        Logger.getLogger(getClass()).error(ioex);
-	                    }
-	                }
-				}
-				
-				parentForSubdirs = folderElement;
-			}
-
-			if (dirTreeStatus.dirExpanded(subdirPath))
+            for (String subdirPath : subdirList) {
+                boolean access = (belowDocRoot || accessAllowed(subdirPath));
+                Element parentForSubdirs = parentFolder;
+                Element folderElement = null;
+                if (access)
+                {
+                    dirCounter++;
+                    
+                    Integer subdirExist = SubdirExistCache.getInstance().existsSubdir(subdirPath);
+                    
+                    if (subdirExist == null)
+                    {
+                        SubdirExistTester.getInstance().queuePath(subdirPath, 1, false);
+                    }
+                    
+                    folderElement = doc.createElement("folder");
+                    
+                    parentFolder.appendChild(folderElement);
+                    
+                    String folderName = subdirPath.substring(subdirPath.lastIndexOf(File.separatorChar) + 1);
+                    
+                    folderElement.setAttribute("name", folderName);
+                    
+                    folderElement.setAttribute("id", Integer.toString(dirCounter));
+                    
+                    String encodedPath = null;
+                    
+                    if (subdirPath.indexOf('\'') > 0) {
+                        encodedPath = UTF8URLEncoder.encode(subdirPath.replace('\'', '`'));
+                    } else {
+                        encodedPath = UTF8URLEncoder.encode(subdirPath);
+                    }
+                    
+                    folderElement.setAttribute("path", encodedPath);
+                    
+                    folderElement.setAttribute("menuPath", insertDoubleBackslash(subdirPath));
+                    
+                    if (subdirExist == null) {
+                        folderElement.setAttribute("leaf", "unknown");
+                    } else if (subdirExist != 1) {
+                        folderElement.setAttribute("leaf", "true");
+                    }
+                    
+                    if (subdirPath.equals(actPath))
+                    {
+                        currentDirNum = dirCounter;
+                        
+                        folderElement.setAttribute("current","true");
+                    }
+                    
+                    if (subdirPath.replace('\\','/').equals(docRoot)) {
+                        folderElement.setAttribute("root", "true");
+                    }
+                    
+                    Decoration deco = decoMgr.getDecoration(subdirPath);
+                    
+                    if (deco != null)
+                    {
+                        if (deco.getIcon() != null)
+                        {
+                            folderElement.setAttribute("icon", deco.getIcon());
+                        }
+                        if (deco.getTextColor() != null)
+                        {
+                            folderElement.setAttribute("textColor", deco.getTextColor());
+                        }
+                    }
+                    
+                    if (File.separatorChar=='/')
+                    {
+                        // there is no way to detect NTFS symbolic links / junctions with Java functions
+                        // see http://stackoverflow.com/questions/3249117/cross-platform-way-to-detect-a-symbolic-link-junction-point
+                        
+                        File linkTestFile = new File(subdirPath);
+                        
+                        if (dirIsLink(linkTestFile))
+                        {
+                            try
+                            {
+                                folderElement.setAttribute("link", "true");
+                                
+                                folderElement.setAttribute("linkDir", linkTestFile.getCanonicalPath());
+                            }
+                            catch (IOException ioex)
+                            {
+                                logger.error(ioex);
+                            }
+                        }
+                    }
+                    
+                    parentForSubdirs = folderElement;
+                }
+                if (dirTreeStatus.dirExpanded(subdirPath))
 			{
 				dirSubTree(parentForSubdirs, actPath, subdirPath, access);
 			}
-		}
+            }
 	}
 	
 }

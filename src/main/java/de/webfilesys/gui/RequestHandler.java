@@ -6,15 +6,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public abstract class RequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(RequestHandler.class);
 	public static final int BROWSER_MSIE     = 1;
     public static final int BROWSER_NON_MSIE = 2;
 	public static final int BROWSER_MOZILLA  = 3;
@@ -88,7 +89,7 @@ public abstract class RequestHandler
 
 	public String insertDoubleBackslash(String source)
 	{
-		StringBuffer dest=new StringBuffer();
+		StringBuilder dest=new StringBuilder();
 
 		for (int i=0;i<source.length();i++)
 		{
@@ -102,7 +103,7 @@ public abstract class RequestHandler
 
 	public String escapeForJavascript(String source)
 	{
-		StringBuffer dest=new StringBuffer();
+		StringBuilder dest=new StringBuilder();
 
 		for (int i=0;i<source.length();i++)
 		{
@@ -143,7 +144,7 @@ public abstract class RequestHandler
 		
 		if (browserType == null)
 		{
-			Logger.getLogger(getClass()).debug("user agent of browser undefined");
+			logger.debug("user agent of browser undefined");
 			
 			browserType = "";
 			browserManufacturer = BROWSER_NON_MSIE;
@@ -151,39 +152,39 @@ public abstract class RequestHandler
 			return;
 		}
 		
-		if (browserType.indexOf("Opera") >= 0)
+		if (browserType.contains("Opera"))
 		{
 			browserManufacturer = BROWSER_OPERA;
 		}
 		else
 		{
-			if (browserType.indexOf("MSIE") >= 0)
+			if (browserType.contains("MSIE"))
 			{
-				if (browserType.indexOf("MSIE 6.") >= 0)
+				if (browserType.contains("MSIE 6."))
 				{
 					browserVersion = 6;
 				}
-				else if (browserType.indexOf("MSIE 7.") >= 0)
+				else if (browserType.contains("MSIE 7."))
 				{
 					browserVersion = 7;
 				}
-                else if (browserType.indexOf("MSIE 8.") >= 0)
+                else if (       browserType.contains("MSIE 8."))
                 {
                     browserVersion = 8;
                 }
 			}
 			else
 			{
-                if (browserType.indexOf("Chrome") >= 0)
+                if (browserType.contains("Chrome"))
                 {
                     browserManufacturer = BROWSER_GOOGLE;
                     browserVersion = 6;
                 }
-                else if (browserType.indexOf("Safari") >= 0)
+                else if (browserType.contains("Safari"))
                 {
                     browserManufacturer = BROWSER_SAFARI;
                     
-                    if (browserType.indexOf("Mobile") >= 0)
+                    if (browserType.contains("Mobile"))
                     {
                         browserVersion = 0; 
                     }
@@ -192,7 +193,7 @@ public abstract class RequestHandler
                         browserVersion = 6; 
                     }
                 }
-                else if (browserType.indexOf("Gecko") >= 0)
+                else if (browserType.contains("Gecko"))
                 {
                     browserManufacturer = BROWSER_MOZILLA;
                     browserVersion = 6;
@@ -258,7 +259,7 @@ public abstract class RequestHandler
             }
             catch (NumberFormatException numEx)
             {
-                Logger.getLogger(getClass()).warn(numEx);
+                logger.warn(numEx);
             }
         }
         
@@ -267,7 +268,7 @@ public abstract class RequestHandler
             Integer screenWidthFromSession = (Integer) session.getAttribute("screenWidth");
             if (screenWidthFromSession != null) 
             {
-                screenWidth = screenWidthFromSession.intValue();
+                screenWidth = screenWidthFromSession;
             }
         }
         
@@ -293,7 +294,7 @@ public abstract class RequestHandler
             }
             catch (NumberFormatException numEx)
             {
-                Logger.getLogger(getClass()).warn(numEx);
+                logger.warn(numEx);
             }
         }
         
@@ -302,7 +303,7 @@ public abstract class RequestHandler
             Integer screenHeightFromSession = (Integer) session.getAttribute("screenHeight");
             if (screenHeightFromSession != null) 
             {
-                screenHeight = screenHeightFromSession.intValue();
+                screenHeight = screenHeightFromSession;
             }
         }
         

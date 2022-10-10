@@ -14,16 +14,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.MetaInfManager;
 import de.webfilesys.WebFileSys;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class MultiImageDownloadHandler extends MultiImageRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(MultiImageDownloadHandler.class);
 	protected HttpServletResponse resp = null;
 
 	public MultiImageDownloadHandler(
@@ -38,13 +40,14 @@ public class MultiImageDownloadHandler extends MultiImageRequestHandler
 	    this.resp = resp;
 	}
 
+        @Override
 	protected void process()
 	{
 		ArrayList<String> selectedFiles = (ArrayList<String>) session.getAttribute("selectedFiles");
 		
-		if ((selectedFiles == null) || (selectedFiles.size() == 0))
+		if ((selectedFiles == null) || (selectedFiles.isEmpty()))
 		{
-			Logger.getLogger(getClass()).debug("MultiImageDownloadHandler: no files selected");
+			logger.debug("MultiImageDownloadHandler: no files selected");
 			
 			return;
 		}
@@ -53,7 +56,7 @@ public class MultiImageDownloadHandler extends MultiImageRequestHandler
 		
 		if (actPath == null)
 		{
-			Logger.getLogger(getClass()).error("MultiImageDownloadHandler: actPath is null");
+			logger.error("MultiImageDownloadHandler: actPath is null");
 			
 			return;
 		}
@@ -68,61 +71,55 @@ public class MultiImageDownloadHandler extends MultiImageRequestHandler
 		    return;
 		}
 		
-		File tempFile = null;
 		
-		FileInputStream fin = null;
-
 		try
 		{
-			tempFile = File.createTempFile("fmweb",null);
+			File tempFile  = File.createTempFile("fmweb",null);
 			
-			ZipOutputStream zip_out=null;
-
-			zip_out = new ZipOutputStream(new FileOutputStream(tempFile));
-
-			int count=0;
-
-			byte buffer[] = new byte[16192];
-
-			for (String selectedFile : selectedFiles) 
-			{
-				FileInputStream inFile = null;
-				
-				try
-				{
-					zip_out.putNextEntry(new ZipEntry(selectedFile));
-
-					inFile = new FileInputStream(new File(actPath, selectedFile));
-
-					count=0;
-
-					while (( count = inFile.read(buffer)) >= 0 )
-					{
-						zip_out.write(buffer,0,count);
-					}
-				}
-				catch (Exception zioe)
-				{
-					Logger.getLogger(getClass()).warn("failed to add file to temporary zip archive", zioe);
-					return;
-				}
-		        finally 
-		        {
-		        	if (inFile != null) 
-		        	{
-		        		try 
-		        		{
-		        			inFile.close();
-		        		}
-		        		catch (IOException ioex2)
-		        		{
-		        			Logger.getLogger(getClass()).error("failed to close file", ioex2);
-		        		}
-		        	}
+                        int count;
+			byte[] buffer;
+                    try (ZipOutputStream zip_out = new ZipOutputStream(new FileOutputStream(tempFile));
+                            FileInputStream fin = new FileInputStream(tempFile);
+                            OutputStream byteOut = resp.getOutputStream()) {
+                        count = 0;
+                        buffer = new byte[16192];
+                        for (String selectedFile : selectedFiles)
+                        {
+                            FileInputStream inFile = null;
+                            
+                            try
+                            {
+                                zip_out.putNextEntry(new ZipEntry(selectedFile));
+                                
+                                inFile = new FileInputStream(new File(actPath, selectedFile));
+                                
+                                count=0;
+                                
+                                while (( count = inFile.read(buffer)) >= 0 )
+                                {
+                                    zip_out.write(buffer,0,count);
+                                }
+                            }
+                            catch (Exception zioe)
+                            {
+                                logger.warn("failed to add file to temporary zip archive", zioe);
+                                return;
+                            }
+                            finally
+                            {
+                                if (inFile != null)
+                                {
+                                    try
+                                    {
+                                        inFile.close();
+                                    }
+                                    catch (IOException ioex2)
+                                    {
+                                        logger.error("failed to close file", ioex2);
+                                    }
+                                }
 		        }
 			}
-		
-			zip_out.close();
 			
 			resp.setContentType("application/zip");
 
@@ -130,16 +127,12 @@ public class MultiImageDownloadHandler extends MultiImageRequestHandler
 			
 			resp.setContentLength((int) tempFile.length());
 
-			OutputStream byteOut = resp.getOutputStream();
-
-			fin = new FileInputStream(tempFile);
 
 			while ((count = fin.read(buffer)) >= 0)
 			{
 				byteOut.write(buffer, 0, count);
 			}
 
-			fin.close();
 
 			byteOut.flush();
 
@@ -166,24 +159,11 @@ public class MultiImageDownloadHandler extends MultiImageRequestHandler
 				}
 			}
 		}
+                }
         catch (IOException ioex)
         {
-        	Logger.getLogger(getClass()).error(ioex);
+        	logger.error(ioex);
         	return;
-        }
-        finally 
-        {
-        	if (fin != null) 
-        	{
-        		try 
-        		{
-        			fin.close();
-        		}
-        		catch (IOException ioex2)
-        		{
-        			Logger.getLogger(getClass()).error("failed to close ZIP-File", ioex2);
-        		}
-        	}
         }
         
         session.removeAttribute("selectedFiles");

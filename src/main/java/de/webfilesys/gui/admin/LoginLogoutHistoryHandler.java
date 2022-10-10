@@ -8,11 +8,14 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(LoginLogoutHistoryHandler.class);
 	public LoginLogoutHistoryHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -22,6 +25,7 @@ public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process() {
 		String title = "WebFileSys Administration: Login/Logout History";
 		
@@ -66,7 +70,7 @@ public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
 			    }
 			}
 		} catch (IOException ioe) {
-			System.out.println(ioe);
+			logger.error(ioe);
 			output.println(ioe);
 		} finally {
 			if (logIn != null) {
@@ -90,15 +94,15 @@ public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
 	}
 	
 	private boolean isLoginLogoutEvent(String logLine) {
-		if (logLine.indexOf("login user") >= 0) {
+		if (logLine.contains("login user")) {
 			return(true);
 		}
 		
-		if (logLine.indexOf("logout user") >= 0) {
+		if (logLine.contains("logout user")) {
 			return(true);
 		}
 		
-		if (logLine.indexOf("session expired") >= 0) {
+		if (logLine.contains("session expired")) {
 			return(true);
 		}
 		

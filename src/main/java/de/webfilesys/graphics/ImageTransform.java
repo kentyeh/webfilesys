@@ -29,16 +29,18 @@ import javax.imageio.stream.ImageOutputStream;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Lossless image transformation using mediautil (http://mediachest.sourceforge.net/mediautil).
  */
 public class ImageTransform
 {
+    private static final Logger logger = LogManager.getLogger(ImageTransform.class);
+
     private String sourceFilePath;
 
     private String action;
@@ -73,12 +75,12 @@ public class ImageTransform
         try {
             sourceImage=new ScaledImage(sourceFilePath,1000,1000);
         } catch (IOException ioex) {
-            Logger.getLogger(getClass()).error("failed to get dimensions of source image " + sourceFilePath, ioex);
+            logger.error("failed to get dimensions of source image " + sourceFilePath, ioex);
             return(null);
         }
 
         if (sourceImage.getImageType()==ScaledImage.IMG_TYPE_BMP) {
-            Logger.getLogger(getClass()).debug("ImageTransformation: ignoring BMP file " + sourceFilePath);
+            logger.debug("ImageTransformation: ignoring BMP file " + sourceFilePath);
             return(null);
         }
         
@@ -166,10 +168,8 @@ public class ImageTransform
             llj.save(output, LLJTran.OPT_WRITE_ALL);
             
         	replaceOldExternalThumbnail(destFilePath, false);
-        } catch (LLJTranException ex) {
-        	Logger.getLogger(getClass()).error("failed to transform image " + sourceFilePath, ex);
-        } catch (IOException ioex) {
-        	Logger.getLogger(getClass()).error("failed to transform image " + sourceFilePath, ioex);
+        } catch (LLJTranException | IOException ex) {
+        	logger.error("failed to transform image " + sourceFilePath, ex);
         } finally {
             if (output != null) {
             	try {
@@ -199,13 +199,13 @@ public class ImageTransform
                     {
                         if (!sourceFile.delete())
                         {
-                            Logger.getLogger(getClass()).error("cannot delete source file " + sourceFilePath + " after transformation");
+                            logger.error("cannot delete source file " + sourceFilePath + " after transformation");
                         }
                     }
                 }
                 catch (IOException ioex2)
                 {
-                    Logger.getLogger(getClass()).error("ImageTransformation.execute: " + ioex2);
+                    logger.error("ImageTransformation.execute: " + ioex2);
                     return(resultFileName);
                 }
             }
@@ -225,14 +225,14 @@ public class ImageTransform
 
         int newOrientationValue = calculateNewExifOrientation(origExifData.getOrientation(), degrees);
         if (!ExifUtil.setExifOrientation(sourceFile, newOrientationValue)) {
-        	Logger.getLogger(getClass()).error("failed to set exif orientation for file " + sourceFilePath);
+        	logger.error("failed to set exif orientation for file " + sourceFilePath);
             return null;
         }
         
         String targetPath = sourceFilePath.substring(0, sourceFilePath.lastIndexOf('.')) + "-r" + degrees + sourceFilePath.substring(sourceFilePath.lastIndexOf('.'));
         File targetFile = new File(targetPath);
         if (!sourceFile.renameTo(targetFile)) {
-        	Logger.getLogger(getClass()).error("failed to rename rotated picture file to " + targetPath);
+        	logger.error("failed to rename rotated picture file to " + targetPath);
         }
         
         return targetPath;
@@ -290,7 +290,7 @@ public class ImageTransform
         try {
         	numericDegrees = 360 - Double.parseDouble(degrees);
         } catch (NumberFormatException numEx) {
-            Logger.getLogger(getClass()).warn("invalid value for rotation degrees: " + degrees);
+            logger.warn("invalid value for rotation degrees: " + degrees);
             return null;
         }
     	
@@ -348,7 +348,7 @@ public class ImageTransform
                     File intermediateFile = new File(intermediateFilePath);
                     intermediateFile.delete();
                 } catch (IOException ioex) {
-                    Logger.getLogger(getClass()).error("failed to get dimensions of intermediate image " + intermediateFilePath, ioex);
+                    logger.error("failed to get dimensions of intermediate image " + intermediateFilePath, ioex);
                 }
             }            
         }
@@ -409,7 +409,7 @@ public class ImageTransform
         try {
             tracker.waitForAll();
         } catch (Exception ex) {
-            Logger.getLogger(getClass()).warn("failed to load image for rotation", ex);
+            logger.warn("failed to load image for rotation", ex);
         }
 
         tracker.removeImage(origImage);
@@ -426,7 +426,7 @@ public class ImageTransform
             try {
                 tracker.waitForAll();
             } catch(InterruptedException intEx2) {
-               Logger.getLogger(getClass()).error("rotateImage: " + intEx2);
+               logger.error("rotateImage: " + intEx2);
             }
 
             tracker.removeImage(rotatedImg);
@@ -474,13 +474,13 @@ public class ImageTransform
                     ios.flush();
                     imgWriter.dispose();
                 } catch (IOException ioex) {
-                    Logger.getLogger(ImageTransform.class).error("error writing rotated JPEG file " + resultFileName, ioex);
+                    logger.error("error writing rotated JPEG file " + resultFileName, ioex);
                 } finally {
                     if (rotatedOut != null) {
                         try {
                             rotatedOut.close();
                         } catch (Exception ex) {
-                            Logger.getLogger(ImageTransform.class).error("error closing rotated JPEG file", ex);
+                            logger.error("error closing rotated JPEG file", ex);
                         }
                     }
                 }
@@ -497,14 +497,14 @@ public class ImageTransform
                     pngBytes = pngEncoder.pngEncode();
 
                     if (pngBytes == null) {
-                        Logger.getLogger(getClass()).warn("PNG Encoder : Null image");
+                        logger.warn("PNG Encoder : Null image");
                     } else {
                         rotatedFile.write(pngBytes);
                     }
                     
                     rotatedFile.flush();
                 } catch (IOException ioex1) {
-                    Logger.getLogger(getClass()).error("rotateImage: " + ioex1);
+                    logger.error("rotateImage: " + ioex1);
                     return;
                 } finally {
                     if (rotatedFile != null) {
@@ -520,7 +520,7 @@ public class ImageTransform
                 bufferedImg.flush();
             }
         } catch (OutOfMemoryError memErr) {
-            Logger.getLogger(getClass()).error("not enough memory for image rotation", memErr);
+            logger.error("not enough memory for image rotation", memErr);
             return;
         }
     }
@@ -619,7 +619,7 @@ public class ImageTransform
 		}
 		if (!keepOld) {
 			if (!thumbnailFile.delete()) {
-	            Logger.getLogger(getClass()).warn("failed to delete old thumbnail file " + thumbnailFile.getAbsolutePath());
+	            logger.warn("failed to delete old thumbnail file " + thumbnailFile.getAbsolutePath());
 				return false;
 			}
 		}

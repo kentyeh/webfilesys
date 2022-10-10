@@ -25,7 +25,7 @@ public class UnixProcess
         cpuTime="";
         startTime="";
         cmdString="";
-        childList = new ArrayList<UnixProcess>();
+        childList = new ArrayList<>();
     }
 
     public void addChild(UnixProcess newChild)

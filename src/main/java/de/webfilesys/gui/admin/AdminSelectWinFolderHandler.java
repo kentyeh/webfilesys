@@ -37,6 +37,7 @@ public class AdminSelectWinFolderHandler extends AdminSelectFolderHandler
 		this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
         if (!isAdminUser(true))
@@ -93,7 +94,7 @@ public class AdminSelectWinFolderHandler extends AdminSelectFolderHandler
         
         computerElement.setAttribute("name", WebFileSys.getInstance().getLocalHostName());
 
-		ArrayList<Integer> existingDrives = new ArrayList<Integer>();
+		ArrayList<Integer> existingDrives = new ArrayList<>();
 
 		for (int i = 1; i <= 26; i++)
 		{
@@ -103,71 +104,67 @@ public class AdminSelectWinFolderHandler extends AdminSelectFolderHandler
 			{
 				if ((docRootDriveChar=='*') || (i==docRootDriveNum))
 				{
-					existingDrives.add(new Integer(i));
+					existingDrives.add(i);
 				}
 			}
 		}
 
-		for (int i=0;i<existingDrives.size();i++)
-		{
-			int driveNum=((Integer) existingDrives.get(i)).intValue();
-
-			String driveLabel = WinDriveManager.getInstance().getDriveLabel(driveNum);
-
-			if (driveLabel!=null)
-			{
-				char driveChar='A';
-				driveChar+=(driveNum-1);
-
-				String subdirPath = driveChar + ":" + File.separator;
-
-				Element parentElement = computerElement;
-
-				boolean access = accessAllowed(subdirPath);
-
-				if (access)
-				{
-					dirCounter++;
-					
-					if (subdirPath.equals(actPath))
-					{
-						currentDirNum = dirCounter;
-					}
-
-					// boolean isActPath=subdirPath.equals(actPath);
-
-					String encodedPath = UTF8URLEncoder.encode(subdirPath);
-
-					Element driveElement = doc.createElement("folder");
-
-                    if (driveNum < 3)
-                    {
-						driveElement.setAttribute("type", "floppy");
-                    }
-                    else
-                    {
-						driveElement.setAttribute("type", "drive");
-                    }
+            for (Integer driveNum : existingDrives) {
+                String driveLabel = WinDriveManager.getInstance().getDriveLabel(driveNum);
+                if (driveLabel!=null)
+                {
+                    char driveChar='A';
+                    driveChar+=(driveNum-1);
                     
-					driveElement.setAttribute("name", subdirPath);
-					
-					driveElement.setAttribute("id", Integer.toString(dirCounter));
-
-					driveElement.setAttribute("path", encodedPath);
-
-					driveElement.setAttribute("label", driveLabel);
-
-                    computerElement.appendChild(driveElement);
+                    String subdirPath = driveChar + ":" + File.separator;
                     
-                    parentElement = driveElement;
-				}
+                    Element parentElement = computerElement;
+                    
+                    boolean access = accessAllowed(subdirPath);
+                    
+                    if (access)
+                    {
+                        dirCounter++;
+                        
+                        if (subdirPath.equals(actPath))
+                        {
+                            currentDirNum = dirCounter;
+                        }
+                        
+                        // boolean isActPath=subdirPath.equals(actPath);
+                        
+                        String encodedPath = UTF8URLEncoder.encode(subdirPath);
+                        
+                        Element driveElement = doc.createElement("folder");
+                        
+                        if (driveNum < 3)
+                        {
+                            driveElement.setAttribute("type", "floppy");
+                        }
+                        else
+                        {
+                            driveElement.setAttribute("type", "drive");
+                        }
+                        
+                        driveElement.setAttribute("name", subdirPath);
+                        
+                        driveElement.setAttribute("id", Integer.toString(dirCounter));
+                        
+                        driveElement.setAttribute("path", encodedPath);
+                        
+                        driveElement.setAttribute("label", driveLabel);
+                        
+                        computerElement.appendChild(driveElement);
+                        
+                        parentElement = driveElement;
+                    }
 
-				if (dirTreeStatus.dirExpanded(subdirPath))
-				{
-					dirSubTree(parentElement, actPath, subdirPath, access);
-				}
-			}
-		}
+                    if (dirTreeStatus.dirExpanded(subdirPath))
+                    {
+                        dirSubTree(parentElement, actPath, subdirPath, access);
+                    }
+                }
+            }
 
 		int topOfScreenDir=0;
 

@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.FileComparator;
@@ -18,6 +17,8 @@ import de.webfilesys.graphics.CameraExifData;
 import de.webfilesys.graphics.ImageTransform;
 import de.webfilesys.graphics.ScaledImage;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Auto-Rotation of images of a folder according to the orientation value stored
@@ -26,6 +27,7 @@ import de.webfilesys.util.XmlUtil;
  */
 public class AutoImageRotateHandler extends XmlRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(AutoImageRotateHandler.class);
 	public static final String imgFileMasks[] = {"*.jpg","*.jpeg"};
 
 	public AutoImageRotateHandler(
@@ -38,6 +40,7 @@ public class AutoImageRotateHandler extends XmlRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process()
 	{
 		String path = getCwd();
@@ -52,40 +55,37 @@ public class AutoImageRotateHandler extends XmlRequestHandlerBase
 		
 		if (selectedFiles != null)
 		{
-			for (int i = 0; i < selectedFiles.size(); i++)
-			{
-				FileContainer fileCont = (FileContainer) selectedFiles.get(i);
-
-				if (!fileCont.isLink()) {
-					String imgFilename = fileCont.getName();
-					
-					String imgPath = fileCont.getRealFile().getAbsolutePath();
-
-					ScaledImage scaledImage = null;
-					
-			        try
-			        {
-			        	scaledImage = new ScaledImage(imgPath, 1000, 1000);
-			        	if (scaledImage.getImageType() == ScaledImage.IMG_TYPE_JPEG) 
-			        	{
-			        		if ((scaledImage.getRealWidth() % 8 == 0) && 
-			        			(scaledImage.getRealHeight() % 8 == 0)) 
-			        		{
-			        			// only if lossless rotation possible
-			        			
-			        			if (rotateImageToMatchExifOrientation(imgPath, scaledImage))
-			        			{
-			        				anyImageRotated = true;
-			        			}
-			        		}
-			        	}
-			        }
-			        catch (IOException ioex)
-			        {
-			            Logger.getLogger(getClass()).error(ioex);
-			        }
-				}
-			}
+                    for (FileContainer fileCont : selectedFiles) {
+                        if (!fileCont.isLink()) {
+                            String imgFilename = fileCont.getName();
+                            
+                            String imgPath = fileCont.getRealFile().getAbsolutePath();
+                            
+                            ScaledImage scaledImage = null;
+                            
+                            try
+                            {
+                                scaledImage = new ScaledImage(imgPath, 1000, 1000);
+                                if (scaledImage.getImageType() == ScaledImage.IMG_TYPE_JPEG)
+                                {
+                                    if ((scaledImage.getRealWidth() % 8 == 0) &&
+                                            (scaledImage.getRealHeight() % 8 == 0))
+                                    {
+                                        // only if lossless rotation possible
+                                        
+                                        if (rotateImageToMatchExifOrientation(imgPath, scaledImage))
+                                        {
+                                            anyImageRotated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            catch (IOException ioex)
+                            {
+                                logger.error(ioex);
+                            }
+                        }
+                    }
 		}
 				
 		Element resultElement = doc.createElement("result");

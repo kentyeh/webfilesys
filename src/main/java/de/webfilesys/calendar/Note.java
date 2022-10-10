@@ -96,12 +96,12 @@ public class Note
 
     public boolean searchMatch(String searchArg)
     {
-        if ((subject!=null) && (subject.toLowerCase().indexOf(searchArg)>=0))
+        if ((subject!=null) && (subject.toLowerCase().contains(searchArg)))
         {
             return(true);
         }
 
-        if ((content!=null) && (content.toLowerCase().indexOf(searchArg)>=0))
+        if ((content!=null) && (content.toLowerCase().contains(searchArg)))
         {
             return(true);
         }

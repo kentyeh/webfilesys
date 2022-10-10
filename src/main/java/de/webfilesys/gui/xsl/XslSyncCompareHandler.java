@@ -42,6 +42,7 @@ public class XslSyncCompareHandler extends XslRequestHandlerBase
         super(req, resp, session, output, uid);
 	}
 	  
+        @Override
 	protected void process()
 	{
         String syncSourcePath = (String) session.getAttribute(XmlSelectSyncFolderHandler.SESSION_ATTRIB_SYNC_SOURCE);
@@ -206,7 +207,7 @@ public class XslSyncCompareHandler extends XslRequestHandlerBase
             return path;
         }
         
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         
         String restOfPath = path;
         

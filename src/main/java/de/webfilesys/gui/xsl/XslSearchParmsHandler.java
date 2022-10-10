@@ -7,19 +7,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
 import de.webfilesys.Category;
 import de.webfilesys.CategoryManager;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslSearchParmsHandler extends XslRequestHandlerBase
 {
+    private static final Logger logger = LogManager.getLogger(XslSearchParmsHandler.class);
 	public XslSearchParmsHandler(
 			HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -48,7 +50,7 @@ public class XslSearchParmsHandler extends XslRequestHandlerBase
 
 		if (!accessAllowed(currentPath))
 		{
-			Logger.getLogger(getClass()).warn("user " + uid + " tried to access folder outside of his document root: " + currentPath);
+			logger.warn("user " + uid + " tried to access folder outside of his document root: " + currentPath);
 			
 			return;
 		}

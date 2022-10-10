@@ -12,16 +12,17 @@ import java.util.Date;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.decoration.Decoration;
 import de.webfilesys.decoration.DecorationManager;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.PatternComparator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TextSearch
 {
+    private static final Logger logger = LogManager.getLogger(TextSearch.class);
     PrintWriter output;
     int hitNum;
 
@@ -83,12 +84,12 @@ public class TextSearch
     }
 
     String[] filterEmptySearchArguments(String[] searchArguments) {
-    	ArrayList<String> filteredList = new ArrayList<String>();
-    	for (int i = 0; i < searchArguments.length; i++) {
-    		if (!CommonUtils.isEmpty(searchArguments[i])) {
-    			filteredList.add(searchArguments[i]);
-    		}
-    	}
+    	ArrayList<String> filteredList = new ArrayList<>();
+        for (String searchArgument : searchArguments) {
+            if (!CommonUtils.isEmpty(searchArgument)) {
+                filteredList.add(searchArgument);
+            }
+        }
     	return filteredList.toArray(new String[0]);
     }
     
@@ -153,7 +154,7 @@ public class TextSearch
     						if (description != null) {
     							boolean allWordsFound = true;
     							for (int j = 0; allWordsFound && (j < searchArgs.length); j++) {
-    								if (description.toLowerCase().indexOf(searchArgs[j].toLowerCase()) < 0) {
+    								if (!description.toLowerCase().contains(searchArgs[j].toLowerCase())) {
     								    allWordsFound = false;
     								}
     							}
@@ -254,7 +255,7 @@ public class TextSearch
 											try {
 												metaInfMgr.createLink(searchResultDir, new FileLink(fileList[i].getName(), fullPath, uid), true);
 											} catch (FileNotFoundException nfex) {
-												Logger.getLogger(getClass()).error(nfex);
+												logger.error(nfex);
 											}
 										}
 									}
@@ -291,7 +292,7 @@ public class TextSearch
         }
         catch (FileNotFoundException e)
         {
-            Logger.getLogger(getClass()).error("cannot open search result file", e);
+            logger.error("cannot open search result file", e);
             return(-1);
         }
 
@@ -327,7 +328,7 @@ public class TextSearch
         }
         catch (IOException e)
         {
-        	Logger.getLogger(getClass()).warn("fulltext search error: " + e);
+        	logger.warn("fulltext search error: " + e);
         }
         finally
         {
@@ -399,7 +400,7 @@ public class TextSearch
         if (tags != null) {
         	boolean anyTagMatches = false;
         	for (String tag : tags) {
-        		if (tag.toLowerCase().indexOf(searchArg.toLowerCase()) >= 0) {
+        		if (tag.toLowerCase().contains(searchArg.toLowerCase())) {
             		output.print("<span class=\"plaintext\" style=\"margin-left:30px;\">tag: ");             		
                     output.print(tag);
             		output.println("</span>");
@@ -446,7 +447,7 @@ public class TextSearch
             {
             	if (fin.skip(startIdx) != startIdx) 
             	{
-                    Logger.getLogger(getClass()).warn("cannot locate to search hit index " + firstMatchIdx);
+                    logger.warn("cannot locate to search hit index " + firstMatchIdx);
             	}
             }
 
@@ -494,7 +495,7 @@ public class TextSearch
 
                             output.print("</span>");
 
-                            StringBuffer postfix = new StringBuffer();
+                            StringBuilder postfix = new StringBuilder();
                             
                             for (int t = i + 1; (t < count) && (t < i + 11); t++)
                             {
@@ -538,7 +539,7 @@ public class TextSearch
         }
         catch (IOException e)
         {
-        	Logger.getLogger(getClass()).warn("fulltext search error", e);
+        	logger.warn("fulltext search error", e);
         }
         finally
         {
@@ -559,18 +560,15 @@ public class TextSearch
 		ArrayList<String> tags = metaInfMgr.getTags(fullPath);
 		if (tags != null) {
 			for (String tag : tags) {
-				if (tag.toLowerCase().indexOf(searchArg.toLowerCase()) >= 0) {
+				if (tag.toLowerCase().contains(searchArg.toLowerCase())) {
 					return true;
 				}
 			}
 		}
 		
 		String description = metaInfMgr.getDescription(fullPath);
-		if ((description != null) &&
-			(description.toLowerCase().indexOf(searchArg.toLowerCase()) >= 0)) {
-			return true;
-		}
-		return false;
+		return (description != null) &&
+                        (description.toLowerCase().contains(searchArg.toLowerCase()));
     }
     
 }

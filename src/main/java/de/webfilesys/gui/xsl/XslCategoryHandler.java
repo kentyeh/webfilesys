@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -15,12 +14,15 @@ import de.webfilesys.CategoryManager;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class XslCategoryHandler extends XslRequestHandlerBase
 {
+   private static final Logger logger = LogManager.getLogger(XslCategoryHandler.class);
     public static final String PARM_SEPARATOR = "~";
 	
 	public XslCategoryHandler(
@@ -37,7 +39,7 @@ public class XslCategoryHandler extends XslRequestHandlerBase
 	{
 		if (this.readonly)
 		{
-			Logger.getLogger(getClass()).warn("read-only user tried to manage categories");
+			logger.warn("read-only user tried to manage categories");
 			
 			return;
 		}

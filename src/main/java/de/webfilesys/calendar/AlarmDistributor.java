@@ -6,25 +6,27 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.apache.log4j.Logger;
-
 import de.webfilesys.LanguageManager;
 import de.webfilesys.WebFileSys;
 import de.webfilesys.mail.SmtpEmail;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AlarmDistributor extends Thread 
 {
+    private static final Logger logger = LogManager.getLogger(AlarmDistributor.class);
 	private static final long ALARM_CHECK_INTERVAL = 60000 * 1; 
 	
 	private int lastMailSentHourIdx = 0;
 	private int mailsSentInLastHour = 0;
 	
+        @Override
 	public synchronized void run()
 	{
-    	Logger.getLogger(getClass()).info("AlarmDistributor started");
+    	logger.info("AlarmDistributor started");
 
     	boolean shutdownFlag = false;
 
@@ -41,10 +43,7 @@ public class AlarmDistributor extends Thread
 			catch (InterruptedException e)
 			{
 				shutdownFlag = true;
-				if (Logger.getLogger(getClass()).isInfoEnabled())
-				{
-	            	Logger.getLogger(getClass()).info("AlarmDistributor ready for shutdown");
-				}
+	            	logger.info("AlarmDistributor ready for shutdown");
 			}
 		}
 	}
@@ -55,56 +54,50 @@ public class AlarmDistributor extends Thread
 
 		if (mailAlarmList != null)
 		{
-			for (int i = 0; i < mailAlarmList.size(); i++)
-			{
-				AlarmEntry entryToAlarm = mailAlarmList.get(i);
-
-				StringBuffer tzone = new StringBuffer();
-				tzone.append("(GMT");
-
-				// int tzHourOffset = XmlUserProfileManager.getInstance().getTimeZone(entryToAlarm.owner);
-				// TODO: fix this
-				int tzHourOffset = 2;
-				
-				if (tzHourOffset >= 0)
-				{
-					tzone.append("+");
-				}
-
-				tzone.append(Integer.toString(tzHourOffset));
-				tzone.append(")");
-
-				Appointment appointment = AppointmentManager.getInstance().getAppointment(entryToAlarm.getOwner(), entryToAlarm.getXmlId());
-
-				if (appointment != null)
-				{
-					if (WebFileSys.getInstance().getUserMgr().userExists(entryToAlarm.getOwner()))
-					{
-						if (sendAlarmMail(entryToAlarm.getOwner(), appointment, tzone.toString(), entryToAlarm.getEventDate()))
-						{
-							entryToAlarm.setMailAlarmed();
-							entryToAlarm.setLastMailAlarmed(gmtNow);
-
-							appointment.setMailAlarmed(true);
-                            appointment.setLastMailAlarmed(gmtNow);
-							
-                            if (!entryToAlarm.isCloned())
+                for (AlarmEntry entryToAlarm : mailAlarmList) {
+                    StringBuilder tzone = new StringBuilder();
+                    tzone.append("(GMT");
+                    
+                    // int tzHourOffset = XmlUserProfileManager.getInstance().getTimeZone(entryToAlarm.owner);
+                    // TODO: fix this
+                    int tzHourOffset = 2;
+                    
+                    if (tzHourOffset >= 0)
+                    {
+                        tzone.append("+");
+                    }
+                    
+                    tzone.append(Integer.toString(tzHourOffset));
+                    tzone.append(")");
+                    
+                    Appointment appointment = AppointmentManager.getInstance().getAppointment(entryToAlarm.getOwner(), entryToAlarm.getXmlId());
+                    
+                    if (appointment != null)
+                    {
+                        if (WebFileSys.getInstance().getUserMgr().userExists(entryToAlarm.getOwner()))
+                        {
+                            if (sendAlarmMail(entryToAlarm.getOwner(), appointment, tzone.toString(), entryToAlarm.getEventDate()))
                             {
-    							setRepeatedAlarmTime(entryToAlarm, appointment);
+                                entryToAlarm.setMailAlarmed();
+                                entryToAlarm.setLastMailAlarmed(gmtNow);
+                                
+                                appointment.setMailAlarmed(true);
+                                appointment.setLastMailAlarmed(gmtNow);
+                                
+                                if (!entryToAlarm.isCloned())
+                                {
+                                    setRepeatedAlarmTime(entryToAlarm, appointment);
+                                }
+                                else
+                                {
+                                        logger.debug("ignoring alarm entry clone in repeat check: " + entryToAlarm);
+                                }
+                                
+                                AppointmentManager.getInstance().updateAppointment(entryToAlarm.getOwner(), appointment, false);
                             }
-                            else
-                            {
-                    			if (Logger.getLogger(getClass()).isDebugEnabled())
-                    			{
-                    				Logger.getLogger(getClass()).debug("ignoring alarm entry clone in repeat check: " + entryToAlarm);
-                    			}
-                            }
-
-							AppointmentManager.getInstance().updateAppointment(entryToAlarm.getOwner(), appointment, false);
-						}
-					}
-				}
-			}   
+                        }
+                    }
+                }   
 		}
 	}
 
@@ -122,7 +115,7 @@ public class AlarmDistributor extends Thread
     	{
     		if (mailsSentInLastHour > WebFileSys.getInstance().getMaxAppointmentMailsPerHour())
     		{
-            	Logger.getLogger(getClass()).warn("too many appointment mails sent per hour: " + mailsSentInLastHour);
+            	logger.warn("too many appointment mails sent per hour: " + mailsSentInLastHour);
                 return false;
     		}
     		mailsSentInLastHour++;
@@ -138,15 +131,15 @@ public class AlarmDistributor extends Thread
 
 		String reminderSubjectPrefix = LanguageManager.getInstance().getResource(language, "calender.reminderSubjectPrefix", "WebFileSys Reminder");
 		
-		StringBuffer messageBody = new StringBuffer();
+		StringBuilder messageBody = new StringBuilder();
 		
 		if (alarmTime != null)
 		{
-			messageBody.append(dateFormat.format(alarmTime) + " " + timezone + "\r\n\r\n");
+			messageBody.append(dateFormat.format(alarmTime)).append(" ").append(timezone).append("\r\n\r\n");
 		}
 		else
 		{
-			messageBody.append(dateFormat.format(appointment.getEventTime()) + " " + timezone + "\r\n\r\n");
+			messageBody.append(dateFormat.format(appointment.getEventTime())).append(" ").append(timezone).append("\r\n\r\n");
 		}
 		
         messageBody.append(appointment.getContent());

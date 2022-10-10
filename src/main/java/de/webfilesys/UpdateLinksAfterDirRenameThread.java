@@ -25,6 +25,7 @@ public class UpdateLinksAfterDirRenameThread extends Thread
         metaInfMgr = MetaInfManager.getInstance();
     }
     
+    @Override
     public void run()
     {
          updateLinks(newDirPath);

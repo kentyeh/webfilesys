@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -17,13 +16,15 @@ import de.webfilesys.graphics.VideoInfoExtractor;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.SessionKey;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class AnyVideoConcatParamHandler extends XslRequestHandlerBase {
 	
-	private static Logger LOG = Logger.getLogger(AnyVideoConcatParamHandler.class);
+	private static final Logger logger = LogManager.getLogger(AnyVideoConcatParamHandler.class);
 	
 	private static final int ERROR_CODE_NO_AUDIO = 5;
 	
@@ -68,15 +69,11 @@ public class AnyVideoConcatParamHandler extends XslRequestHandlerBase {
                    	maxVideoHeight = videoHeight;
                 }
                 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("video file to concatenate: " + filePath + " width: " + videoWidth + " height: " + videoHeight);
-                }
+                logger.debug("video file to concatenate: " + filePath + " width: " + videoWidth + " height: " + videoHeight);
             }
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("max video width: " + maxVideoWidth + " max video height: " + maxVideoHeight);
-        }
+        logger.debug("max video width: " + maxVideoWidth + " max video height: " + maxVideoHeight);
 
 		Element paramsElem = doc.createElement("concatParams");
 		

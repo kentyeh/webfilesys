@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import de.webfilesys.LanguageManager;
@@ -22,8 +21,11 @@ import de.webfilesys.calendar.Appointment;
 import de.webfilesys.calendar.AppointmentManager;
 import de.webfilesys.gui.ajax.XmlRequestHandlerBase;
 import de.webfilesys.util.XmlUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class XmlCheckAlarmHandler extends XmlRequestHandlerBase {
+    private static final Logger logger = LogManager.getLogger(XmlCheckAlarmHandler.class);
 	public XmlCheckAlarmHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
@@ -34,6 +36,7 @@ public class XmlCheckAlarmHandler extends XmlRequestHandlerBase {
         super(req, resp, session, output, uid);
 	}
 	
+        @Override
 	protected void process()
 	{
 		Calendar startOfDayCal = GregorianCalendar.getInstance(req.getLocale());
@@ -59,7 +62,7 @@ public class XmlCheckAlarmHandler extends XmlRequestHandlerBase {
 		String language = WebFileSys.getInstance().getUserMgr().getLanguage(uid);
 		SimpleDateFormat dateFormat = LanguageManager.getInstance().getDateFormat(language);
 		
-		ArrayList<AlarmEntry> clonesToRemove = new ArrayList<AlarmEntry>();
+		ArrayList<AlarmEntry> clonesToRemove = new ArrayList<>();
 		
 		Iterator<AlarmEntry> iter = alarmList.iterator();
 		while (iter.hasNext()) {
@@ -98,7 +101,7 @@ public class XmlCheckAlarmHandler extends XmlRequestHandlerBase {
 					}
 					else
 					{
-				    	Logger.getLogger(getClass()).warn("Appointment not found with id " + alarmEntry.getXmlId());
+				    	logger.warn("Appointment not found with id " + alarmEntry.getXmlId());
 					}
 				}
 			}

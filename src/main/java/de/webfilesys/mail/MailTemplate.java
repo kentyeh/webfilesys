@@ -22,7 +22,7 @@ public class MailTemplate {
 
         this.templateFile = templateFile;
 
-        varValues = new HashMap<String, String>();
+        varValues = new HashMap<>();
     }
 
     public MailTemplate(String templateFileName)
@@ -59,14 +59,10 @@ public class MailTemplate {
     public String getText() {
         replaceBuffer = new StringBuffer();
 
-        FileInputStream fis = null;
-        BufferedReader input = null;
 
-        try
+        try (FileInputStream fis = new FileInputStream(templateFile);
+                BufferedReader input = new BufferedReader(new InputStreamReader(fis, "UTF-8")))
         {
-            fis = new FileInputStream(templateFile);
-            
-            input = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             
             String line = null;
 
@@ -75,7 +71,7 @@ public class MailTemplate {
             	for (String varName : varValues.keySet()) {
                     String varString = "$" + varName;
 
-                    if (line.indexOf(varString) >= 0) {
+                    if (line.contains(varString)) {
                         String varValue = (String) varValues.get(varName);
                         line = replaceVar(line, varString, varValue);
                     }
@@ -86,14 +82,6 @@ public class MailTemplate {
             }
         } catch (IOException ioex) {
             return(null);
-        } finally {
-            if (fis != null) {
-                try {
-                    input.close();
-                    fis.close();
-                } catch (Exception ex) {
-                }
-            }
         }
 
         return(replaceBuffer.toString());

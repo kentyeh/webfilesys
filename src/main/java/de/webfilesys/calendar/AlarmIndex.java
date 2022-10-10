@@ -1,24 +1,29 @@
 package de.webfilesys.calendar;
 
 import java.io.Serializable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
-public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<AlarmEntry>>> implements Serializable
+public class AlarmIndex extends ConcurrentHashMap<String, ConcurrentHashMap<Integer, Vector<AlarmEntry>>> implements Serializable
 {
+    private static final Logger logger = LogManager.getLogger(AlarmIndex.class);
 	private static final long serialVersionUID = 1L;
 	
     // provides a unique id for the alarm entries
     protected long idCounter;
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     public AlarmIndex()
     {
@@ -33,7 +38,7 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 
         int dayOfYear = cal.get(Calendar.DAY_OF_YEAR);
         int year = cal.get(Calendar.YEAR);
-        Integer dateKey = new Integer((year*1000) + dayOfYear);      
+        Integer dateKey = (year*1000) + dayOfYear;      
         return dateKey;
     }
 
@@ -50,17 +55,17 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
     {
         Integer dateKey = getDateKey(newDate);        
         
-        Hashtable<Integer, Vector<AlarmEntry>> userRoot = (Hashtable<Integer, Vector<AlarmEntry>>) get(owner);
+        ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot = get(owner);
         if (userRoot==null)
         {
-            userRoot = new Hashtable<Integer, Vector<AlarmEntry>>();
+            userRoot = new ConcurrentHashMap<Integer, Vector<AlarmEntry>>();
             put(owner,userRoot);
         }
 
-        Vector<AlarmEntry> dayEventList = (Vector<AlarmEntry>) userRoot.get(dateKey);
+        Vector<AlarmEntry> dayEventList = userRoot.get(dateKey);
         if(dayEventList == null)
         {
-            dayEventList = new Vector<AlarmEntry>();
+            dayEventList = new Vector<>();
             userRoot.put(dateKey,dayEventList);
         }
 
@@ -78,8 +83,9 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
         }
 
         boolean stop = false;
-        synchronized (dayEventList)
-        {
+        ReentrantLock lock = new ReentrantLock();
+        try{
+            lock.lock();
             for(int i = 0; (!stop) && (i < dayEventList.size()); i++)
             {
                 AlarmEntry actEntry = dayEventList.elementAt(i);
@@ -93,19 +99,18 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
             {
                 dayEventList.addElement(newEvent);
             }
+        } finally {
+            lock.unlock();
         }
 
-		if (Logger.getLogger(getClass()).isDebugEnabled())
-		{
-			Logger.getLogger(getClass()).debug("adding AlarmEntry to alarm index: " + newEvent);
-		}
+			logger.debug("adding AlarmEntry to alarm index: " + newEvent);
 
 		return(newEvent);
     }
 
     public boolean delEventClone(AlarmEntry entryToRemove)
     {
-		Hashtable<Integer, Vector<AlarmEntry>> userRoot = get(entryToRemove.getOwner());
+		ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot = get(entryToRemove.getOwner());
 
 		if (userRoot == null)
 		{
@@ -130,10 +135,7 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 			{
 				if (nextEvent.isCloned())
 				{
-					if (Logger.getLogger(getClass()).isDebugEnabled())
-					{
-						Logger.getLogger(getClass()).debug("removing AlarmEntry clone from alarm index: " + nextEvent);
-					}
+					logger.debug("removing AlarmEntry clone from alarm index: " + nextEvent);
 					
 					dayEventList.remove(nextEvent);
 
@@ -147,7 +149,7 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 
 	public boolean delEvent(String owner, Appointment appointment)
 	{
-		Hashtable<Integer, Vector<AlarmEntry>> userRoot = get(owner);
+		ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot = get(owner);
 
 		if (userRoot == null)
 		{
@@ -168,7 +170,7 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 		return delEvent(appointment.getId(), new Date(System.currentTimeMillis() + (24 * 60 * 60 * 1000l)), userRoot);
 	}		
 
-	public boolean delEvent(String eventXmlId, Date eventDate, Hashtable<Integer, Vector<AlarmEntry>> userRoot)
+	public boolean delEvent(String eventXmlId, Date eventDate, ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot)
 	{
         Integer dateKey = getDateKey(eventDate);        
 		
@@ -188,10 +190,7 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 			{
 				dayEventList.remove(nextEvent);
 
-				if (Logger.getLogger(getClass()).isDebugEnabled())
-				{
-					Logger.getLogger(getClass()).debug("removing AlarmEntry from alarm index " + nextEvent);
-				}
+				logger.debug("removing AlarmEntry from alarm index " + nextEvent);
 				
 				return(true);
 			}
@@ -206,24 +205,24 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 		
         Integer dateKey = getDateKey(oldEventTime);        
 		
-		Hashtable<Integer, Vector<AlarmEntry>> userRoot = get(owner);
+		ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot = get(owner);
 
 		if (userRoot == null)
 		{
-	    	Logger.getLogger(getClass()).warn("AlarmEntry to move for user " + owner + " not found");
+	    	logger.warn("AlarmEntry to move for user " + owner + " not found");
 			return;
 		}
 
 		Vector<AlarmEntry> dayEventList = userRoot.get(dateKey);
 		if (dayEventList == null)
 		{
-	    	Logger.getLogger(getClass()).warn("day event list for user " + owner + " not found");
+	    	logger.warn("day event list for user " + owner + " not found");
 			return;
 		}
 
 		if (!dayEventList.remove(entryToMove))
 		{
-	    	Logger.getLogger(getClass()).warn("AlarmEntry to remove not found");
+	    	logger.warn("AlarmEntry to remove not found");
 		}
 		
 		Integer newDateKey = getDateKey(entryToMove.getEventDate());
@@ -231,21 +230,18 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 		dayEventList = userRoot.get(newDateKey);
 		if (dayEventList == null)
 		{
-			dayEventList = new Vector<AlarmEntry>();
+			dayEventList = new Vector<>();
 			userRoot.put(newDateKey, dayEventList);
 		}
 			
 		dayEventList.add(entryToMove);
 
-		if (Logger.getLogger(getClass()).isDebugEnabled())
-		{
-			Logger.getLogger(getClass()).debug("AlarmEntry moved from " + oldEventTime + " to " + entryToMove.getEventDate());
-		}
+		logger.debug("AlarmEntry moved from " + oldEventTime + " to " + entryToMove.getEventDate());
 	}
     
 	public List<AlarmEntry> getAlarmsForDateRange(String userid, long startTime, long endTime)
 	{
-		ArrayList<AlarmEntry> alarmList = new ArrayList<AlarmEntry>();
+		ArrayList<AlarmEntry> alarmList = new ArrayList<>();
 		
         Vector<AlarmEntry> dayEventList = getDayEventVector(userid, new Date(startTime));
         
@@ -278,8 +274,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 
         if (dayEventList != null)
         {
-            synchronized (dayEventList)
-            {
+            try {
+                this.lock.lock();
             	for(int i = 0; i < dayEventList.size(); i++)
                 {
             		AlarmEntry nextEvent = dayEventList.elementAt(i);
@@ -291,12 +287,14 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
                     {
                         if(visualAlarmVector==null)
                         {
-                            visualAlarmVector = new ArrayList<AlarmEntry>();
+                            visualAlarmVector = new ArrayList<>();
                         }
                         visualAlarmVector.add(nextEvent);
                     }
                 }
-            }
+            } finally {
+            this.lock.unlock();
+        }
         }
 
       // check also for tomorrow
@@ -307,8 +305,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 
         if (dayEventList!= null)
         {
-            synchronized (dayEventList)
-            {
+            try {
+                this.lock.lock();
             	for(int i = 0; i < dayEventList.size(); i++)
                 {
             		AlarmEntry nextEvent = dayEventList.elementAt(i);
@@ -320,12 +318,14 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
                     {
                         if (visualAlarmVector == null)
                         {
-                            visualAlarmVector = new ArrayList<AlarmEntry>();
+                            visualAlarmVector = new ArrayList<>();
                         }
                         visualAlarmVector.add(nextEvent);
                     }
                 }
-            }
+            } finally {
+            this.lock.unlock();
+        }
         }
 
         return(visualAlarmVector);
@@ -335,7 +335,7 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
     {
         Integer dateKey = getDateKey(searchDate);        
         
-		Hashtable<Integer, Vector<AlarmEntry>> userRoot = get(owner);
+		ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot = get(owner);
 
 		if (userRoot == null)
 		{
@@ -363,8 +363,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
         
             if (dayEventList != null)
             {
-                synchronized (dayEventList)
-                {
+                try {
+                    this.lock.lock();
                     for (int i = 0; i < dayEventList.size(); i++)
                     {
                     	AlarmEntry nextEvent = dayEventList.elementAt(i);
@@ -375,12 +375,14 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
                         {
                             if (mailAlarmList == null)
                             {
-                                mailAlarmList = new ArrayList<AlarmEntry>();
+                                mailAlarmList = new ArrayList<>();
                             }
                             mailAlarmList.add(nextEvent);
                         }
                     }
-                }
+                } finally {
+            this.lock.unlock();
+        }
             }
 
           // check also for tomorrow
@@ -391,8 +393,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 
             if (dayEventList!=null)
             {
-                synchronized (dayEventList)
-                {
+                try {
+                    this.lock.lock();
                     for(int i = 0; i < dayEventList.size(); i++)
                     {
                         AlarmEntry nextEvent = dayEventList.elementAt(i);
@@ -403,12 +405,14 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
                         {
                             if (mailAlarmList == null)
                             {
-                                mailAlarmList = new ArrayList<AlarmEntry>();
+                                mailAlarmList = new ArrayList<>();
                             }
                             mailAlarmList.add(nextEvent);
                         }
                     }
-                }
+                } finally {
+            this.lock.unlock();
+        }
             }
         }
 
@@ -431,8 +435,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
         
             if (dayEventList != null)
             {
-                synchronized (dayEventList)
-                { 
+                try { 
+                    this.lock.lock();
                     for(int i = 0; i < dayEventList.size(); i++)
                     {
                     	AlarmEntry nextEvent = dayEventList.elementAt(i);
@@ -444,12 +448,14 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
                         {
                             if (schedVector == null)
                             {
-                                schedVector = new ArrayList<AlarmEntry>();
+                                schedVector = new ArrayList<>();
                             }
                             schedVector.add(nextEvent);
                         }
                     }
-                }
+                } finally {
+            this.lock.unlock();
+        }
             }
 
           // check also for tomorrow
@@ -460,8 +466,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
 
             if (dayEventList != null)
             {
-                synchronized (dayEventList)
-                {
+                try {
+                    this.lock.lock();
                     for(int i = 0; i < dayEventList.size(); i++)
                     {
                     	AlarmEntry nextEvent = dayEventList.elementAt(i);
@@ -473,12 +479,14 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
                         {
                             if (schedVector == null)
                             {
-                                schedVector = new ArrayList<AlarmEntry>();
+                                schedVector = new ArrayList<>();
                             }
                             schedVector.add(nextEvent);
                         }
                     }
-                }
+                } finally {
+            this.lock.unlock();
+        }
             }
         }
 
@@ -517,8 +525,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
             return(null);
         }
         
-        synchronized (dayEventList)
-        {
+        try {
+            this.lock.lock();
         	for(int i = 0; i < dayEventList.size(); i++)
             {
                 AlarmEntry nextEvent = dayEventList.elementAt(i);
@@ -527,6 +535,8 @@ public class AlarmIndex extends Hashtable<String, Hashtable<Integer, Vector<Alar
                     return(nextEvent);
                 }
             }
+        } finally {
+            this.lock.unlock();
         }
 
         return(null);

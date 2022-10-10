@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -46,6 +45,7 @@ public class XslPublishListHandler extends XslRequestHandlerBase {
 		serverPort = req.getServerPort();
 	}
 	
+        @Override
 	protected void process() {
 		
 		Element publishListElem = doc.createElement("publishList");
@@ -83,7 +83,7 @@ public class XslPublishListHandler extends XslRequestHandlerBase {
 
 					XmlUtil.setChildText(publicationElem, "expires", dateFormat.format(expTime));
 
-					StringBuffer secretLink = new StringBuffer();
+					StringBuilder secretLink = new StringBuilder();
 
 					String baseUrl = WebFileSys.getInstance().getClientUrl();
 					

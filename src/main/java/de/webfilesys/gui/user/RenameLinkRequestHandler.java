@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.Constants;
 import de.webfilesys.MetaInfManager;
@@ -14,12 +13,15 @@ import de.webfilesys.gui.xsl.XslFileListHandler;
 import de.webfilesys.gui.xsl.XslThumbnailHandler;
 import de.webfilesys.gui.xsl.XslVideoListHandler;
 import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class RenameLinkRequestHandler extends UserRequestHandler
 {
+    private static final Logger logger = LogManager.getLogger(RenameLinkRequestHandler.class);
 	boolean clientIsLocal = false;
 	
 	public RenameLinkRequestHandler(
@@ -35,6 +37,7 @@ public class RenameLinkRequestHandler extends UserRequestHandler
 		this.clientIsLocal = clientIsLocal;
 	}
 
+        @Override
 	protected void process()
 	{
 		if (!checkWriteAccess())
@@ -53,7 +56,7 @@ public class RenameLinkRequestHandler extends UserRequestHandler
 
 		if (newLinkName == null)
 		{
-			Logger.getLogger(getClass()).fatal("missing parameter newLinkName");
+			logger.fatal("missing parameter newLinkName");
 			return;
 		}
 
@@ -61,7 +64,7 @@ public class RenameLinkRequestHandler extends UserRequestHandler
 		
 		if (oldLinkName == null)
 		{
-			Logger.getLogger(getClass()).fatal("missing parameter oldLinkName");
+			logger.fatal("missing parameter oldLinkName");
 			return;
 		}
 
@@ -73,7 +76,7 @@ public class RenameLinkRequestHandler extends UserRequestHandler
 	    
 	    if (sessionViewMode != null)
 	    {
-	    	viewMode = sessionViewMode.intValue();
+	    	viewMode = sessionViewMode;
 	    }
 	    
         String mobile = (String) session.getAttribute("mobile");

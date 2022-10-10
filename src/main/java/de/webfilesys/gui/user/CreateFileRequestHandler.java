@@ -7,17 +7,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
 
 import de.webfilesys.gui.xsl.XslUnixDirTreeHandler;
 import de.webfilesys.gui.xsl.XslWinDirTreeHandler;
 import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
 import de.webfilesys.util.CommonUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Frank Hoehnel
  */
 public class CreateFileRequestHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(CreateFileRequestHandler.class);
 	boolean clientIsLocal = false;
 
 	public CreateFileRequestHandler(HttpServletRequest req, HttpServletResponse resp, HttpSession session,
@@ -35,7 +37,7 @@ public class CreateFileRequestHandler extends UserRequestHandler {
 		String newFileName = getParameter("NewFileName");
 
 		if (CommonUtils.isEmpty(newFileName)) {
-			Logger.getLogger(getClass()).error("required parameter newFileName missing");
+			logger.error("required parameter newFileName missing");
 			return;
 		}
 

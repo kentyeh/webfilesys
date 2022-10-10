@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FastPathQueue {
+        private static final Logger logger = LogManager.getLogger(FastPathQueue.class);
+        
 	public static final String FAST_PATH_DIR = "fastpath";
 
 	private String fastPathFileName = null;
@@ -23,7 +26,7 @@ public class FastPathQueue {
 		fastPathFileName = WebFileSys.getInstance().getConfigBaseDir() + "/" + FAST_PATH_DIR + "/" + userid + ".dat";
 
 		if (!loadFromFile()) {
-			pathQueue = new ArrayList<String>(MAX_QUEUE_SIZE);
+			pathQueue = new ArrayList<>(MAX_QUEUE_SIZE);
 		}
 	}
 
@@ -38,16 +41,10 @@ public class FastPathQueue {
 			pathQueue = (ArrayList<String>) fastPathFile.readObject();
 			fastPathFile.close();
 			success = true;
-		} catch (ClassNotFoundException cnfe) {
-			Logger.getLogger(getClass()).warn(cnfe);
 		} catch (FileNotFoundException ioe) {
-			if (Logger.getLogger(getClass()).isDebugEnabled()) {
-				Logger.getLogger(getClass()).debug(ioe);
-			}
-		} catch (IOException ioe) {
-			Logger.getLogger(getClass()).warn(ioe);
-		} catch (ClassCastException cex) {
-			Logger.getLogger(getClass()).warn(cex);
+			logger.debug(ioe);
+		} catch (ClassNotFoundException | IOException | ClassCastException cnfe) {
+			logger.warn(cnfe);
 		} finally {
 			if (fastPathFile != null) {
 				try {
@@ -65,7 +62,7 @@ public class FastPathQueue {
 
 		if (!fastPathDir.exists()) {
 			if (!fastPathDir.mkdirs()) {
-				Logger.getLogger(getClass()).warn("cannot create fastpath directory " + fastPathDir);
+				logger.warn("cannot create fastpath directory " + fastPathDir);
 			}
 
 			return;
@@ -78,7 +75,7 @@ public class FastPathQueue {
 			fastPathFile.writeObject(pathQueue);
 			fastPathFile.flush();
 		} catch (IOException ioEx) {
-			Logger.getLogger(getClass()).warn(ioEx);
+			logger.warn(ioEx);
 		} finally {
 			if (fastPathFile != null) {
 				try {

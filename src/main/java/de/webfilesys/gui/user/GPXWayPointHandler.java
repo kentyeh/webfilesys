@@ -15,9 +15,10 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.log4j.Logger;
 
 import com.ctc.wstx.exc.WstxParsingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Delivers waypoint data extracted from GPX track as JSON.
@@ -25,8 +26,9 @@ import com.ctc.wstx.exc.WstxParsingException;
  * @author Frank Hoehnel
  */
 public class GPXWayPointHandler extends UserRequestHandler {
+    private static final Logger logger = LogManager.getLogger(GPXWayPointHandler.class);
 
-	public GPXWayPointHandler(
+    public GPXWayPointHandler(
     		HttpServletRequest req, 
     		HttpServletResponse resp,
             HttpSession session,
@@ -35,6 +37,7 @@ public class GPXWayPointHandler extends UserRequestHandler {
         super(req, resp, session, output, uid);
 	}	
 	
+        @Override
 	protected void process() {
 
 	    String filePath = getParameter("filePath"); 
@@ -59,7 +62,7 @@ public class GPXWayPointHandler extends UserRequestHandler {
 			
 			boolean fatalError = false;
 
-			ArrayList<WayPoint> wayPoints = new ArrayList<WayPoint>();
+			ArrayList<WayPoint> wayPoints = new ArrayList<>();
 			
 			WayPoint currentWayPoint = null;
 			
@@ -93,7 +96,7 @@ public class GPXWayPointHandler extends UserRequestHandler {
     							wayPoints.add(currentWayPoint);
 							} catch (NumberFormatException numEx) {
 								dataInvalid = true;
-								Logger.getLogger(getClass()).debug(numEx, numEx);
+								logger.debug(numEx, numEx);
 							}
 						}
 						
@@ -103,7 +106,7 @@ public class GPXWayPointHandler extends UserRequestHandler {
 
 						tagName = parser.getLocalName();
 						if (tagName.equals("wpt")) {
-						    Logger.getLogger(getClass()).debug("end waypoint tag with name: " + currentWayPoint.getName());
+						    logger.debug("end waypoint tag with name: " + currentWayPoint.getName());
 						    currentWayPoint = null;
 						}							
 						break;
@@ -126,10 +129,10 @@ public class GPXWayPointHandler extends UserRequestHandler {
 						
 						break;
 					default:
-						// Logger.getLogger(getClass()).debug("unhandled event: " + event);
+						// logger.debug("unhandled event: " + event);
 					}
 				} catch (WstxParsingException epex) {
-					Logger.getLogger(getClass()).warn("GPX parsing error", epex);
+					logger.warn("GPX parsing error", epex);
 					fatalError = true;
 				}
 			}
@@ -157,14 +160,14 @@ public class GPXWayPointHandler extends UserRequestHandler {
 			output.flush();
 			
 			if (dataInvalid) {
-			    Logger.getLogger(getClass()).warn("GPX file contains invalid data: " + filePath);
+			    logger.warn("GPX file contains invalid data: " + filePath);
 			}
 		} catch (IOException ioex) {
-			Logger.getLogger(getClass()).error("failed to read GPX file", ioex);
+			logger.error("failed to read GPX file", ioex);
 		} catch (XMLStreamException xmlEx) {
-			Logger.getLogger(getClass()).error("error parsing XML stream", xmlEx);
+			logger.error("error parsing XML stream", xmlEx);
 		} catch (Exception e) {
-			Logger.getLogger(getClass()).error("failed to transform GPX file", e);
+			logger.error("failed to transform GPX file", e);
 		} finally {
 			if (gpxReader != null) {
 				try {
