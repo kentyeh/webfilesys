@@ -67,12 +67,8 @@ public class GPXTrackHandler extends UserRequestHandler {
 			durationBuffer[i] = 0.0;
 		}
 
-		BufferedReader gpxReader = null;
-
-		try {
+		try (BufferedReader gpxReader = new BufferedReader(new FileReader(filePath))){
 			resp.setContentType("application/json");
-
-			gpxReader = new BufferedReader(new FileReader(filePath));
 
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLStreamReader parser = factory.createXMLStreamReader(gpxReader);
@@ -495,13 +491,6 @@ public class GPXTrackHandler extends UserRequestHandler {
 			logger.error("error parsing XML stream", xmlEx);
 		} catch (Exception e) {
 			logger.error("failed to transform GPX file", e);
-		} finally {
-			if (gpxReader != null) {
-				try {
-					gpxReader.close();
-				} catch (Exception ex) {
-				}
-			}
 		}
 	}
 

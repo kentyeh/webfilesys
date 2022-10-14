@@ -130,14 +130,10 @@ private final ReentrantLock lock= new ReentrantLock();
 
         try {
             this.lock.lock();
-            OutputStreamWriter xmlOutFile = null;
 
-            try
+            try (FileOutputStream fos = new FileOutputStream(decoFile);
+                    OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8"))
             {
-                FileOutputStream fos = new FileOutputStream(decoFile);
-                
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
-                
                 logger.debug("Saving decorations to file " + decoFile.getAbsolutePath());
                 
                 XmlUtil.writeToStream(decorationRoot, xmlOutFile);
@@ -149,19 +145,6 @@ private final ReentrantLock lock= new ReentrantLock();
             catch (IOException io1)
             {
                 logger.error("error saving decoration to file " + decoFile.getAbsolutePath(), io1);
-            }
-            finally
-            {
-                if (xmlOutFile != null)
-                {
-                    try 
-                    {
-                        xmlOutFile.close();
-                    }
-                    catch (Exception ex) 
-                    {
-                    }
-                }
             }
         } finally {
             this.lock.unlock();
@@ -181,12 +164,8 @@ private final ReentrantLock lock= new ReentrantLock();
 
        doc = null;
        
-       FileInputStream fis = null;
-
-       try
+       try (FileInputStream fis = new FileInputStream(decorationFile))
        {
-           fis = new FileInputStream(decorationFile);
-           
            InputSource inputSource = new InputSource(fis);
            
            inputSource.setEncoding("UTF-8");
@@ -196,19 +175,6 @@ private final ReentrantLock lock= new ReentrantLock();
        catch (SAXException | IOException saxex)
        {
            logger.error("failed to load decoration from file : " + decorationFile.getAbsolutePath(), saxex);
-       }
-       finally 
-       {
-           if (fis != null)
-           {
-               try
-               {
-                   fis.close();
-               }
-               catch (Exception ex)
-               {
-               }
-           }
        }
        
        if (doc == null)

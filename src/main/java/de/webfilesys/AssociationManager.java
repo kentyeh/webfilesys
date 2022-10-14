@@ -27,23 +27,14 @@ public class AssociationManager {
 
         File assocFile = new File(WebFileSys.getInstance().getConfigBaseDir() + File.separator + ASSOCIATION_CONFIG_FILE);
         if (assocFile.exists() && assocFile.isFile() && assocFile.canRead()) {
-        	FileInputStream fin = null;
-            try {
-            	fin = new FileInputStream(assocFile);
+            try (FileInputStream fin = new FileInputStream(assocFile)){
             	
             	associationMap.load(fin);
             	
             	logger.debug("filetype associations loaded from " + ASSOCIATION_CONFIG_FILE);
             } catch (IOException e) {
                 logger.error("cannot load filetype associations from " + ASSOCIATION_CONFIG_FILE, e);
-            } finally {
-     			if (fin != null) {
-     				try {
-     					fin.close();
-     				} catch (IOException ex) {
-     				}
-     			}
-     		 }
+            } 
         } else {
             logger.error("cannot load filetype associations from " + ASSOCIATION_CONFIG_FILE);
         }

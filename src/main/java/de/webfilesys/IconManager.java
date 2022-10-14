@@ -100,21 +100,11 @@ public class IconManager {
              return;
          }
 
-         FileInputStream fis = null;
-
-         try {
-             fis = new FileInputStream(iconFile);
+         try (FileInputStream fis = new FileInputStream(iconFile)){
              iconTable.load(fis);
          } catch (IOException ioex) {
         	 logger.error("failed to load icon assignment file", ioex);
-         } finally {
- 			if (fis != null) {
- 				try {
- 					fis.close();
- 				} catch (IOException ex) {
- 				}
- 			}
- 		 }
+         }
     }
 
     public String getAssignedIcon(String fileExtension) {

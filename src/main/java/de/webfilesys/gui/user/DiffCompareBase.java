@@ -364,38 +364,25 @@ public class DiffCompareBase extends UserRequestHandler
         
         StringBuilder buff = new StringBuilder();     
         
-        BufferedReader fileIn = null;
         
-        try
+        try (BufferedReader fileIn = fileEncoding == null ? new BufferedReader(new FileReader(file))
+                : new BufferedReader(new InputStreamReader(new FileInputStream(file), 
+                        "UTF-8-BOM".equals(fileEncoding) ? "UTF-8" : fileEncoding)))
         {
-            if (fileEncoding == null) 
-            {
-                // unknown - use OS default encoding
-                fileIn = new BufferedReader(new FileReader(file));
-            }
-            else 
-            {
-                FileInputStream fis = new FileInputStream(file);
-                
-                if (fileEncoding.equals("UTF-8-BOM")) {
-                    // skip over BOM
-                    fis.read();
-                    fis.read();
-                    fis.read();
-                    fileEncoding = "UTF-8";
-                }
-                
-                fileIn = new BufferedReader(new InputStreamReader(fis, fileEncoding));
-            }
             
             String line = null;
             
             boolean firstLine = true;
             
+            String UTF8_BOM = "\uFEFF";
+
             while ((line = fileIn.readLine()) != null)
             {
                 if (firstLine) 
                 {
+                    if(line.startsWith(UTF8_BOM)){
+                        line = line.replace(UTF8_BOM, "");
+                    }
                     firstLine = false;
                 }
                 else
@@ -408,20 +395,6 @@ public class DiffCompareBase extends UserRequestHandler
         catch (IOException ioex)
         {
             logger.error(ioex);
-        }
-        finally
-        {
-            try 
-            {
-                if (fileIn != null)
-                {
-                    fileIn.close();
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.error(ex);
-            }
         }
         
         return buff.toString();

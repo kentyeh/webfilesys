@@ -1,8 +1,11 @@
 package de.webfilesys.util;
 
+import java.io.IOException;
 import java.io.Writer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.xml.serialize.OutputFormat;
+import org.apache.xml.serialize.XMLSerializer;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -11,7 +14,6 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
-import org.w3c.dom.ls.LSParser;
 import org.w3c.dom.ls.LSSerializer;
 
 public class XmlUtil
@@ -217,9 +219,18 @@ public class XmlUtil
             DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
             DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("XML 3.0 LS 3.0");
             if(impl == null){
-                logger.error("No DOMImplementation found !");
+                OutputFormat outputFormat = new OutputFormat();
+                outputFormat.setEncoding("UTF-8");
+                outputFormat.setLineWidth(0);
+                outputFormat.setPreserveSpace(true);
+                XMLSerializer output = new XMLSerializer(outputWriter,outputFormat);
+                try {
+                    output.serialize(rootElement);
+                } catch (IOException ex) {
+                    logger.error(ex.getMessage());
+                }
             }else{
-                LSParser parser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, "http://www.w3.org/TR/REC-xml");
+//                LSParser parser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, "http://www.w3.org/TR/REC-xml");
                 LSSerializer serializer = impl.createLSSerializer();
                 LSOutput output = impl.createLSOutput();
                 output.setEncoding("UTF-8");
@@ -237,9 +248,18 @@ public static void writeToStream(Document doc, Writer outputWriter)
             DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
             DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("XML 3.0 LS 3.0");
             if(impl == null){
-                logger.error("No DOMImplementation found !");
+                OutputFormat outputFormat = new OutputFormat();
+                outputFormat.setEncoding("UTF-8");
+                outputFormat.setLineWidth(0);
+                outputFormat.setPreserveSpace(true);
+                XMLSerializer output = new XMLSerializer(outputWriter,outputFormat);
+                try {
+                    output.serialize(doc);
+                } catch (IOException ex) {
+                    logger.error(ex.getMessage());
+                }
             }else{
-                LSParser parser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, "http://www.w3.org/TR/REC-xml");
+//                LSParser parser = impl.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, "http://www.w3.org/TR/REC-xml");
                 LSSerializer serializer = impl.createLSSerializer();
                 LSOutput output = impl.createLSOutput();
                 output.setEncoding("UTF-8");

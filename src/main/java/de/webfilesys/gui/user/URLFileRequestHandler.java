@@ -51,8 +51,6 @@ public class URLFileRequestHandler extends UserRequestHandler
 					webLink=line.substring(4);
 				}
 			}
-
-			fin.close();
 		}
 		catch (IOException ioex)
 		{

@@ -87,15 +87,15 @@ public class JavaSourceViewHandler implements ViewHandler
             output.println("</head>");
             output.println("<body>");
 
-            InputStreamReader javaSourceReader = new InputStreamReader(zipIn);
+            try(InputStreamReader javaSourceReader = new InputStreamReader(zipIn)){
                     
-            JavaSource source = new JavaSourceParser().parse(javaSourceReader);
+                JavaSource source = new JavaSourceParser().parse(javaSourceReader);
                 
-            JavaSource2HTMLConverter converter = new JavaSource2HTMLConverter();
+                JavaSource2HTMLConverter converter = new JavaSource2HTMLConverter();
                 
-            converter.convert(source, JavaSourceConversionOptions.getDefault(), output);
+                converter.convert(source, JavaSourceConversionOptions.getDefault(), output);
 
-            javaSourceReader.close();
+            }
 
             output.println("</body>");
             output.println("</html>");

@@ -79,7 +79,7 @@ public class XmlUserManager extends UserManagerBase
        this.start();
     }
 
-    public synchronized void saveToFile()
+    public void saveToFile()
     {
         if (userRoot == null)
         {
@@ -90,13 +90,10 @@ public class XmlUserManager extends UserManagerBase
 
         try {
             this.lock.lock();
-            OutputStreamWriter xmlOutFile = null;
 
-            try
+            try (FileOutputStream fos = new FileOutputStream(userFilePath);
+                    OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8"))
             {
-                FileOutputStream fos = new FileOutputStream(userFilePath);
-                
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
                 
                 XmlUtil.writeToStream(userRoot, xmlOutFile);
                 
@@ -107,19 +104,6 @@ public class XmlUserManager extends UserManagerBase
             catch (IOException io1)
             {
                 logger.error("error saving user registry file " + userFilePath, io1);
-            }
-            finally
-            {
-                if (xmlOutFile != null)
-                {
-                    try 
-                    {
-                        xmlOutFile.close();
-                    }
-                    catch (Exception ex) 
-                    {
-                    }
-                }
             }
         } finally {
             this.lock.unlock();
@@ -172,12 +156,8 @@ public class XmlUserManager extends UserManagerBase
 
        doc = null;
        
-       FileInputStream fis = null;
-
-       try
+       try (FileInputStream fis = new FileInputStream(usersFile))
        {
-           fis = new FileInputStream(usersFile);
-           
            InputSource inputSource = new InputSource(fis);
            
            inputSource.setEncoding("UTF-8");
@@ -191,19 +171,6 @@ public class XmlUserManager extends UserManagerBase
        catch (IOException ioex)
        {
            logger.error("failed to load user registry file : " + usersFile.getAbsolutePath(), ioex);
-       }
-       finally 
-       {
-           if (fis != null)
-           {
-               try
-               {
-                   fis.close();
-               }
-               catch (Exception ex)
-               {
-               }
-           }
        }
 
        if (doc == null)

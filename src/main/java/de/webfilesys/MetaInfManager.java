@@ -24,6 +24,7 @@ import org.xml.sax.SAXException;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,7 +48,7 @@ public class MetaInfManager extends Thread
 	
 	public static final int STATUS_NONE = 0;
 
-    private static MetaInfManager metaInfMgr=null;
+    private static final AtomicReference<MetaInfManager>  atomicMetaInfManager = new AtomicReference<>();
 
     private ConcurrentHashMap<String, Element> dirList = null;
 
@@ -76,12 +77,15 @@ public class MetaInfManager extends Thread
        this.start();
     }
 
-    public static synchronized MetaInfManager getInstance() {
-        if (metaInfMgr == null) {
+    public static MetaInfManager getInstance() {
+        MetaInfManager metaInfMgr = atomicMetaInfManager.get();
+        if(metaInfMgr==null){
             metaInfMgr = new MetaInfManager();
+            if (atomicMetaInfManager.compareAndSet(null, metaInfMgr)){
+                return atomicMetaInfManager.get();
+            }
         }
-
-        return(metaInfMgr);
+        return metaInfMgr;
     }
 
     public void saveMetaInfFile(String path)
@@ -124,13 +128,10 @@ public class MetaInfManager extends Thread
 
             logger.debug("saving meta info to file: " + metaInfFileName);
 
-            OutputStreamWriter xmlOutFile = null;
-            
-            try
+            try (FileOutputStream fos = new FileOutputStream(metaInfFileName);
+                    OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8"))
             {
-                FileOutputStream fos = new FileOutputStream(metaInfFileName);
                 
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
                 
                 XmlUtil.writeToStream(metaInfRoot, xmlOutFile);
                 
@@ -139,19 +140,6 @@ public class MetaInfManager extends Thread
             catch (IOException ioex)
             {
                 logger.error("error saving metainf file : " + metaInfFileName, ioex);
-            }
-            finally
-            {
-                if (xmlOutFile != null)
-                {
-                    try 
-                    {
-                        xmlOutFile.close();
-                    }
-                    catch (IOException ex) 
-                    {
-                    }
-                }
             }
         } finally {
             this.lock.unlock();
@@ -183,12 +171,8 @@ public class MetaInfManager extends Thread
            this.lock.lock();
            Document doc = null;
 
-           FileInputStream fis = null;
-
-           try
+           try (FileInputStream fis = new FileInputStream(metaInfFile))
            {
-               fis = new FileInputStream(metaInfFile);
-               
                InputSource inputSource = new InputSource(fis);
                
                inputSource.setEncoding("UTF-8");
@@ -200,19 +184,6 @@ public class MetaInfManager extends Thread
            catch (SAXException | IOException saxex)
            {
                logger.error("Failed to load metainf file : " + metaInfFileName, saxex);
-           }
-           finally 
-           {
-               if (fis != null)
-               {
-                   try
-                   {
-                       fis.close();
-                   }
-                   catch (Exception ex)
-                   {
-                   }
-               }
            }
 
            if (doc == null)
@@ -250,8 +221,10 @@ public class MetaInfManager extends Thread
         return(getMetaInfElement(partsOfPath[0], partsOfPath[1]));
     }
 
-    public synchronized Element getMetaInfElement(String path,String fileName)
+    public Element getMetaInfElement(String path,String fileName)
     {
+        try {
+        this.lock.lock();
         Element metaInfRoot = null;
         
         metaInfRoot = dirList.get(path);
@@ -292,6 +265,9 @@ public class MetaInfManager extends Thread
         }
         
         return(null);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
 	public Element createMetaInfElement(String absoluteFileName) {

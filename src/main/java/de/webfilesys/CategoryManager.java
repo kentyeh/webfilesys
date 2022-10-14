@@ -48,7 +48,8 @@ public class CategoryManager extends Thread {
 
     private String categoryPath = null;
     
-    private  final ReentrantLock lock = new ReentrantLock();
+    private  final ReentrantLock lockSelf = new ReentrantLock();
+    private  final ReentrantLock lockElementList = new ReentrantLock();
 
     private CategoryManager() {
         categoryPath = WebFileSys.getInstance().getConfigBaseDir() + "/" + CATEGORIES_DIR;
@@ -119,10 +120,7 @@ public class CategoryManager extends Thread {
 
         Document doc = null;
 
-        FileInputStream fis = null;
-
-        try {
-            fis = new FileInputStream(categoryFile);
+        try (FileInputStream fis = new FileInputStream(categoryFile)){
 
             InputSource inputSource = new InputSource(fis);
 
@@ -133,13 +131,6 @@ public class CategoryManager extends Thread {
             doc = builder.parse(inputSource);
         } catch (SAXException | IOException saxex) {
             logger.error("failed to load category file : " + categoryFilePath, saxex);
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException ex) {
-                }
-            }
         }
 
         return (doc.getDocumentElement());
@@ -384,9 +375,8 @@ public class CategoryManager extends Thread {
 
         Element newElement = null;
 
-        ReentrantLock lock = new ReentrantLock();
         try {
-            this.lock.lock();
+            this.lockSelf.lock();
             Document doc = categoryList.getOwnerDocument();
 
             newElement = doc.createElement("category");
@@ -411,7 +401,7 @@ public class CategoryManager extends Thread {
             ConcurrentHashMap<String, Element> userIndex = indexTable.get(userid);
             userIndex.put(newIdString, newElement);
         } finally {
-            this.lock.unlock();
+            this.lockSelf.unlock();
         }
 
         updateCategory(userid, newCategory);
@@ -451,7 +441,7 @@ public class CategoryManager extends Thread {
     public Element updateCategory(String userid, Category changedCategory) {
 
         try {
-            this.lock.lock();
+            this.lockSelf.lock();
             Element categoryElement = getCategoryElement(userid, changedCategory.getId());
 
             if (categoryElement == null) {
@@ -467,7 +457,7 @@ public class CategoryManager extends Thread {
 
             return (categoryElement);
         } finally {
-            this.lock.unlock();
+            this.lockSelf.unlock();
         }
     }
 
@@ -478,7 +468,8 @@ public class CategoryManager extends Thread {
             return (null);
         }
 
-        synchronized (categoryListElement) {
+        try {
+            this.lockElementList.lock();
             NodeList categories = categoryListElement.getElementsByTagName("category");
 
             if (categories == null) {
@@ -496,6 +487,8 @@ public class CategoryManager extends Thread {
                     return (categoryElement);
                 }
             }
+        } finally {
+            this.lockElementList.unlock();
         }
 
         return (null);
@@ -542,7 +535,8 @@ public class CategoryManager extends Thread {
     public void removeCategory(String userid, String searchedId) {
         Element categoryListElement = getCategoryList(userid);
 
-        synchronized (categoryListElement) {
+        try {
+            this.lockElementList.lock();
             Element categoryElement = getCategoryElement(userid, searchedId);
 
             if (categoryElement == null) {
@@ -560,11 +554,13 @@ public class CategoryManager extends Thread {
 
                 cacheDirty.put(userid, true);
             }
+        } finally {
+            this.lockElementList.unlock();
         }
 
     }
 
-    protected synchronized void saveToFile(String userid) {
+    protected void saveToFile(String userid) {
         Element categoryListElement = getCategoryList(userid);
 
         if (categoryListElement == null) {
@@ -574,33 +570,27 @@ public class CategoryManager extends Thread {
 
         logger.debug("saving categories for user " + userid);
 
-        synchronized (categoryListElement) {
+        try {
+            this.lockElementList.lock();
             String xmlFileName = categoryPath + File.separator + userid + ".xml";
 
-            OutputStreamWriter xmlOutFile = null;
-
-            try {
-                FileOutputStream fos = new FileOutputStream(xmlFileName);
-
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
+            try (FileOutputStream fos = new FileOutputStream(xmlFileName);
+                    OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8")){
 
                 XmlUtil.writeToStream(categoryListElement, xmlOutFile);
 
                 xmlOutFile.flush();
             } catch (IOException io1) {
                 logger.error("error saving category file " + xmlFileName, io1);
-            } finally {
-                if (xmlOutFile != null) {
-                    try {
-                        xmlOutFile.close();
-                    } catch (Exception ex) {
-                    }
-                }
             }
+        } finally {
+            this.lockElementList.unlock();
         }
     }
 
-    public synchronized void saveChangedUsers() {
+    public void saveChangedUsers() {
+        try{
+            this.lockSelf.lock();
         Enumeration cacheUserList = cacheDirty.keys();
 
         while (cacheUserList.hasMoreElements()) {
@@ -613,10 +603,15 @@ public class CategoryManager extends Thread {
                 cacheDirty.put(userid, false);
             }
         }
+        }finally{
+            this.lockSelf.unlock();
+        }
     }
 
     @Override
-    public synchronized void run() {
+    public void run() {
+        try{
+            this.lockSelf.lock();
         boolean stop = false;
 
         while (!stop) {
@@ -629,6 +624,9 @@ public class CategoryManager extends Thread {
 
                 stop = true;
             }
+        }
+        } finally {
+            this.lockSelf.unlock();
         }
     }
 

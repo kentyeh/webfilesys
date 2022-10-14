@@ -27,12 +27,8 @@ public class ScaledImage
 
     public ScaledImage(String imgFileName, int maxWidth, int maxHeight) throws IOException
     {
-        BufferedInputStream imgFile = null;
-
-        try
+        try (BufferedInputStream imgFile = new BufferedInputStream(new FileInputStream(imgFileName)))
         {
-            imgFile = new BufferedInputStream(new FileInputStream(imgFileName));
-
             int last = 0;
 
             int byte1 = imgFile.read();
@@ -154,19 +150,6 @@ public class ScaledImage
         {
             logger.error("failed to determined image dimesions", ioex);
             throw ioex;
-        }
-        finally
-        {
-            if (imgFile != null)
-            {
-                try 
-                {
-                    imgFile.close();
-                }
-                catch (Exception ex) 
-                {
-                }
-            }
         }
         
         if (ySize == 0)

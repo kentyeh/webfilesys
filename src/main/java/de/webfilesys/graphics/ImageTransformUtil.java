@@ -100,12 +100,9 @@ public class ImageTransformUtil {
         bufferedImg = ImageTransform.getScaledInstance(bufferedImg, scaledWidth, scaledHeight, RenderingHints.VALUE_INTERPOLATION_BICUBIC, true);
         
         if (scaledImg.getImageType() == ScaledImage.IMG_TYPE_JPEG) {
-            BufferedOutputStream thumbOut = null;
-            
-            try {
+            try (BufferedOutputStream thumbOut = new BufferedOutputStream(new FileOutputStream(scaledImgPath))){
                 Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpg");
                 ImageWriter imgWriter = (ImageWriter) iter.next();
-                thumbOut = new BufferedOutputStream(new FileOutputStream(scaledImgPath));
                 ImageOutputStream ios = ImageIO.createImageOutputStream(thumbOut);
                 imgWriter.setOutput(ios);
                 ImageWriteParam iwparam = new JPEGImageWriteParam(Locale.getDefault());
@@ -121,14 +118,6 @@ public class ImageTransformUtil {
                 logger.error("error writing scaled JPEG instance file " + scaledImgPath, ioex);
             } catch (OutOfMemoryError memEx) {
                 logger.error("insufficient memory for scaled JPEG instance creation", memEx);
-            } finally {
-                if (thumbOut != null) {
-                    try {
-                        thumbOut.close();
-                    } catch (Exception ex) {
-                        logger.error("error closing scaled JPEG file", ex);
-                    }
-                }
             }
         }
         else  
@@ -143,10 +132,7 @@ public class ImageTransformUtil {
             pngEncoder.setFilter(com.keypoint.PngEncoder.FILTER_UP);
             */
 
-            BufferedOutputStream thumbOut = null;
-            
-            try {
-                thumbOut = new BufferedOutputStream(new FileOutputStream(scaledImgPath));
+            try (BufferedOutputStream thumbOut = new BufferedOutputStream(new FileOutputStream(scaledImgPath))){
 
                 pngBytes = pngEncoder.pngEncode();
 
@@ -164,14 +150,6 @@ public class ImageTransformUtil {
                 success = true;
             } catch (IOException ioex) {
                 logger.error("cannot create scaled PNG instance for " + origImgPath, ioex);
-            } finally {
-                if (thumbOut != null) {
-                    try {
-                        thumbOut.close();
-                    } catch (Exception ex) {
-                        logger.error("error closing thumbnail file", ex);
-                    }
-                }
             }
 
             pngBytes = null;

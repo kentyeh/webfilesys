@@ -127,7 +127,6 @@ public class JavaClassProcyonViewHandler implements ViewHandler {
 
 				javaSourceOut.flush();
 
-				javaSourceOut.close();
 			} catch (Exception ex) {
 				logger.error(ex);
 			}

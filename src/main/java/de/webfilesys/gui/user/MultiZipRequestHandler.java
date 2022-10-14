@@ -142,20 +142,15 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 
         for (String selectedFile : selectedFiles) 
 		{
-            FileInputStream f_in = null;
-
-            try
+                    String fullPath=pathWithSlash + selectedFile;
+            try (FileInputStream f_in = new FileInputStream(fullPath))
 			{
 				zip_out.putNextEntry(new ZipEntry(selectedFile));
-
-				String fullPath=pathWithSlash + selectedFile;
 
 				output.println("<script language=\"javascript\">");
                 output.println("document.getElementById('currentFile').innerHTML=\"" + insertDoubleBackslash(CommonUtils.shortName(fullPath, 50)) + "\";");
 				output.println("</script>");
 				output.flush();
-
-				f_in=new FileInputStream(fullPath);
 
 				byte [] buff = new byte[4096];
 
@@ -172,17 +167,6 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
                 logger.error(zioe);
 				javascriptAlert(zioe.toString());
 				return;
-			}
-			finally 
-			{
-			    try 
-			    {
-	                f_in.close();
-			    }
-                catch (Exception ex)
-                {
-                    logger.error(ex);
-                }
 			}
 		}
 

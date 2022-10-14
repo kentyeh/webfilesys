@@ -182,12 +182,8 @@ public class ProtectedRequestHandler extends RequestHandler {
 
 		boolean copyFailed = false;
 
-		BufferedInputStream fin = null;
-		BufferedOutputStream fout = null;
-
-		try {
-			fin = new BufferedInputStream(new FileInputStream(sourceFilePath));
-			fout = new BufferedOutputStream(new FileOutputStream(destFilePath));
+		try (BufferedInputStream fin = new BufferedInputStream(new FileInputStream(sourceFilePath));
+                        BufferedOutputStream fout = new BufferedOutputStream(new FileOutputStream(destFilePath))){
 
 			byte [] buff = new byte[4096];
 			int count;
@@ -198,19 +194,6 @@ public class ProtectedRequestHandler extends RequestHandler {
 		} catch (Exception e) {
 			logger.error("failed to copy file " + sourceFilePath + " to " + destFilePath, e);
 			copyFailed = true;
-		} finally {
-			if (fin != null) {
-				try {
-					fin.close();
-				} catch (Exception ex) {
-				}
-			}
-			if (fout != null) {
-				try {
-					fout.close();
-				} catch (Exception ex) {
-				}
-			}
 		}
 
 		if (!copyFailed) {
@@ -257,10 +240,7 @@ public class ProtectedRequestHandler extends RequestHandler {
                     
                     zipOut.putNextEntry(newZipEntry);
                     
-                    FileInputStream inStream = null;
-                    
-                    try {
-                        inStream = new FileInputStream(sourceFile);
+                    try (FileInputStream inStream  = new FileInputStream(sourceFile)){
                         
                         int count;
                         
@@ -307,13 +287,6 @@ public class ProtectedRequestHandler extends RequestHandler {
                         logger.error("failed to zip file " + fullFileName, zioe);
                         output.println("<font color=\"red\">failed to zip file " + fullFileName + "</font><br/>");
                         output.flush();
-                    } finally {
-                        if (inStream != null) {
-                            try {
-                                inStream.close();
-                            } catch (Exception ex) {
-                            }
-                        }
                     }
                 } catch (IOException ioex) {
                     logger.error("error during zipping file " + fullFileName, ioex);

@@ -65,10 +65,8 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
 		
 		File ffmpegFileListFile = new File(currentPath, FFMPEG_INPUT_LIST_FILE_NAME);
 		
-		PrintWriter ffmpegInputFileListFile = null;
-		
-		try {
-	        ffmpegInputFileListFile = new PrintWriter(new OutputStreamWriter(new FileOutputStream(ffmpegFileListFile), "UTF-8"));
+		try (PrintWriter ffmpegInputFileListFile = new PrintWriter(
+                        new OutputStreamWriter(new FileOutputStream(ffmpegFileListFile), "UTF-8"))){
 	        
                     for (String selectedFile : selectedFiles) {
                         String filePath = null;
@@ -113,19 +111,12 @@ public class MultiVideoConcatHandler extends MultiVideoHandlerBase {
 		} catch (IOException ioex) {
 		    logger.error("failed to write ffmpeg input list file for video concatenation", ioex);
 		} finally {
-		    if (ffmpegInputFileListFile != null) {
-		        try {
-		            ffmpegInputFileListFile.close();
-		            
-			        if (videoParameterMissmatch) {
-			        	File fileListFile = new File("ffmpegInputFileListPath");
-			        	if (fileListFile.exists()) {
-			        		fileListFile.delete();
-			        	}
-			        }
-		        } catch (Exception ex) {
-		        }
-		    }
+                    if (videoParameterMissmatch) {
+                            File fileListFile = new File("ffmpegInputFileListPath");
+                            if (fileListFile.exists()) {
+                                    fileListFile.delete();
+                            }
+                    }
 		}
 
         String targetPath = null;

@@ -140,7 +140,6 @@ public class UntarRequestHandler extends UserRequestHandler
                             }
                         }
 
-                        destination.close();
                     } catch (IOException ioex) {
                         logger.error("untar error in file " + untarOutFile, ioex);
 
@@ -161,7 +160,6 @@ public class UntarRequestHandler extends UserRequestHandler
                 }
             }
             
-            tarFile.close();
         } catch (IOException ioex) {
             logger.error("failed to extract from tar archive", ioex);
 

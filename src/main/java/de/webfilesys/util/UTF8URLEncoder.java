@@ -16,7 +16,7 @@ public class UTF8URLEncoder
     {
         try
         {
-            return URLEncoder.encode(val, "UTF-8").replaceAll("\\+","%20");
+            return URLEncoder.encode(val == null ? "" : val.trim(), "UTF-8").replaceAll("\\+", "%20");
         }
         catch (UnsupportedEncodingException uex)
         {

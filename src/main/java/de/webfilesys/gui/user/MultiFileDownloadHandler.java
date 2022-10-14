@@ -84,13 +84,9 @@ public class MultiFileDownloadHandler extends MultiFileRequestHandler
                         buffer = new byte[16192];
                         for (String selectedFile : selectedFiles)
                         {
-                            FileInputStream inFile = null;
-                            
-                            try
+                            try (FileInputStream inFile = new FileInputStream(new File(actPath, selectedFile)))
                             {
                                 zip_out.putNextEntry(new ZipEntry(selectedFile));
-                                
-                                inFile = new FileInputStream(new File(actPath, selectedFile));
                                 
                                 count=0;
                                 
@@ -104,20 +100,6 @@ public class MultiFileDownloadHandler extends MultiFileRequestHandler
                                 logger.warn("failed to add file to temporary zip archive", zioe);
                                 return;
                             }
-                            finally
-                            {
-                                if (inFile != null)
-                                {
-                                    try
-                                    {
-                                        inFile.close();
-                                    }
-                                    catch (IOException ioex2)
-                                    {
-                                        logger.error("failed to close file", ioex2);
-                                    }
-                                }
-		        }
 			}
 			
 			resp.setContentType("application/zip");

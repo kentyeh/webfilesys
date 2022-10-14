@@ -150,10 +150,9 @@ public class ImageTransform
         String destFilePath = actPath + File.separator + resultFileName;
 
         
-        BufferedOutputStream output = null;
         LLJTran llj = null;
         
-        try {
+        try (BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(destFilePath))){
             llj = new LLJTran(sourceFile);
             // If you pass the 2nd parameter as false, Exif information is not
             // loaded and hence will not be written.
@@ -164,20 +163,12 @@ public class ImageTransform
             
             llj.transform(operation, options);    
             
-            output = new BufferedOutputStream(new FileOutputStream(destFilePath));
             llj.save(output, LLJTran.OPT_WRITE_ALL);
             
         	replaceOldExternalThumbnail(destFilePath, false);
         } catch (LLJTranException | IOException ex) {
         	logger.error("failed to transform image " + sourceFilePath, ex);
         } finally {
-            if (output != null) {
-            	try {
-            		output.close();
-            	} catch (Exception ex) {
-            	}
-            }
-
         	if (llj != null) {
                 llj.freeMemory();        	
         	}
@@ -455,16 +446,11 @@ public class ImageTransform
 
             rotatedImg.flush();
             
-            FileOutputStream rotatedFile = null;
-            
             if (sourceImage.getImageType() == ScaledImage.IMG_TYPE_JPEG) {
-                BufferedOutputStream rotatedOut = null;
-                
-                try {
+                try (FileOutputStream rotatedFile = new FileOutputStream(resultFileName);
+                        BufferedOutputStream rotatedOut = new BufferedOutputStream(rotatedFile)){
                     Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpg");
                     ImageWriter imgWriter = (ImageWriter) iter.next();
-                    rotatedFile = new FileOutputStream(resultFileName);
-                    rotatedOut = new BufferedOutputStream(rotatedFile);
                     ImageOutputStream ios = ImageIO.createImageOutputStream(rotatedOut);
                     imgWriter.setOutput(ios);
                     ImageWriteParam iwparam = new JPEGImageWriteParam(Locale.getDefault());
@@ -475,18 +461,9 @@ public class ImageTransform
                     imgWriter.dispose();
                 } catch (IOException ioex) {
                     logger.error("error writing rotated JPEG file " + resultFileName, ioex);
-                } finally {
-                    if (rotatedOut != null) {
-                        try {
-                            rotatedOut.close();
-                        } catch (Exception ex) {
-                            logger.error("error closing rotated JPEG file", ex);
-                        }
-                    }
                 }
             } else {
-                try {
-                    rotatedFile = new FileOutputStream(resultFileName);
+                try (FileOutputStream rotatedFile = new FileOutputStream(resultFileName)){
                     
                     byte[] pngBytes;
                     com.keypoint.PngEncoder pngEncoder = new com.keypoint.PngEncoderB(bufferedImg);
@@ -506,13 +483,6 @@ public class ImageTransform
                 } catch (IOException ioex1) {
                     logger.error("rotateImage: " + ioex1);
                     return;
-                } finally {
-                    if (rotatedFile != null) {
-                        try {
-                        	rotatedFile.close();
-                        } catch (Exception ex) {
-                        }
-                    }
                 }
             }
 

@@ -138,12 +138,9 @@ public final class LanguageManager {
 
     protected synchronized boolean loadResources(String configFilename, Properties langResources,
             String language) {
-        InputStreamReader configFile = null;
-
         logger.info("Loading Resources from " + configFilename);
 
-        try {
-            configFile = new InputStreamReader(new FileInputStream(configFilename), "UTF-8");
+        try (InputStreamReader configFile = new InputStreamReader(new FileInputStream(configFilename), "UTF-8")){
 
             langResources.load(configFile);
 
@@ -154,15 +151,7 @@ public final class LanguageManager {
         } catch (IOException ioex) {
             logger.error("failed to load language resources", ioex);
             return (false);
-        } finally {
-            if (configFile != null) {
-                try {
-                    configFile.close();
-                } catch (IOException ex) {
-                }
-            }
         }
-
         if (!language.equals(DEFAULT_LANGUAGE)) {
             mergeMissingResources(language, langResources);
         }

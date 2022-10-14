@@ -137,13 +137,10 @@ public class FolderStatusManager
 
         try {
             this.lock.lock();
-            OutputStreamWriter xmlOutFile = null;
 
-            try
+            try (FileOutputStream fos = new FileOutputStream(statusFile);
+                    OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8"))
             {
-                FileOutputStream fos = new FileOutputStream(statusFile);
-
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
 
                 if (logger.isDebugEnabled())
                 {
@@ -161,19 +158,6 @@ public class FolderStatusManager
                 logger.error(
                         "error saving folder status file "
                                 + statusFile.getAbsolutePath(), ioEx);
-            }
-            finally
-            {
-                if (xmlOutFile != null)
-                {
-                    try
-                    {
-                        xmlOutFile.close();
-                    }
-                    catch (IOException ex)
-                    {
-                    }
-                }
             }
         } finally {
             this.lock.unlock();

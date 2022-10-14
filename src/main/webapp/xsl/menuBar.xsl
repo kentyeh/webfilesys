@@ -172,7 +172,7 @@
               </th>
             </xsl:if>
             
-            <xsl:if test="not(readonly) or (readonly='false')">
+            <xsl:if test="not(role='webspace') and (not(readonly) or (readonly='false'))">
               <th>
 	            <div class="icon-button" onclick="watchList()">
                   <xsl:attribute name="titleResource">watchList</xsl:attribute>
@@ -238,7 +238,7 @@
 			  </div>
             </th>
 
-            <xsl:if test="not(readonly) or (readonly='false')">
+            <xsl:if test="ftpBackupEnabled and (not(readonly) or (readonly='false'))">
               <th>
 		        <div class="icon-button" onclick="ftpBackup()">
                   <xsl:attribute name="titleResource">label.ftpBackup</xsl:attribute>

@@ -501,8 +501,6 @@ public class ResizeImageRequestHandler extends UserRequestHandler
         Image origImage = null;
         BufferedImage bufferedImg = null;
 
-        FileOutputStream thumbFile = null;
-
         try
         {
             long startTime = (new Date()).getTime();
@@ -638,7 +636,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
                         copyRightPos);
             }
 
-            thumbFile = new FileOutputStream(thumbFileName);
+            try( FileOutputStream thumbFile = new FileOutputStream(thumbFileName)){
 
             if (format.equals("JPEG"))
             {
@@ -732,6 +730,7 @@ public class ResizeImageRequestHandler extends UserRequestHandler
                 output.flush();
                 bufferedImg.flush();
             }
+        }
 
         }
         catch (OutOfMemoryError memEx)
@@ -742,16 +741,6 @@ public class ResizeImageRequestHandler extends UserRequestHandler
             logger.error(memEx.toString());
 
             output.flush();
-
-            try
-            {
-                if (thumbFile != null) {
-                    thumbFile.close();
-                }
-            }
-            catch (IOException ioEx)
-            {
-            }
 
             File abortedFile = new File(thumbFileName);
 

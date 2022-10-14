@@ -366,9 +366,6 @@ public class SynchronizeRequestHandler extends UserRequestHandler
             {
                 fout.write(buff, 0, count);
             }
-
-            fin.close();
-            fout.close();
         }
         catch (Throwable e)
         {

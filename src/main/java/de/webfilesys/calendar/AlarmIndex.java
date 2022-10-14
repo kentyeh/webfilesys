@@ -42,32 +42,39 @@ public class AlarmIndex extends ConcurrentHashMap<String, ConcurrentHashMap<Inte
         return dateKey;
     }
 
-    public synchronized AlarmEntry addEvent(String owner, Appointment appointment)
+    public  AlarmEntry addEvent(String owner, Appointment appointment)
     {
-    	return addEvent(appointment.getId(), owner, appointment.getEventTime(), appointment.getAlarmTime(),
+        try{
+            this.lock.lock();
+    	    return addEvent(appointment.getId(), owner, appointment.getEventTime(), appointment.getAlarmTime(),
                         appointment.getAlarmType(), appointment.getRepeatPeriod(),
                         appointment.isAlarmed(), appointment.isMailAlarmed());    	
+        } finally {
+            this.lock.unlock();
+        }
     }
     
-    public synchronized AlarmEntry addEvent(String xmlId, String owner, Date newDate, Date alarmTime,
+    public AlarmEntry addEvent(String xmlId, String owner, Date newDate, Date alarmTime,
                                            int alarmType, int repeatPeriod, 
                                            boolean alarmed, boolean mailAlarmed)
     {
+        try{
+            this.lock.lock();
         Integer dateKey = getDateKey(newDate);        
-        
-        ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot = get(owner);
-        if (userRoot==null)
-        {
-            userRoot = new ConcurrentHashMap<Integer, Vector<AlarmEntry>>();
-            put(owner,userRoot);
-        }
+        Vector<AlarmEntry> dayEventList = null;
+            ConcurrentHashMap<Integer, Vector<AlarmEntry>> userRoot = get(owner);
+            if (userRoot==null)
+            {
+                userRoot = new ConcurrentHashMap<>();
+                put(owner,userRoot);
+            }
 
-        Vector<AlarmEntry> dayEventList = userRoot.get(dateKey);
-        if(dayEventList == null)
-        {
-            dayEventList = new Vector<>();
-            userRoot.put(dateKey,dayEventList);
-        }
+            dayEventList = userRoot.get(dateKey);
+            if(dayEventList == null)
+            {
+                dayEventList = new Vector<>();
+                userRoot.put(dateKey,dayEventList);
+            }
 
         AlarmEntry newEvent = new AlarmEntry(idCounter++, owner, newDate, alarmTime, alarmType, repeatPeriod);
 
@@ -83,9 +90,6 @@ public class AlarmIndex extends ConcurrentHashMap<String, ConcurrentHashMap<Inte
         }
 
         boolean stop = false;
-        ReentrantLock lock = new ReentrantLock();
-        try{
-            lock.lock();
             for(int i = 0; (!stop) && (i < dayEventList.size()); i++)
             {
                 AlarmEntry actEntry = dayEventList.elementAt(i);
@@ -99,13 +103,13 @@ public class AlarmIndex extends ConcurrentHashMap<String, ConcurrentHashMap<Inte
             {
                 dayEventList.addElement(newEvent);
             }
-        } finally {
-            lock.unlock();
-        }
 
 			logger.debug("adding AlarmEntry to alarm index: " + newEvent);
 
 		return(newEvent);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     public boolean delEventClone(AlarmEntry entryToRemove)

@@ -76,8 +76,8 @@ button.directPath=前往
 invalidDirectPath=是為效的檔案路徑!
 
 # directory context menu labels
-label.mkdir=建立子目錄l
-abel.copydir=拷貝目錄
+label.mkdir=建立子目錄
+label.copydir=拷貝目錄
 label.movedir=移動目錄
 label.deldir=刪除目錄
 label.renamedir=目錄改名
@@ -165,7 +165,7 @@ playerStartedInBackground=影片播放器可能在瀏覽器之後
 # directory tree tooltips
 tooltip.folder=開啟目錄選項
 tooltip.listFiles=顯示本目錄檔案
-label.loginHint=提示: 點擊目錄圖示可以打開目錄選單!
+label.loginHint=提示:右鍵點擊目錄圖示可以打開目錄選單!
 
 # description window buttons and labels
 button.setdesc=儲存

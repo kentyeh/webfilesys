@@ -29,6 +29,7 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.XmlUtil;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,9 +38,7 @@ public class AppointmentManager extends Thread
 {
     private static final Logger logger = LogManager.getLogger(AppointmentManager.class);
     private String appointmentDir = null;
-    private final ReentrantLock lockSelf = new ReentrantLock();
-    private final ReentrantLock lockElement = new ReentrantLock();
-    private final ReentrantLock lockList = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
     ConcurrentHashMap<String, Element> appointmentMap = null;
 
@@ -49,7 +48,7 @@ public class AppointmentManager extends Thread
 
     DocumentBuilder builder = null;
 
-    private static AppointmentManager appointmentManager=null;
+    private static AtomicReference<AppointmentManager> atomicAppointmentManager = new AtomicReference<>();
     
     AlarmIndex alarmIdx = null;
     
@@ -87,16 +86,21 @@ public class AppointmentManager extends Thread
         start();
     }
 
-    public synchronized static AppointmentManager getInstance()
+    public static AppointmentManager getInstance()
     {
+        AppointmentManager appointmentManager = atomicAppointmentManager.get();
         if (appointmentManager == null)
         {
             appointmentManager = new AppointmentManager();
+            if(atomicAppointmentManager.compareAndSet(null, appointmentManager)){
+                return atomicAppointmentManager.get();
+            }
         }
 
-        return(appointmentManager);
+        return appointmentManager;
     }
 
+    @Override
     public synchronized void run()
     {
     	logger.info("AppointmentManager started");
@@ -116,7 +120,7 @@ public class AppointmentManager extends Thread
                 if (loopCounter == 60) 
             	{
             		try {
-                            this.lockSelf.lock();
+                            this.lock.lock();
                     			Date now = new Date();
                     			if (now.getHours() == 0)
                     			{
@@ -129,7 +133,7 @@ public class AppointmentManager extends Thread
                                 indexTable.clear();
                                 cacheDirty.clear();
                     		} finally  {
-                            this.lockSelf.unlock();
+                            this.lock.unlock();
             		}
             		loopCounter = 0;
             	}
@@ -239,11 +243,8 @@ public class AppointmentManager extends Thread
         
         Document doc = null;
 
-        FileInputStream fis = null;
-
-        try
+        try (FileInputStream fis = new FileInputStream(appointmentFile);)
         {
-            fis = new FileInputStream(appointmentFile);
             
             InputSource inputSource = new InputSource(fis);
             
@@ -256,19 +257,6 @@ public class AppointmentManager extends Thread
         catch (SAXException | IOException saxex)
         {
             logger.error("failed to load appointment file : " + appointmentFilePath, saxex);
-        }
-        finally 
-        {
-            if (fis != null)
-            {
-                try
-                {
-                    fis.close();
-                }
-                catch (Exception ex)
-                {
-                }
-            }
         }
         
         return(doc.getDocumentElement());
@@ -644,7 +632,7 @@ public class AppointmentManager extends Thread
         String newIdString=null;
 
         try {
-            this.lockList.lock();
+            this.lock.lock();
             Document doc=appointmentList.getOwnerDocument();
 
             Element newElement=doc.createElement("appointment");
@@ -681,7 +669,7 @@ public class AppointmentManager extends Thread
             HashMap<String, Element> userIndex =  indexTable.get(userid);
             userIndex.put(newIdString,newElement);
         } finally {
-            this.lockList.unlock();
+            this.lock.unlock();
         }
 
         updateAppointment(userid,newAppointment, true);
@@ -732,7 +720,7 @@ public class AppointmentManager extends Thread
         Element appointmentListElement = getAppointmentList(userid);
 
         try {
-            this.lockElement.lock();
+            this.lock.lock();
             appointmentElement = getAppointmentElement(userid,changedAppointment.getId());
 
             if (appointmentElement == null)
@@ -769,7 +757,7 @@ public class AppointmentManager extends Thread
             // saveToFile(userid);
             cacheDirty.put(userid, true);
         } finally {
-            this.lockElement.unlock();
+            this.lock.unlock();
         }
         
         if (updateAlarmIdx)
@@ -794,7 +782,7 @@ public class AppointmentManager extends Thread
         Element appointmentListElement=getAppointmentList(userid);
 
         try{
-            this.lockElement.lock();
+            this.lock.lock();
             Element appointmentElement=getAppointmentElement(userid,searchedId);
 
             if (appointmentElement==null)
@@ -816,7 +804,7 @@ public class AppointmentManager extends Thread
                 cacheDirty.put(userid, true);
             }
         } finally {
-            this.lockElement.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -1351,8 +1339,10 @@ public class AppointmentManager extends Thread
 		return(listOfAppointments);
 	}
 
-    protected synchronized void saveToFile(String userid)
+    protected void saveToFile(String userid)
     {
+        try{
+            this.lock.lock();
         Element appointmentListElement=getAppointmentList(userid);
 
         if (appointmentListElement==null)
@@ -1377,17 +1367,12 @@ public class AppointmentManager extends Thread
         	}
         }
         
-        synchronized (appointmentListElement)
-        {
-			String xmlFileName = appointmentDir + File.separator + userid + ".xml";
+		String xmlFileName = appointmentDir + File.separator + userid + ".xml";
 
-            OutputStreamWriter xmlOutFile = null;
 
-            try
+            try (FileOutputStream fos = new FileOutputStream(xmlFileName);
+                   OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8") )
             {
-                FileOutputStream fos = new FileOutputStream(xmlFileName);
-                
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
                 
                 XmlUtil.writeToStream(appointmentListElement, xmlOutFile);
 
@@ -1397,39 +1382,33 @@ public class AppointmentManager extends Thread
             {
             	logger.error("failed to save appointments for user " + userid, io1);
             }
-            finally
-            {
-                if (xmlOutFile != null)
-                {
-                    try 
-                    {
-                        xmlOutFile.close();
-                    }
-                    catch (Exception ex) 
-                    {
-                    }
-                }
-            }
+        }finally{
+            this.lock.unlock();
         }
 
         // WebReminder.shutdownLocked--;
     }
 
-    public synchronized void saveChangedUsers()
+    public void saveChangedUsers()
     {
-        Iterator<String> cacheUserIter = cacheDirty.keySet().iterator();
+        try{
+            this.lock.lock();
+            Iterator<String> cacheUserIter = cacheDirty.keySet().iterator();
 
-        while (cacheUserIter.hasNext())
-        {
-            String userid = (String) cacheUserIter.next();
-
-            boolean dirtyFlag = cacheDirty.get(userid);
-
-            if (dirtyFlag)
+            while (cacheUserIter.hasNext())
             {
-                saveToFile(userid);
-                cacheDirty.put(userid, false);
+                String userid = (String) cacheUserIter.next();
+
+                boolean dirtyFlag = cacheDirty.get(userid);
+
+                if (dirtyFlag)
+                {
+                    saveToFile(userid);
+                    cacheDirty.put(userid, false);
+                }
             }
+        }finally{
+            this.lock.unlock();
         }
     }
     

@@ -132,12 +132,8 @@ public class FileSysBookmarkManager extends Thread
         
         Document doc = null;
 
-        FileInputStream fis = null;
-
-        try
+        try (FileInputStream fis = new FileInputStream(categoryFile))
         {
-            fis = new FileInputStream(categoryFile);
-            
             InputSource inputSource = new InputSource(fis);
             
             inputSource.setEncoding("UTF-8");
@@ -149,19 +145,6 @@ public class FileSysBookmarkManager extends Thread
         catch (SAXException | IOException saxex)
         {
             logger.error("failed to load category file : " + bookmarkFilePath, saxex);
-        }
-        finally 
-        {
-            if (fis != null)
-            {
-                try
-                {
-                    fis.close();
-                }
-                catch (Exception ex)
-                {
-                }
-            }
         }
         
         return(doc.getDocumentElement());
@@ -484,7 +467,7 @@ public class FileSysBookmarkManager extends Thread
             HashMap<String, Element> userIndex = indexTable.get(userid);
             userIndex.put(newIdString, newElement);
         } finally {
-            this.lock.unlock();;
+            this.lock.unlock();
         }
 
         updateBookmark(userid, newBookmark);
@@ -562,8 +545,9 @@ public class FileSysBookmarkManager extends Thread
 			return(null);
 		}
 
-		synchronized (bookmarkListElement)
+		try
 		{
+                    this.lock.lock();
 			NodeList bookmarks = bookmarkListElement.getElementsByTagName("bookmark");
 
 			if (bookmarks == null)
@@ -584,7 +568,9 @@ public class FileSysBookmarkManager extends Thread
 					return(bookmarkElement);
 				}
 			}
-		}
+		} finally {
+                    this.lock.unlock();
+                }
 		
 		return(null);
     }
@@ -641,8 +627,10 @@ public class FileSysBookmarkManager extends Thread
     {
         Element bookmarkListElement = getBookmarkList(userid);
 
-        synchronized (bookmarkListElement)
+        try
         {
+            this.lock.lock();
+
             Element bookmarkElement = getBookmarkElement(userid, searchedId);
 
             if (bookmarkElement == null)
@@ -662,12 +650,16 @@ public class FileSysBookmarkManager extends Thread
 
                 cacheDirty.put(userid, true);
             }
+        } finally {
+            this.lock.unlock();
         }
 
     }
 
-    protected synchronized void saveToFile(String userid)
+    protected  void saveToFile(String userid)
     {
+        try{
+            this.lock.lock();
         Element bookmarkListElement = getBookmarkList(userid);
 
         if (bookmarkListElement == null)
@@ -678,17 +670,11 @@ public class FileSysBookmarkManager extends Thread
 
         logger.debug("saving bookmarks for user " + userid);
         
-        synchronized (bookmarkListElement)
-        {
             String xmlFileName = bookmarkPath + File.separator + userid + ".xml";
 
-            OutputStreamWriter xmlOutFile = null;
-
-            try
+            try (FileOutputStream fos = new FileOutputStream(xmlFileName);
+                    OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8"))
             {
-                FileOutputStream fos = new FileOutputStream(xmlFileName);
-                
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
                 
                 XmlUtil.writeToStream(bookmarkListElement, xmlOutFile);
                 
@@ -698,24 +684,15 @@ public class FileSysBookmarkManager extends Thread
             {
                 logger.error("error saving bookmark file " + xmlFileName, io1);
             }
-            finally
-            {
-                if (xmlOutFile != null)
-                {
-                    try 
-                    {
-                        xmlOutFile.close();
-                    }
-                    catch (Exception ex) 
-                    {
-                    }
-                }
+        } finally {
+                this.lock.unlock();
             }
-        }
     }
 
-    public synchronized void saveChangedUsers()
+    public void saveChangedUsers()
     {
+        try{
+            this.lock.lock();
         Set<String> cacheUserList = cacheDirty.keySet();
 
         for (String userid : cacheUserList) {
@@ -728,6 +705,9 @@ public class FileSysBookmarkManager extends Thread
                 cacheDirty.put(userid, false);
             }
         }
+        } finally {
+                this.lock.unlock();
+            }
     }
 
     public void deleteUser(String userid)

@@ -127,9 +127,7 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 		
 		if (ldapConfigFile.exists() && ldapConfigFile.isFile() && ldapConfigFile.canRead()) {
 			
-			FileReader fin = null;
-			try {
-				fin = new FileReader(ldapConfigFile);
+			try (FileReader fin = new FileReader(ldapConfigFile)){
 				ldapConfigProps = new Properties();
 			    ldapConfigProps.load(fin);
 			    
@@ -158,13 +156,6 @@ public class LdapAuthenticatedXmlUserManager extends XmlUserManager {
 			    
 			} catch (IOException ioex) {
 				logger.error("failed to load LADP configuration from " + ldapConfigFile.getAbsolutePath());
-			} finally {
-				if (fin != null) {
-					try {
-						fin.close();
-					} catch (IOException ex) {
-					}
-				}
 			}
 		} else {
 			logger.error("LDAP config file is not a readable file: " + ldapConfigFile.getAbsolutePath());

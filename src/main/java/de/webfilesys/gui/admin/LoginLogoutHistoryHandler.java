@@ -55,10 +55,7 @@ public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
 
 		output.println("<pre>");
 
-		BufferedReader logIn = null;
-
-		try {
-			logIn = new BufferedReader(new FileReader(logFileName));
+		try (BufferedReader logIn = new BufferedReader(new FileReader(logFileName))){
 
 			String logLine = null;
 
@@ -72,13 +69,6 @@ public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
 		} catch (IOException ioe) {
 			logger.error(ioe);
 			output.println(ioe);
-		} finally {
-			if (logIn != null) {
-				try {
-					logIn.close();
-				} catch (IOException ioex) {
-				}
-			}
 		}
 
 		output.println("</pre>");

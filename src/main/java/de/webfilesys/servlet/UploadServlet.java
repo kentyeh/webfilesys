@@ -326,12 +326,8 @@ public class UploadServlet extends WebFileSysServlet
 
         int delimiterIdx = 0;
 
-        FileOutputStream outFile = null;
-
-        try
+        try (FileOutputStream outFile = new FileOutputStream(out_file_name))
         {
-            outFile = new FileOutputStream(out_file_name);
-
             stop = false;
             while (!stop)
             {
@@ -470,20 +466,6 @@ public class UploadServlet extends WebFileSysServlet
             }
             stop = true;
         }
-        finally
-        {
-        	if (outFile != null) 
-        	{
-        		try
-        		{
-        			outFile.close();
-        		}
-        		catch (Exception ex) 
-        		{
-        			logger.error("error closing upload file", ex);
-        		}
-        	}
-        }
 
         PrintWriter output = resp.getWriter();
         
@@ -591,12 +573,8 @@ public class UploadServlet extends WebFileSysServlet
         
         byte[] buff = new byte[4096];
         
-        FileOutputStream uploadOut = null;
-        
-        try
+        try (FileOutputStream uploadOut = new FileOutputStream(outFile))
         {
-            uploadOut = new FileOutputStream(outFile);
-            
             InputStream input = req.getInputStream();
             
             int bytesRead;
@@ -607,7 +585,6 @@ public class UploadServlet extends WebFileSysServlet
                 if (uploadSize > uploadLimit) {
                     logger.warn("upload limit of " + uploadLimit + " bytes exceeded for file " + outFile.getAbsolutePath());
                     uploadOut.flush();
-                    uploadOut.close();
                     outFile.delete();
                     throw new ServletException("upload limit of " + uploadLimit + " bytes exceeded");
                 }
@@ -622,19 +599,6 @@ public class UploadServlet extends WebFileSysServlet
         {
             logger.error("error in ajax binary upload", ex);
             throw ex;
-        }
-        finally 
-        {
-            if (uploadOut != null)
-            {
-                try
-                {
-                    uploadOut.close();
-                }
-                catch (Exception closeEx)
-                {
-                }
-            }
         }
         
         if (WebFileSys.getInstance().isAutoCreateThumbs())

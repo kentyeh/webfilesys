@@ -76,13 +76,10 @@ public class XslZipContentHandler extends XslRequestHandlerBase
 		
 		XmlUtil.setChildText(zipRootElement, "shortZipFileName", shortFileName, false);
 		
-		ZipFile zipFile = null;
-		
 		ZipEntry zipEntry = null;
 
-		try
+		try (ZipFile zipFile = new ZipFile(filePath))
 		{
-			zipFile = new ZipFile(filePath);
 
 			Enumeration entries = zipFile.entries();
 
@@ -94,7 +91,6 @@ public class XslZipContentHandler extends XslRequestHandlerBase
 	        			   zipEntry.getSize(),zipEntry.getCompressedSize());
 			}
 
-			zipFile.close();
 		}
 		catch (ZipException zipEx)
 		{

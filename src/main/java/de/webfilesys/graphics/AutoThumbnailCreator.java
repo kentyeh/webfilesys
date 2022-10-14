@@ -1,9 +1,8 @@
 package de.webfilesys.graphics;
 
-import java.util.ArrayList;
-
 import de.webfilesys.WebFileSys;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Iterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,14 +10,13 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
 {
     private static final Logger logger = LogManager.getLogger(AutoThumbnailCreator.class);
 
-    private ArrayList<QueueElem> queue = null;
+    private CopyOnWriteArrayList<QueueElem> queue = null;
     
     boolean shutdownFlag = false;
     
     private Thread thumbnailThread = null;
     
     private static AutoThumbnailCreator thumbCreator = null;
-    private final ReentrantLock lock = new ReentrantLock();
     
     private AutoThumbnailCreator()
     {
@@ -29,7 +27,7 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
 			imgFileMasks[1]="*.jpeg";
 		}
     	
-    	queue = new ArrayList<>();
+    	queue = new CopyOnWriteArrayList<>();
     	
     	shutdownFlag = false;
 
@@ -77,17 +75,13 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
     	{
     		while (!queue.isEmpty())
     		{
-    			QueueElem elem = (QueueElem) queue.get(0);
+    			for(Iterator<QueueElem> itor= queue.iterator();itor.hasNext();){
     			
-    			updateThumbnails(elem);
-    			
-    			try {
-                            this.lock.lock();
-    				queue.remove(0);
-    			} finally {
-                            this.lock.unlock();
+    				updateThumbnails(itor.next());
+
+                        	queue.remove(0);
                         }
-    			
+   			
     			logger.debug("size of AutoThumbnailCreator queue: " + queue.size());
     		}
 
@@ -109,12 +103,7 @@ public class AutoThumbnailCreator extends ThumbnailCreatorBase implements Runnab
     
     public synchronized void queuePath(String path, int scope)
     {
-    	try {
-            this.lock.lock();
-			queue.add(new QueueElem(path, scope));
-    	} finally {
-            this.lock.unlock();
-        }
+		queue.add(new QueueElem(path, scope));
     	
 		notify();
     }

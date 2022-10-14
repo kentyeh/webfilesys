@@ -126,14 +126,9 @@ public class VisitorFileRequestHandler extends RequestHandler
             buffer = new byte[65536];
         }
 		
-        FileInputStream fileInput = null;
-        
-		try
+		try (FileInputStream fileInput = new FileInputStream(fileToSend))
 		{
 			OutputStream byteOut = resp.getOutputStream();
-
-			fileInput = new FileInputStream(fileToSend);
-			
 			int count = 0;
 			long bytesWritten = 0;
 			
@@ -163,17 +158,5 @@ public class VisitorFileRequestHandler extends RequestHandler
         {
         	logger.warn(ioEx);
         }
-		finally {
-			if (fileInput != null) 
-			{
-				try
-				{
-					fileInput.close();
-				}
-				catch (IOException ex2)
-				{
-				}
-			}
-		}
 	}
 }

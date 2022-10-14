@@ -93,12 +93,10 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 		
 		File ffmpegInputListFile = new File(currentPath, FFMPEG_INPUT_LIST_FILE_NAME);
 		
-		PrintWriter ffmpegInputFileListFile = null;
-		
 		int errorCode = 0;
 		
-		try {
-	        ffmpegInputFileListFile = new PrintWriter(new OutputStreamWriter(new FileOutputStream(ffmpegInputListFile), "UTF-8"));
+		try (PrintWriter ffmpegInputFileListFile = new PrintWriter(new OutputStreamWriter(
+                        new FileOutputStream(ffmpegInputListFile), "UTF-8"))){
 	        
 	        for (int i = 0; i < selectedFiles.size(); i++) {
 	            String filePath = null;
@@ -119,13 +117,6 @@ public class SlideshowToVideoHandler extends XmlRequestHandlerBase {
 		} catch (IOException ioex) {
 		    logger.error("failed to write ffmpeg input list file for slideshow video", ioex);
     		errorCode = ERROR_CODE_PROCESSING_FAILED;
-		} finally {
-		    if (ffmpegInputFileListFile != null) {
-		        try {
-		            ffmpegInputFileListFile.close();
-		        } catch (Exception ex) {
-		        }
-		    }
 		}
 
 		if (errorCode == 0) {

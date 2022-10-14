@@ -53,12 +53,8 @@ public class GPXViewHandler extends UserRequestHandler {
 			googleMapsAPIKey = WebFileSys.getInstance().getGoogleMapsAPIKeyHTTP();
 		}
 
-		BufferedReader gpxReader = null;
-
-		try {
+		try (BufferedReader gpxReader = new BufferedReader(new FileReader(filePath))){
 			resp.setContentType("text/xml");
-
-			gpxReader = new BufferedReader(new FileReader(filePath));
 
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLStreamReader parser = factory.createXMLStreamReader(gpxReader);
@@ -129,13 +125,6 @@ public class GPXViewHandler extends UserRequestHandler {
 			logger.error("error parsing XML stream", xmlEx);
 		} catch (Exception e) {
 			logger.error("failed to transform GPX file", e);
-		} finally {
-			if (gpxReader != null) {
-				try {
-					gpxReader.close();
-				} catch (Exception ex) {
-				}
-			}
 		}
 	}
 }

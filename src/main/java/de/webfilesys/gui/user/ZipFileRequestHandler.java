@@ -187,8 +187,6 @@ public class ZipFileRequestHandler extends UserRequestHandler {
 							while ((bytesRead = zipInFile.read(buffer)) >= 0) {
 								fout.write(buffer, 0, bytesRead);
 							}
-
-							zipInFile.close();
 							
 							unzipNum++;
 						} catch (Exception ioex4) {

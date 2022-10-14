@@ -182,6 +182,8 @@ public class WebFileSys
     private boolean enableDiskQuota = false;
     
     private boolean enableCalendar = false;
+
+    private boolean enableFtpBackup = false;
     
     private int calendarExpirationPeriod = DEFAULT_CAL_EXPIRATION_PERIOD;
 
@@ -439,6 +441,13 @@ public class WebFileSys
             downloadStatistics = true;
         }
 
+        enableFtpBackup = false;
+        temp = config.getProperty("EnableFtpBackup", "false");
+        if (temp.equalsIgnoreCase("true"))
+        {
+            enableFtpBackup = true;
+        }
+        
         autoCreateThumbs = false;
         temp = config.getProperty("AutoCreateThumbnails", "false");
         if (temp.equalsIgnoreCase("true") || temp.equalsIgnoreCase("yes"))
@@ -989,6 +998,10 @@ public class WebFileSys
     public boolean isDebugMail()
     {
     	return(debugMail);
+    }
+
+    public boolean isEnableFtpBackup(){
+        return (enableFtpBackup);
     }
 
     public boolean isEnableCalendar()

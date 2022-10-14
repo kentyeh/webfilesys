@@ -60,26 +60,21 @@ public class XmlSaveRemoteEditorHandler extends XmlRequestHandlerBase {
 
 			req.getSession(true).removeAttribute(RemoteEditorRequestHandler.SESSION_KEY_FILE_ENCODING);
 			
-			PrintWriter fout = null;
-
-			try {
-                FileOutputStream fos = new FileOutputStream(tmpFileName);
+			try (FileOutputStream fos = new FileOutputStream(tmpFileName);
+                                PrintWriter fout = fileEncoding == null?new PrintWriter(fos):
+                                        new PrintWriter(new OutputStreamWriter(fos, 
+                                                "UTF-8-BOM".equals(fileEncoding) ? "UTF-8" : fileEncoding))) {
 
                 if (fileEncoding == null) {
 			        // use OS default encoding
-	                fout = new PrintWriter(fos);
 			    } else {
 	                logger.debug("saving editor file " + fileName + " with character encoding " + fileEncoding);
 			        
 			        if (fileEncoding.equals("UTF-8-BOM")) {
 			            // write UTF-8 BOM
-                        fos.write(0xef);
-                        fos.write(0xbb);
-                        fos.write(0xbf);
+                        fout.write("\ufeff");
                         fileEncoding = "UTF-8";
 			        }
-			        
-			        fout = new PrintWriter(new OutputStreamWriter(fos, fileEncoding));
 			    }
 
                 if (File.separatorChar == '/') {
@@ -109,8 +104,6 @@ public class XmlSaveRemoteEditorHandler extends XmlRequestHandlerBase {
 
 				fout.flush();
 
-				fout.close();
-
 				if (!copyFile(tmpFileName, fileName)) {
 					String logMsg = "cannot copy temporary file to edited file " + fileName;
 					logger.error(logMsg);
@@ -126,13 +119,6 @@ public class XmlSaveRemoteEditorHandler extends XmlRequestHandlerBase {
 				String logMsg="cannot save changed content of edited file " + fileName + ": " + ex;
 				logger.error(logMsg);
 				writeError = true;
-                
-				if (fout != null) {
-					try {
-	                    fout.close();
-					} catch (Exception ex2) {
-					}
-                }
 			}
         }
 		

@@ -1,24 +1,23 @@
 package de.webfilesys;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import de.webfilesys.graphics.ThumbnailThread;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Iterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class SubdirExistTester extends Thread {
     private static final Logger logger = LogManager.getLogger(SubdirExistTester.class);
-    private final ReentrantLock lock = new ReentrantLock();
-	private ArrayList<QueueElem> queue = null;
+	private CopyOnWriteArrayList<QueueElem> queue = null;
 
 	boolean shutdownFlag = false;
 
 	private static SubdirExistTester instance = null;
 
 	private SubdirExistTester() {
-		queue = new ArrayList<>();
+		queue = new CopyOnWriteArrayList<>();
 		shutdownFlag = false;
 	}
 
@@ -43,18 +42,12 @@ public class SubdirExistTester extends Thread {
 
 		while (!shutdownFlag) {
 			while (!queue.isEmpty()) {
-				QueueElem elem = (QueueElem) queue.get(0);
+				for(Iterator<QueueElem> itor= queue.iterator();itor.hasNext();){
+					testForExistingSubdirs(itor.next());
 
-				testForExistingSubdirs(elem);
-
-				try {
-                                    this.lock.lock();
-					queue.remove(0);
-				} finally {
-                                    this.lock.unlock();
-                                }
-			}
-
+					itor.remove();
+				}
+                        }
 			try {
 				synchronized (this) {
 					wait();
@@ -68,13 +61,7 @@ public class SubdirExistTester extends Thread {
 	}
 
 	public synchronized void queuePath(String path, int scope, boolean forceRescan) {
-		try {
-                    this.lock.unlock();
-			queue.add(new QueueElem(path, scope, forceRescan));
-		} finally {
-                    this.lock.unlock();
-                }
-
+		queue.add(new QueueElem(path, scope, forceRescan));
 		notify();
 	}
 

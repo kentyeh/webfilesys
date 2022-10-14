@@ -135,13 +135,11 @@ public class ThumbnailCreatorBase
         	
             // JPEG thumbnails
             boolean success = false;
-            BufferedOutputStream thumbOut = null;
             
-            try 
+            try (BufferedOutputStream thumbOut = new BufferedOutputStream(new FileOutputStream(thumbFileName)))
             {
-                Iterator iter = ImageIO.getImageWritersByFormatName("jpg");
-                ImageWriter imgWriter = (ImageWriter) iter.next();
-                thumbOut = new BufferedOutputStream(new FileOutputStream(thumbFileName));
+                Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpg");
+                ImageWriter imgWriter = iter.next();
                 ImageOutputStream ios = ImageIO.createImageOutputStream(thumbOut);
                 imgWriter.setOutput(ios);
                 ImageWriteParam iwparam = new JPEGImageWriteParam(Locale.getDefault());
@@ -162,19 +160,6 @@ public class ThumbnailCreatorBase
             {
                 logger.error("insufficient memory for thumbnail creation", memEx);
             }
-            finally
-            {
-                if (thumbOut != null) {
-                    try
-                    {
-                        thumbOut.close();
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.error("error closing thumbnail file", ex);
-                    }
-                }
-            }
 
             if (!success) {
                 cleanupThumbnail(thumbFileName);
@@ -193,11 +178,9 @@ public class ThumbnailCreatorBase
             */
 
             boolean success = false;
-            BufferedOutputStream thumbOut = null;
             
-            try
+            try (BufferedOutputStream thumbOut = new BufferedOutputStream(new FileOutputStream(thumbFileName)))
             {
-                thumbOut = new BufferedOutputStream(new FileOutputStream(thumbFileName));
 
                 pngBytes = pngEncoder.pngEncode();
 
@@ -220,19 +203,6 @@ public class ThumbnailCreatorBase
             catch (IOException ioex)
             {
                 logger.error("cannot create PNG thumbnail for " + imgFileName, ioex);
-            }
-            finally
-            {
-                if (thumbOut != null) {
-                    try
-                    {
-                        thumbOut.close();
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.error("error closing thumbnail file", ex);
-                    }
-                }
             }
 
             if (!success) {

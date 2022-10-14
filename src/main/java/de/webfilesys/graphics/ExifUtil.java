@@ -37,7 +37,6 @@ public class ExifUtil {
 		
 		String tempFileName = destFile.getAbsolutePath() + ".tmp";
 		File tempFile = null;
-		OutputStream tempStream = null;
 
 		try {
 			tempFile = new File(tempFileName);
@@ -78,25 +77,19 @@ public class ExifUtil {
                     }
 
 			// Save data to destination
-			tempStream = new BufferedOutputStream(new FileOutputStream(tempFile));
+                    try(OutputStream tempStream = new BufferedOutputStream(new FileOutputStream(tempFile))){
 			new ExifRewriter().updateExifMetadataLossless(destFile, tempStream, destSet);
-			tempStream.close();
 
 			// Replace file
 			if (destFile.delete()) {
 				tempFile.renameTo(destFile);
 			}
+                    }
 
 			return true;
 		} catch (ImageReadException | ImageWriteException | IOException exception) {
                         logger.error(exception);
 		} finally {
-			if (tempStream != null) {
-				try {
-					tempStream.close();
-				} catch (IOException e) {
-				}
-			}
 
 			if (tempFile != null) {
 				if (tempFile.exists())
@@ -114,7 +107,6 @@ public class ExifUtil {
 	public static boolean setExifOrientation(File imgFile, int newOrientation) {
 		String tempFileName = imgFile.getAbsolutePath() + ".tmp";
 		File tempFile = null;
-		OutputStream tempStream = null;
 
 		try {
 			tempFile = new File(tempFileName);
@@ -138,9 +130,9 @@ public class ExifUtil {
 				}
 			}
 
-			tempStream = new BufferedOutputStream(new FileOutputStream(tempFile));
-			new ExifRewriter().updateExifMetadataLossless(imgFile, tempStream, tiffOutputSet);
-			tempStream.close();
+			try(OutputStream tempStream = new BufferedOutputStream(new FileOutputStream(tempFile))){
+				new ExifRewriter().updateExifMetadataLossless(imgFile, tempStream, tiffOutputSet);
+			}
 
 			if (imgFile.delete()) {
 				tempFile.renameTo(imgFile);
@@ -150,12 +142,6 @@ public class ExifUtil {
 		} catch (ImageReadException | ImageWriteException | IOException exception) {
 			logger.error(exception);
 		} finally {
-			if (tempStream != null) {
-				try {
-					tempStream.close();
-				} catch (IOException e) {
-				}
-			}
 
 			if (tempFile != null) {
 				if (tempFile.exists())

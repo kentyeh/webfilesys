@@ -74,7 +74,7 @@ public class MultiTarArchiveHandler extends MultiFileRequestHandler
 	            
 	            tarFile.putNextEntry(tarEntry);
 	            
-                FileInputStream fin = new FileInputStream(input);
+                try(FileInputStream fin = new FileInputStream(input)){
 
                 int count;
                 
@@ -82,11 +82,9 @@ public class MultiTarArchiveHandler extends MultiFileRequestHandler
                 {
                     tarFile.write(buff, 0, count);
                 }
-
-                fin.close();
-	            
 	            tarFile.closeEntry();
 	        }
+                }
 
             tarFile.flush();
 		}

@@ -17,6 +17,8 @@ import de.webfilesys.decoration.DecorationManager;
 import de.webfilesys.graphics.ThumbnailThread;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.PatternComparator;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -282,19 +284,12 @@ public class TextSearch
 
     public int locateTextInFile(String act_file,String search_arg)
     {
+        if(!Files.exists(Paths.get(act_file))){
+            logger.error("cannot open search result file :{}", act_file);
+            return -1;
+        }
+
         int search_length = search_arg.length();
-
-        FileInputStream file_input = null;
-
-        try
-        {
-            file_input = new FileInputStream(act_file);
-        }
-        catch (FileNotFoundException e)
-        {
-            logger.error("cannot open search result file", e);
-            return(-1);
-        }
 
         int idx=0;
 
@@ -302,7 +297,7 @@ public class TextSearch
 
         int equal=0;
 
-        try
+        try (FileInputStream file_input =  new FileInputStream(act_file))
         {
             byte[] buffer = new byte[4096];
 
@@ -329,19 +324,6 @@ public class TextSearch
         catch (IOException e)
         {
         	logger.warn("fulltext search error: " + e);
-        }
-        finally
-        {
-        	if (file_input != null)
-        	{
-        		try
-        		{
-        			file_input.close();
-        		}
-        		catch (Exception ex) 
-        		{
-        		}
-        	}
         }
 
         return(-1);
@@ -430,11 +412,8 @@ public class TextSearch
 
         int equal=0;
 
-        FileInputStream fin = null;
-
-        try
+        try (FileInputStream fin = new FileInputStream(fileName))
         {
-            fin = new FileInputStream(fileName);
         	
             int startIdx = firstMatchIdx - 10;
 
@@ -540,19 +519,6 @@ public class TextSearch
         catch (IOException e)
         {
         	logger.warn("fulltext search error", e);
-        }
-        finally
-        {
-        	if (fin != null) 
-        	{
-        		try
-        		{
-        			fin.close();
-        		}
-        		catch (Exception ex)
-        		{
-        		}
-        	}
         }
     }
     

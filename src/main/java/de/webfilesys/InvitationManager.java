@@ -110,13 +110,10 @@ public class InvitationManager extends Thread
 
         try{
             this.lock.lock();
-            OutputStreamWriter xmlOutFile = null;
 
-            try
+            try (FileOutputStream fos = new FileOutputStream(invitationFile);
+                    OutputStreamWriter xmlOutFile = new OutputStreamWriter(fos, "UTF-8"))
             {
-                FileOutputStream fos = new FileOutputStream(invitationFile);
-                
-                xmlOutFile = new OutputStreamWriter(fos, "UTF-8");
                 
                 logger.debug("Saving invitations to file " + invitationFile.getAbsolutePath());
                 
@@ -129,19 +126,6 @@ public class InvitationManager extends Thread
             catch (IOException io1)
             {
                 logger.error("error saving invitation registry file " + invitationFile.getAbsolutePath(), io1);
-            }
-            finally
-            {
-                if (xmlOutFile != null)
-                {
-                    try 
-                    {
-                        xmlOutFile.close();
-                    }
-                    catch (IOException ex) 
-                    {
-                    }
-                }
             }
         } finally {
         this.lock.unlock();
@@ -161,11 +145,8 @@ public class InvitationManager extends Thread
 
        doc = null;
        
-       FileInputStream fis = null;
-
-       try
+       try (FileInputStream fis = new FileInputStream(invitationFile);)
        {
-           fis = new FileInputStream(invitationFile);
            
            InputSource inputSource = new InputSource(fis);
            
@@ -173,26 +154,9 @@ public class InvitationManager extends Thread
 
            doc = builder.parse(inputSource);
        }
-       catch (SAXException saxex)
+       catch (SAXException | IOException saxex)
        {
            logger.error("failed to load invitation registry file : " + invitationFile.getAbsolutePath(), saxex);
-       }
-       catch (IOException ioex)
-       {
-           logger.error("failed to load invitation registry file : " + invitationFile.getAbsolutePath(), ioex);
-       }
-       finally 
-       {
-           if (fis != null)
-           {
-               try
-               {
-                   fis.close();
-               }
-               catch (Exception ex)
-               {
-               }
-           }
        }
        
        if (doc == null)
@@ -820,6 +784,7 @@ public class InvitationManager extends Thread
         logger.info(expiredNum + " expired invitations removed");
     }
 
+    @Override
     public synchronized void run()
     {
         boolean shutdownFlag = false;
