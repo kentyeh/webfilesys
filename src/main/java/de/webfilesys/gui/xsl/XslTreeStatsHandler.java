@@ -39,7 +39,7 @@ public class XslTreeStatsHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(treeStatsElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/treeStatistics.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/treeStatistics.xsl\"");
 
 		doc.insertBefore(xslRef, treeStatsElement);
 

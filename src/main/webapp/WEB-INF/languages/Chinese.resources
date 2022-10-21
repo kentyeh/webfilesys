@@ -51,7 +51,7 @@ button.reload=重新載入
 
 # menu bar labels
 label.fastpath=新近造訪目錄
-label.returnToPrevDir=回後先前目錄
+label.returnToPrevDir=返回先前目錄
 label.processes=作業系統進程
 label.fsstat=檔案系統統計
 label.oscmd=執行作業系統命令

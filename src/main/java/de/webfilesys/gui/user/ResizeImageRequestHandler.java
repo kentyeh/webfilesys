@@ -207,26 +207,26 @@ public class ResizeImageRequestHandler extends UserRequestHandler
                 + getResource("label.resizetitle", "resize images")
                 + "</title>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-        output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+        output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
-        output.println("<script src=\"/webfilesys/javascript/errorHandling.js\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() +"/javascript/errorHandling.js\" type=\"text/javascript\"></script>");
         
         output.println("<script language=\"javascript\">");
         
         output.println("function returnToPictures()");
         output.println("{");
         output
-                .println("  parent.DirectoryPath.location.href='/webfilesys/servlet?command=exp&expand="
+                .println("  parent.DirectoryPath.location.href='"+ req.getContextPath() + "/servlet?command=exp&expand="
                         + UTF8URLEncoder.encode(actPath.replace('/',
                                 File.separatorChar)) + "';");
         output
-                .println("  window.location.href='/webfilesys/servlet?command=listFiles';");
+                .println("  window.location.href='"+ req.getContextPath() + "/servlet?command=listFiles';");
         output.println("}");
         output.println("function gotoScaledPictures()");
         output.println("{");
         output
-                .println("  parent.DirectoryPath.location.href='/webfilesys/servlet?command=exp&expandPath="
+                .println("  parent.DirectoryPath.location.href='"+ req.getContextPath() + "/servlet?command=exp&expandPath="
                         + UTF8URLEncoder.encode(scaledImageFolder)
                         + "&fastPath=true';");
         output.println("}");

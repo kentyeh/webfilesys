@@ -33,9 +33,9 @@ public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
 		output.println("<head>");
 		output.println("<title>" + title + "</title>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		// output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/fmweb.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		// output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/fmweb.css\">");
 
 		output.println("</head>"); 
 		output.println("<body>");
@@ -75,7 +75,7 @@ public class LoginLogoutHistoryHandler extends LogRequestHandlerBase {
 
 		output.println("<form>");
 
-		output.println("<input type=\"button\" value=\"Return\" onclick=\"window.location.href='/webfilesys/servlet?command=admin&cmd=menu'\">");
+		output.println("<input type=\"button\" value=\"Return\" onclick=\"window.location.href='"+ req.getContextPath() + "/servlet?command=admin&cmd=menu'\">");
 
 		output.println("</form>");
 

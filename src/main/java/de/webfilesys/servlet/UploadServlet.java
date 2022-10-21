@@ -34,7 +34,7 @@ public class UploadServlet extends WebFileSysServlet
     private static final Logger logger = LogManager.getLogger(UploadServlet.class);
 	private static final long serialVersionUID = 1L;
 	
-        @Override
+    @Override
 	public void doPost ( HttpServletRequest req, HttpServletResponse resp )
     throws ServletException, java.io.IOException
     {
@@ -479,7 +479,7 @@ public class UploadServlet extends WebFileSysServlet
             output.println("</script>");
 
 			output.print(
-				"<META HTTP-EQUIV=\"REFRESH\" CONTENT=\"0; URL=/webfilesys/servlet?command=listFiles\">");
+				"<META HTTP-EQUIV=\"REFRESH\" CONTENT=\"0; URL=" + cp(req) + "/servlet?command=listFiles\">");
 
             output.print("</HEAD>");
             output.println("</html>");

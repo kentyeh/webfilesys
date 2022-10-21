@@ -29,7 +29,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class GPXViewHandler extends UserRequestHandler {
     private static final Logger logger = LogManager.getLogger(GPXViewHandler.class);
-	private static final String STYLESHEET_REF = "<?xml-stylesheet type=\"text/xsl\" href=\"/webfilesys/xsl/gpxViewer.xsl\"?>";
+	private static String STYLESHEET_REF;
 
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>";
 
@@ -40,6 +40,7 @@ public class GPXViewHandler extends UserRequestHandler {
             PrintWriter output, 
             String uid) {
         super(req, resp, session, output, uid);
+            STYLESHEET_REF = "<?xml-stylesheet type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/gpxViewer.xsl\"?>";
 	}	
 	
 	protected void process() {
@@ -121,8 +122,8 @@ public class GPXViewHandler extends UserRequestHandler {
 			output.flush();
 		} catch (IOException e) {
 			logger.error("failed to read GPX file", e);
-		} catch (XMLStreamException xmlEx) {
-			logger.error("error parsing XML stream", xmlEx);
+		} catch (XMLStreamException e) {
+			logger.error("error parsing XML stream", e);
 		} catch (Exception e) {
 			logger.error("failed to transform GPX file", e);
 		}

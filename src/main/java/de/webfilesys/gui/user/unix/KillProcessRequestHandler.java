@@ -82,7 +82,7 @@ public class KillProcessRequestHandler extends UserRequestHandler
 
 		output.print("<HTML>");
 		output.print("<HEAD>");
-		output.print("<META HTTP-EQUIV=\"REFRESH\" CONTENT=\"3; URL=/webfilesys/servlet?command=processList\">");
+		output.print("<META HTTP-EQUIV=\"REFRESH\" CONTENT=\"3; URL="+ req.getContextPath() + "/servlet?command=processList\">");
 		output.print("</HEAD>"); 
 		output.print("<body> trying to kill Process " + pid + " ... </body>"); 
 		output.print("</HTML>");

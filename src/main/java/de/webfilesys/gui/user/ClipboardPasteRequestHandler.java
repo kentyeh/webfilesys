@@ -82,8 +82,8 @@ public class ClipboardPasteRequestHandler extends UserRequestHandler
 		output.println("<HTML>");
 		output.println("<HEAD>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
 		output.println("</HEAD>");
 
@@ -148,7 +148,7 @@ public class ClipboardPasteRequestHandler extends UserRequestHandler
         output.println("<tr>");
         output.println("<td class=\"formParm2\">");
         output.println("<div class=\"progressBar\">");
-        output.println("<img id=\"copyProgressBar\" src=\"/webfilesys/img-skin/" + userMgr.getCSS(uid) + "/progressbar.gif\" style=\"width:1px\" />");
+        output.println("<img id=\"copyProgressBar\" src=\""+ req.getContextPath() +"/img-skin/" + userMgr.getCSS(uid) + "/progressbar.gif\" style=\"width:1px\" />");
         output.println("</div>");
         output.println("</td>");
         output.println("</tr>");
@@ -377,9 +377,9 @@ public class ClipboardPasteRequestHandler extends UserRequestHandler
 						output.println("alert('" + getResource("alert.mkdirfail","Cannot create directory") + "\\n" + insertDoubleBackslash(destSubdir) + "!');");
 
 						if (pasteToFileWin) {
-							output.println("window.location.href='/webfilesys/servlet?command=listFiles';");
+							output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=listFiles';");
 						} else {
-							output.println("window.location.href='/webfilesys/servlet?command=exp&expand=" + UTF8URLEncoder.encode(actPath) + "';");
+							output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=exp&expand=" + UTF8URLEncoder.encode(actPath) + "';");
 						}
 
 						output.println("</script>");
@@ -439,20 +439,20 @@ public class ClipboardPasteRequestHandler extends UserRequestHandler
 		
 		if (pasteToFileWin) {
 			if (thumbView) {
-				output.println("window.location.href='/webfilesys/servlet?command=thumbnail&zoom=no&random="  + (new Date()).getTime() + "';");
+				output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=thumbnail&zoom=no&random="  + (new Date()).getTime() + "';");
 			} else {
-				output.println("window.location.href='/webfilesys/servlet?command=listFiles&mask=*';");
+				output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=listFiles&mask=*';");
 			}
 			
 			if (clipDirs != null) {
-				output.print("window.parent.DirectoryPath.location.href='/webfilesys/servlet?command=refresh&path=" + UTF8URLEncoder.encode(getCwd()) + "';");
+				output.print("window.parent.DirectoryPath.location.href='"+ req.getContextPath() + "/servlet?command=refresh&path=" + UTF8URLEncoder.encode(getCwd()) + "';");
 			}
 		} else {
     	    String mobile = (String) session.getAttribute("mobile");
     	    if (mobile != null) {
-    			output.println("window.location.href='/webfilesys/servlet?command=mobile&cmd=folderFileList';");
+    			output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=mobile&cmd=folderFileList';");
     	    } else {
-    			output.println("window.location.href='/webfilesys/servlet?command=exp&expand=" + UTF8URLEncoder.encode(actPath) + "&fastPath=true';");
+    			output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=exp&expand=" + UTF8URLEncoder.encode(actPath) + "&fastPath=true';");
     	    }
 		}
 		output.println("</script>");

@@ -148,12 +148,12 @@ public class SearchRequestHandler extends UserRequestHandler
 			output.print("<title>" + getResource("label.searchresults","Search Results") + ": " + searchText + " </title>");
 		}
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
-		output.println("<script src=\"/webfilesys/javascript/ajaxCommon.js\" type=\"text/javascript\"></script>");
-		output.println("<script src=\"/webfilesys/javascript/ajaxFolder.js\" type=\"text/javascript\"></script>");
-		output.println("<script src=\"/webfilesys/javascript/util.js\" type=\"text/javascript\"></script>");
+		output.println("<script src=\""+ req.getContextPath() +"/javascript/ajaxCommon.js\" type=\"text/javascript\"></script>");
+		output.println("<script src=\""+ req.getContextPath() +"/javascript/ajaxFolder.js\" type=\"text/javascript\"></script>");
+		output.println("<script src=\""+ req.getContextPath() +"/javascript/util.js\" type=\"text/javascript\"></script>");
 
         output.println("<script language=\"javascript\">"); 
 
@@ -166,7 +166,7 @@ public class SearchRequestHandler extends UserRequestHandler
         
         if (!readonly)
         {
-    		output.println("<script src=\"/webfilesys/javascript/search.js\" type=\"text/javascript\"></script>");
+    		output.println("<script src=\""+ req.getContextPath() +"/javascript/search.js\" type=\"text/javascript\"></script>");
         }
 		
 		output.println("</head>");
@@ -298,7 +298,7 @@ public class SearchRequestHandler extends UserRequestHandler
 			                                       output, (includeSubdirs != null),
 			                                       (includeDesc != null), (descOnly != null),
 			                                       category, searchResultDir, session, readonly,
-			                                       getHeadlinePath(act_path), uid);
+			                                       getHeadlinePath(act_path), uid, req.getContextPath());
 
 			hitNumber = textSearch.getHitNumber();
 		}
@@ -400,7 +400,7 @@ public class SearchRequestHandler extends UserRequestHandler
                             if ((temp_file.lastModified()>=fromDate) && 
                                     (temp_file.lastModified()<=toDate)) {
                                 if ((category == null) || metaInfMgr.isCategoryAssigned(act_path, file_list1, category)) {
-                                    String viewLink = "/webfilesys/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(temp_file.getAbsolutePath());
+                                    String viewLink = ""+ req.getContextPath() + "/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(temp_file.getAbsolutePath());
                                     String iconImg = "doc.gif";
                                     if (WebFileSys.getInstance().isShowAssignedIcons()) {
                                         iconImg = IconManager.getInstance().getIconForFileName(file_list1);

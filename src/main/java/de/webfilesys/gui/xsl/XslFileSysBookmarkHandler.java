@@ -57,7 +57,7 @@ public class XslFileSysBookmarkHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(bookmarkListElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/bookmarkList.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/bookmarkList.xsl\"");
 
 		doc.insertBefore(xslRef, bookmarkListElement);
 

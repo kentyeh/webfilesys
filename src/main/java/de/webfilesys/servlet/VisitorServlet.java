@@ -21,6 +21,7 @@ import de.webfilesys.gui.xsl.album.XslAlbumSlideShowHandler;
 import de.webfilesys.gui.xsl.album.XslPictureAlbumHandler;
 import de.webfilesys.mail.SmtpEmail;
 import de.webfilesys.user.UserManager;
+import javax.servlet.ServletConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,17 +39,25 @@ public class VisitorServlet extends WebFileSysServlet {
     private static final Logger logger = LogManager.getLogger(VisitorServlet.class);
 	private static final long serialVersionUID = 1L;
 
-	private static final int REQUEST_PATH_LENGTH = "/webfilesys/visitor".length();
+	private int REQUEST_PATH_LENGTH = "/webfilesys/visitor".length();
 	
 	public static final String VISITOR_COOKIE_NAME = "webfilesys-visitor";
 	
-	public static final String VISITOR_COOKIE_PATH = "/webfilesys/visitor";
+	public  String VISITOR_COOKIE_PATH = "/webfilesys/visitor";
 	
 	public static final String SESSION_ATTRIB_VISITOR_ID = "visitorId";
 	
 	private static final int VISITOR_COOKIE_MAX_AGE = 120 * 24 * 60 * 60; // expires after 120 days
-	
-        @Override
+
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        VISITOR_COOKIE_PATH = cp() + "/servlet";
+        REQUEST_PATH_LENGTH = VISITOR_COOKIE_PATH.length();
+    }
+
+    @Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, java.io.IOException {
         // prevent caching

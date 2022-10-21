@@ -64,15 +64,15 @@ public class RemoteEditorRequestHandler extends UserRequestHandler
 		output.println("<HEAD>");
 		output.println("<TITLE>WebFileSys Remote Editor</TITLE>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
 		output.println("<script src=\"javascript/browserCheck.js\" type=\"text/javascript\"></script>");
 		output.println("<script src=\"javascript/ajaxCommon.js\" type=\"text/javascript\"></script>");
 		output.println("<script src=\"javascript/remoteEditor.js\" type=\"text/javascript\"></script>");
 		output.println("<script src=\"javascript/util.js\" type=\"text/javascript\"></script>");
 		
-		output.println("<script src=\"/webfilesys/servlet?command=getResourceBundle&amp;lang=" + language+ "\" type=\"text/javascript\"></script>");
+		output.println("<script src=\""+ req.getContextPath() + "/servlet?command=getResourceBundle&amp;lang=" + language+ "\" type=\"text/javascript\"></script>");
 		
 		File tmpFile = new File(editFile);
 
@@ -112,7 +112,7 @@ public class RemoteEditorRequestHandler extends UserRequestHandler
 			
 			headLine(this.getHeadlinePath(editFile));
 
-			output.println("<form id=\"editForm\" accept-charset=\"utf-8\" method=\"post\" action=\"/webfilesys/servlet\" style=\"margin-top:20px\">");
+			output.println("<form id=\"editForm\" accept-charset=\"utf-8\" method=\"post\" action=\""+ req.getContextPath() + "/servlet\" style=\"margin-top:20px\">");
 			output.println("<input type=\"hidden\" name=\"command\" value=\"saveEditor\">");
 			output.println("<input type=\"hidden\" name=\"actPath\" value=\"" + actPath + "\">");
 			output.println("<input type=\"hidden\" name=\"filename\" value=\"" + editFile + "\">");
@@ -180,7 +180,7 @@ public class RemoteEditorRequestHandler extends UserRequestHandler
 			
 			if (mobile != null)
 			{
-                output.println("<input type=\"button\" value=\"" + getResource("button.cancel","Cancel") + "\" onclick=\"window.location.href='/webfilesys/servlet?command=mobile&cmd=folderFileList';\">");
+                output.println("<input type=\"button\" value=\"" + getResource("button.cancel","Cancel") + "\" onclick=\"window.location.href='"+ req.getContextPath() + "/servlet?command=mobile&cmd=folderFileList';\">");
 			} 
 			else
 			{

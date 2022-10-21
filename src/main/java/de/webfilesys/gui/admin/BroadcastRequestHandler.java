@@ -36,10 +36,10 @@ public class BroadcastRequestHandler extends AdminRequestHandler
         
         output.println("<title>" + title + "</title>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/admin.css\">");
-        // output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/fmweb.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/admin.css\">");
+        // output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/fmweb.css\">");
 
         if (errorMsg != null)
         {
@@ -55,7 +55,7 @@ public class BroadcastRequestHandler extends AdminRequestHandler
 
         output.println("<br>");
 
-        output.println("<form accept-charset=\"utf-8\" method=\"post\" action=\"/webfilesys/servlet\">");
+        output.println("<form accept-charset=\"utf-8\" method=\"post\" action=\""+ req.getContextPath() + "/servlet\">");
 
         output.println("<input type=\"hidden\" name=\"command\" value=\"admin\">");
         output.println("<input type=\"hidden\" name=\"cmd\" value=\"sendEmail\">");
@@ -96,7 +96,7 @@ public class BroadcastRequestHandler extends AdminRequestHandler
         output.println("<input type=\"submit\" value=\"&nbsp;Send&nbsp;\">");
         output.println("</td>");
         output.println("<td class=\"formButton\" style=\"text-align:right\">");
-        output.println("<input type=\"button\" value=\"&nbsp;Cancel&nbsp;\" onclick=\"javascript:window.location.href='/webfilesys/servlet?command=admin&cmd=menu'\">");
+        output.println("<input type=\"button\" value=\"&nbsp;Cancel&nbsp;\" onclick=\"javascript:window.location.href='"+ req.getContextPath() + "/servlet?command=admin&cmd=menu'\">");
         output.println("</td>");
         output.println("</tr>");
 

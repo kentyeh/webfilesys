@@ -45,7 +45,7 @@ public class XslDriveInfoRequestHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(driveInfoElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/driveInfo.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/driveInfo.xsl\"");
 
 		doc.insertBefore(xslRef, driveInfoElement);
 		

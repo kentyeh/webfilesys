@@ -105,7 +105,7 @@ public class XslVideoListHandler extends XslFileListHandlerBase {
 
 		boolean dirHasMetaInf = metaInfMgr.dirHasMetaInf(currentPath);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/videoList.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/videoList.xsl\"");
 
 		Element fileListElement = doc.createElement("fileList");
 
@@ -263,7 +263,7 @@ public class XslVideoListHandler extends XslFileListHandlerBase {
 
 				String realFileName = videoFile.getName();
 
-				String imgSrcPath = "/webfilesys/servlet?command=videoThumb&videoFile=" + UTF8URLEncoder.encode(fileCont.getName());
+				String imgSrcPath = req.getContextPath() + "/servlet?command=videoThumb&videoFile=" + UTF8URLEncoder.encode(fileCont.getName());
 
 				if (fileCont.isLink()) {
 					imgSrcPath += "&link=true";

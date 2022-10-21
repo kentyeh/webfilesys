@@ -53,7 +53,7 @@ public class XslEmailFilePromptHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(emailFileElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/emailFile.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/emailFile.xsl\"");
 
 		doc.insertBefore(xslRef, emailFileElement);
 

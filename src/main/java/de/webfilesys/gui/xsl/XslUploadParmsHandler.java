@@ -61,7 +61,7 @@ public class XslUploadParmsHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(uploadElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/uploadParms.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/uploadParms.xsl\"");
 
 		doc.insertBefore(xslRef, uploadElement);
 

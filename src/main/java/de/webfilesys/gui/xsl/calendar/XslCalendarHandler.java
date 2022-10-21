@@ -62,7 +62,7 @@ public class XslCalendarHandler extends XslCalendarHandlerBase
 			
 		doc.appendChild(calendarElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/calendar/sunburstCalendar.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/calendar/sunburstCalendar.xsl\"");
 
 		doc.insertBefore(xslRef, calendarElement);
 

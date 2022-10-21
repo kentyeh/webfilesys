@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Logger;
 public class GeoTrackViewHandler implements ViewHandler
 {
     private static final Logger logger = LogManager.getLogger(GeoTrackViewHandler.class);
-    private static final String STYLESHEET_REF = "<?xml-stylesheet type=\"text/xsl\" href=\"/webfilesys/xsl/gpxProfile.xsl\"?>";
+    private static String STYLESHEET_REF;
     
     private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>";
     
@@ -46,7 +46,7 @@ public class GeoTrackViewHandler implements ViewHandler
 			WebFileSys.getInstance().getGoogleMapsAPIKeyHTTPS()
                         :
 			WebFileSys.getInstance().getGoogleMapsAPIKeyHTTP();
-		
+	STYLESHEET_REF = "<?xml-stylesheet type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/gpxProfile.xsl\"?>";	
 		
     	double[] distanceBuffer = new double[DISTANCE_SMOOTH_FACTOR];
     	

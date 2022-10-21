@@ -70,7 +70,7 @@ public class TarViewHandler implements ViewHandler {
 
 			ProcessingInstruction xslRef = doc
 					.createProcessingInstruction("xml-stylesheet",
-							"type=\"text/xsl\" href=\"/webfilesys/xsl/tarContent.xsl\"");
+							"type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/tarContent.xsl\"");
 
 			doc.insertBefore(xslRef, folderTreeElement);
 

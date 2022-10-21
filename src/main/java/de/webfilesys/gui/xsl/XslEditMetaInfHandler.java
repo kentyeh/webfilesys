@@ -276,16 +276,16 @@ public class XslEditMetaInfHandler extends XslRequestHandlerBase
 		
         if (isMobile()) 
 		{
-		    output.println("window.location.href='/webfilesys/servlet?command=mobile&cmd=folderFileList&keepListStatus=true';");
+		    output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=mobile&cmd=folderFileList&keepListStatus=true';");
 		}
 		else
 		{
 			if (path.endsWith(".") && (colorChanged || iconChanged)) {
 				String encodedPath  = UTF8URLEncoder.encode(path.substring(0, path.length() - 2));
-	            output.println("if (window.opener) {window.opener.parent.frames[1].location.href='/webfilesys/servlet?command=exp&expandPath=" + encodedPath + "&fastPath=true'};");
+	            output.println("if (window.opener) {window.opener.parent.frames[1].location.href='"+ req.getContextPath() + "/servlet?command=exp&expandPath=" + encodedPath + "&fastPath=true'};");
 		    } else {
 		    	String[] partsOfPath = CommonUtils.splitPath(path);
-	            output.println("if (window.opener) {window.opener.parent.frames[2].location.href='/webfilesys/servlet?command=listFiles&keepListStatus=true&scrollTo=" + UTF8URLEncoder.encode(partsOfPath[1]) + "'};");
+	            output.println("if (window.opener) {window.opener.parent.frames[2].location.href='"+ req.getContextPath() + "/servlet?command=listFiles&keepListStatus=true&scrollTo=" + UTF8URLEncoder.encode(partsOfPath[1]) + "'};");
 		    }
 		}
 	    
@@ -585,7 +585,7 @@ public class XslEditMetaInfHandler extends XslRequestHandlerBase
 		XmlUtil.setChildText(thumbnailElement, "thumbnailWidth", Integer.toString(scaledDim.getWidth()));
 		XmlUtil.setChildText(thumbnailElement, "thumbnailHeight", Integer.toString(scaledDim.getHeight()));
 
-   	    String srcFileName = "/webfilesys/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(CommonUtils.extractFileName(filePath));
+   	    String srcFileName = ""+ req.getContextPath() + "/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(CommonUtils.extractFileName(filePath));
 		XmlUtil.setChildText(thumbnailElement, "imgPath", srcFileName);
 		
         return(thumbnailElement);	    

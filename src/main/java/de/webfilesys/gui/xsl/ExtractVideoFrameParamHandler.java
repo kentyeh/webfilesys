@@ -55,7 +55,7 @@ public class ExtractVideoFrameParamHandler extends XslRequestHandlerBase {
 			
 		doc.appendChild(editParamsElem);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/extractVideoFrameParams.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/extractVideoFrameParams.xsl\"");
 
 		doc.insertBefore(xslRef, editParamsElem);
 
@@ -101,7 +101,7 @@ public class ExtractVideoFrameParamHandler extends XslRequestHandlerBase {
 			
 			XmlUtil.setChildText(editParamsElem, "videoFileName", videoFileName, false);
 			
-			XmlUtil.setChildText(editParamsElem, "thumbnailSource", "/webfilesys/servlet?command=videoThumb&videoFile=" + UTF8URLEncoder.encode(videoFileName), false);                    
+			XmlUtil.setChildText(editParamsElem, "thumbnailSource", req.getContextPath() + "/servlet?command=videoThumb&videoFile=" + UTF8URLEncoder.encode(videoFileName), false);                    
 			
 			try {
 				String videoThumbnailPath = VideoThumbnailCreator.getThumbnailPath(videoFilePath);

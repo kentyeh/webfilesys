@@ -43,7 +43,7 @@ public class GUnzipRequestHandler extends UserRequestHandler
 			javascriptAlert(getResource("alert.compresserror","Error during unzip"));
 		}
 
-		output.println("<META HTTP-EQUIV=\"REFRESH\" CONTENT=\"0; URL=/webfilesys/servlet?command=listFiles\">");
+		output.println("<META HTTP-EQUIV=\"REFRESH\" CONTENT=\"0; URL="+ req.getContextPath() + "/servlet?command=listFiles\">");
 		output.println("</HEAD>");
 		output.println("</html>");
 		output.flush();

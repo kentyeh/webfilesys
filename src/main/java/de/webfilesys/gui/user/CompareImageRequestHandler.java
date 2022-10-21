@@ -53,17 +53,17 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 		output.println("<HEAD>");
 		output.println("<TITLE>WebFileSys - " + getResource("label.comparehead","Compare Images") + "</TITLE>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-        output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+        output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
-        output.println("<script src=\"/webfilesys/javascript/browserCheck.js\" type=\"text/javascript\"></script>");
-        output.println("<script src=\"/webfilesys/javascript/util.js\" type=\"text/javascript\"></script>");
-        output.println("<script src=\"/webfilesys/javascript/ajaxCommon.js\" type=\"text/javascript\"></script>");
-        output.println("<script src=\"/webfilesys/javascript/ajax.js\" type=\"text/javascript\"></script>");
-        output.println("<script src=\"/webfilesys/javascript/showImage.js\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() + "/javascript/browserCheck.js\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() + "/javascript/util.js\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() + "/javascript/ajaxCommon.js\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() + "/javascript/ajax.js\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() + "/javascript/showImage.js\" type=\"text/javascript\"></script>");
         
-        output.println("<script src=\"/webfilesys/javascript/resourceBundle.js\" type=\"text/javascript\"></script>");
-        output.println("<script src=\"/webfilesys/servlet?command=getResourceBundle&amp;lang=" + language + "\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() + "/javascript/resourceBundle.js\" type=\"text/javascript\"></script>");
+        output.println("<script src=\""+ req.getContextPath() + "/servlet?command=getResourceBundle&amp;lang=" + language + "\" type=\"text/javascript\"></script>");
 
         output.println("<script type=\"text/javascript\">");
         output.println("function confirmDelImg(imgFileName) {");
@@ -186,7 +186,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 				return;
 			}
 
-			String srcFileName = "/webfilesys/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(imgFileName);
+			String srcFileName = ""+ req.getContextPath() + "/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(imgFileName);
 
 			output.println("<img src=\"" + srcFileName + "\" width=" + scaledImage.getScaledWidth() + " height=" + scaledImage.getScaledHeight() + " alt=\"" + imgFileName + "\" border=\"1\">");
 
@@ -210,7 +210,7 @@ public class CompareImageRequestHandler extends MultiImageRequestHandler
 			output.println(CommonUtils.shortName(imgFileName, 30));
 			
 			if (!readonly) {
-	            output.println("<a href=\"javascript:confirmDelImg('" + imgFileName + "')\"><img src=\"/webfilesys/images/trash.gif\" width=\"17\" height=\"16\" border=\"0\" title=\"" + getResource("alt.delpicture", "delete image file") + "\"/></a>");
+	            output.println("<a href=\"javascript:confirmDelImg('" + imgFileName + "')\"><img src=\""+ req.getContextPath() +"/images/trash.gif\" width=\"17\" height=\"16\" border=\"0\" title=\"" + getResource("alt.delpicture", "delete image file") + "\"/></a>");
 			}
 			
 			output.println("</td>");

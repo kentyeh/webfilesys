@@ -102,7 +102,7 @@ public class SlideshowToVideoParamHandler extends XslRequestHandlerBase {
 			
 		doc.appendChild(videoParamsElem);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/slideshowVideoParams.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/slideshowVideoParams.xsl\"");
 
 		doc.insertBefore(xslRef, videoParamsElem);
 		

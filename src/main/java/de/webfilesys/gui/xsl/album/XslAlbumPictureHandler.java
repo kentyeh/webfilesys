@@ -178,7 +178,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(imageDataElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/album/albumPicture.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/album/albumPicture.xsl\"");
 
 		doc.insertBefore(xslRef, imageDataElement);
 
@@ -268,7 +268,7 @@ public class XslAlbumPictureHandler extends XslRequestHandlerBase
 		XmlUtil.setChildText(imageDataElement, "commentCount", Integer.toString(numberOfComments), false);
         */
 		
-		String srcFileName = "/webfilesys/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(imgPath);
+		String srcFileName = req.getContextPath() + "/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(imgPath);
 
 		XmlUtil.setChildText(imageDataElement, "imageSource", srcFileName, false);
 		

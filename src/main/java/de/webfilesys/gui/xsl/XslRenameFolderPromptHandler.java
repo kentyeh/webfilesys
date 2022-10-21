@@ -66,7 +66,7 @@ public class XslRenameFolderPromptHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(renameFolderElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/renameDir.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/renameDir.xsl\"");
 
 		doc.insertBefore(xslRef, renameFolderElement);
 

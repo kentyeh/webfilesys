@@ -58,7 +58,7 @@ public class XslFolderWatchListHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(watchListElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/folderWatchList.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/folderWatchList.xsl\"");
 
 		doc.insertBefore(xslRef, watchListElement);
 

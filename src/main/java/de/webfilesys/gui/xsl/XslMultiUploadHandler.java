@@ -59,7 +59,7 @@ public class XslMultiUploadHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(uploadElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/multiUpload.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/multiUpload.xsl\"");
 
 		doc.insertBefore(xslRef, uploadElement);
 

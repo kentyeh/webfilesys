@@ -111,7 +111,7 @@ public class XslSlideShowHandler extends XslRequestHandlerBase
 		
 		doc.appendChild(slideShowElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/slideShow.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/slideShow.xsl\"");
 
 		doc.insertBefore(xslRef, slideShowElement);
 

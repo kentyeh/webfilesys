@@ -51,7 +51,7 @@ public class XslAddBookmarkPromptHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(addBookmarkElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/addBookmark.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/addBookmark.xsl\"");
 
 		doc.insertBefore(xslRef, addBookmarkElement);
 

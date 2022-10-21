@@ -35,9 +35,9 @@ public class ViewLogRequestHandler extends LogRequestHandlerBase {
 		output.println("<HEAD>");
 		output.println("<TITLE>" + title + "</TITLE>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		// output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/fmweb.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		// output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/fmweb.css\">");
 
 		output.println("</HEAD>"); 
 		output.println("<body>");
@@ -97,7 +97,7 @@ public class ViewLogRequestHandler extends LogRequestHandlerBase {
 
 		output.println("<form>");
 
-		output.println("<input type=\"button\" value=\"Return\" onclick=\"window.location.href='/webfilesys/servlet?command=admin&cmd=menu'\">");
+		output.println("<input type=\"button\" value=\"Return\" onclick=\"window.location.href='"+ req.getContextPath() + "/servlet?command=admin&cmd=menu'\">");
 
 		output.println("</form>");
 

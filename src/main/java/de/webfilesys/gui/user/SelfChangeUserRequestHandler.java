@@ -168,7 +168,7 @@ public class SelfChangeUserRequestHandler extends UserRequestHandler {
         output.println("<html>");
         output.println("<head>");
         output.println("<script type=\"text/javascript\">");
-        output.println("parent.parent.location.href = '/webfilesys/servlet';");
+        output.println("parent.parent.location.href = '"+ req.getContextPath() + "/servlet';");
         output.println("</script>");
         output.println("</html>");
         output.flush();

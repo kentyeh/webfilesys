@@ -161,12 +161,12 @@ public class EditMP3RequestHandler extends UserRequestHandler
 
 		output.println("<TITLE>" + getResource("label.editmp3","Edit MP3 Tags") + "</TITLE>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
 		
 		if (isMobile()) {
-			output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/mobile.css\">");
+			output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/mobile.css\">");
 		} else {
-			output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+			output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 		}
 
 		output.println("</HEAD>"); 
@@ -176,7 +176,7 @@ public class EditMP3RequestHandler extends UserRequestHandler
 
 		MP3V2Info mp3Info = new MP3V2Info(path);
 
-		output.println("<form accept-charset=\"utf-8\" name=\"form1\" method=\"get\" action=\"/webfilesys/servlet\">");
+		output.println("<form accept-charset=\"utf-8\" name=\"form1\" method=\"get\" action=\""+ req.getContextPath() + "/servlet\">");
 		output.println("<input type=\"hidden\" name=\"command\" value=\"editMP3\">");
 		output.println("<input type=\"hidden\" name=\"path\" value=\"" + path + "\">");
 
@@ -266,7 +266,7 @@ public class EditMP3RequestHandler extends UserRequestHandler
 
 		if (mp3Info.isPictureIncluded())
 		{
-		    String imgUrl = "/webfilesys/servlet?command=mp3Thumb&path=" + UTF8URLEncoder.encode(path);
+		    String imgUrl = ""+ req.getContextPath() + "/servlet?command=mp3Thumb&path=" + UTF8URLEncoder.encode(path);
 	        output.println("<tr><td class=\"formParm1\">");
 	        output.println(getResource("label.mp3Picture", "picture"));
 	        output.println("</td><td class=\"formParm2\">");
@@ -282,7 +282,7 @@ public class EditMP3RequestHandler extends UserRequestHandler
         
         if (mobile != null) 
         {
-            output.println("<input type=\"button\" value=\"" + getResource("button.close","Cancel") + "\" onclick=\"window.location.href='/webfilesys/servlet?command=listFiles';\">");
+            output.println("<input type=\"button\" value=\"" + getResource("button.close","Cancel") + "\" onclick=\"window.location.href='"+ req.getContextPath() + "/servlet?command=listFiles';\">");
         }
         else
         {

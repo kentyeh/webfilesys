@@ -64,7 +64,7 @@ public class XslCreateFilePromptHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(createFileElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/createFile.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/createFile.xsl\"");
 
 		doc.insertBefore(xslRef, createFileElement);
 

@@ -50,8 +50,8 @@ public class CompressLZCRequestHandler extends UserRequestHandler
 		output.println("<html>");
 		output.println("<head>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
 		output.println("</head>");
 		output.println("<body class=\"unixCompress\">");
@@ -105,7 +105,7 @@ public class CompressLZCRequestHandler extends UserRequestHandler
         output.println("<br>");
 
 		output.println("<form>");
-		output.println("<input type=\"button\" value=\"" + getResource("button.ok","OK") + "\" onclick=\"javascript:window.location.href='/webfilesys/servlet?command=listFiles&keepListStatus=true'\">");
+		output.println("<input type=\"button\" value=\"" + getResource("button.ok","OK") + "\" onclick=\"javascript:window.location.href='"+ req.getContextPath() + "/servlet?command=listFiles&keepListStatus=true'\">");
 
 		output.println("</form>");
 		

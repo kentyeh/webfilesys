@@ -178,7 +178,7 @@ public class XslPictureStoryOwnWindowHandler extends XslRequestHandlerBase {
 		String stylesheetName = "storyOwnWindow.xsl";
 
 		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet",
-				"type=\"text/xsl\" href=\"/webfilesys/xsl/" + stylesheetName + "\"");
+				"type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/" + stylesheetName + "\"");
 
 		Element fileListElement = doc.createElement("fileList");
 
@@ -400,7 +400,7 @@ public class XslPictureStoryOwnWindowHandler extends XslRequestHandlerBase {
 				XmlUtil.setChildText(fileElement, "fullScreenWidth", Integer.toString(fullScreenWidth));
 				XmlUtil.setChildText(fileElement, "fullScreenHeight", Integer.toString(scaledDim.getHeight()));
 				
-				String srcFileName = "/webfilesys/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(fullFileName) + "&cached=true";
+				String srcFileName = req.getContextPath() + "/servlet?command=getFile&filePath=" + UTF8URLEncoder.encode(fullFileName) + "&cached=true";
 				
 				XmlUtil.setChildText(fileElement, "imgPath", srcFileName);
 			}

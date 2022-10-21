@@ -48,8 +48,8 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 		output.print("WebFileSys: " + getResource("label.ziphead", "Create ZIP Archive"));
 		output.println("</TITLE>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
 		output.println("</head>");
 		output.println("<body class=\"zipResult\">");
@@ -97,7 +97,7 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
 			output.println("<script language=\"javascript\">");
 			output.println("alert('The destination file\\n" + insertDoubleBackslash(zip_dest) + "\\n cannot be opened!');");
 			
-			output.println("window.location.href='/webfilesys/servlet?command=listFiles';");
+			output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=listFiles';");
 			output.println("</script>");
 
 			output.println("</body>");
@@ -132,7 +132,7 @@ public class MultiZipRequestHandler extends MultiFileRequestHandler
         
         output.println("<tr><td>&nbsp;</td></tr>");
 
-        String returnUrl="/webfilesys/servlet?command=listFiles";
+        String returnUrl=""+ req.getContextPath() + "/servlet?command=listFiles";
 
         output.println("<tr><td class=\"formButton\">");
         output.println("<input id=\"returnButton\" type=\"button\" value=\"" + getResource("button.return","Return") + "\" style=\"visibility:hidden\" onclick=\"window.location.href='" + returnUrl + "';\">");

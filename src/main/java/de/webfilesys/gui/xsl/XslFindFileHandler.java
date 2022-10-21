@@ -120,7 +120,7 @@ public class XslFindFileHandler extends XslRequestHandlerBase
         
         doc.appendChild(searchResultElement);
             
-        ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/findFileResult.xsl\"");
+        ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/findFileResult.xsl\"");
 
         doc.insertBefore(xslRef, searchResultElement);
 

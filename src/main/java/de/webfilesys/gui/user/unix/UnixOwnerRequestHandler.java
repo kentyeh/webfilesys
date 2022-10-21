@@ -324,16 +324,16 @@ public class UnixOwnerRequestHandler extends UserRequestHandler
                 + getResource("label.accessrights", "owner and access rights")
                 + "</title>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
         output.println(
-            "<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+            "<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
         output.println("</head>");
         output.println("<body class=\"unixRights\">");
 
         headLine(getResource("label.accessrights", "owner and access rights"));
 
-        output.println("<form accept-charset=\"utf-8\" method=\"post\" action=\"/webfilesys/servlet\">");
+        output.println("<form accept-charset=\"utf-8\" method=\"post\" action=\""+ req.getContextPath() + "/servlet\">");
         output.println("<input type=\"hidden\" name=\"command\" value=\"setUnixRights\">");
         output.println(
             "<input type=\"hidden\" name=\"filename\" value=\""

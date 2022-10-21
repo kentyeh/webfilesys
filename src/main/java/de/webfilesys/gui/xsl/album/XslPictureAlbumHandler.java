@@ -202,7 +202,7 @@ public class XslPictureAlbumHandler extends XslRequestHandlerBase {
         }
 
         ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet",
-                "type=\"text/xsl\" href=\"/webfilesys/xsl/album/pictureAlbum.xsl\"");
+                "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/album/pictureAlbum.xsl\"");
 
         Element albumElement = doc.createElement("pictureAlbum");
 
@@ -454,7 +454,7 @@ public class XslPictureAlbumHandler extends XslRequestHandlerBase {
                     }
                 }
 
-                String imgSrcPath = "/webfilesys/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(fileCont.getName());
+                String imgSrcPath = req.getContextPath() + "/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(fileCont.getName());
 
                 if (fileCont.isLink()) {
                     imgSrcPath += "&link=true";

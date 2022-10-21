@@ -81,7 +81,7 @@ public class XslFolderDiffTreeHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(compElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/folderDiffTree.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/folderDiffTree.xsl\"");
 
 		doc.insertBefore(xslRef, compElement);
 

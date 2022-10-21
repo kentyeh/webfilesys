@@ -61,8 +61,8 @@ public class DiffCompareBase extends UserRequestHandler
         output.print("WebFileSys: " + getResource("title.diff","Compare Files (diff)"));
         output.println("</title>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-        output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+        output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
 		output.println("<script src=\"javascript/util.js\" type=\"text/javascript\"></script>");
 		output.println("<script src=\"javascript/fileDiff.js\" type=\"text/javascript\"></script>");
@@ -148,13 +148,13 @@ public class DiffCompareBase extends UserRequestHandler
         
         if (diffCount > 0) {
             output.println("&nbsp;&nbsp;");
-            output.println("<a href=\"javascript:gotoFirstDiff()\"><img src=\"/webfilesys/images/first.gif\"></a>");
+            output.println("<a href=\"javascript:gotoFirstDiff()\"><img src=\""+ req.getContextPath() +"/images/first.gif\"></a>");
             output.println("&nbsp;");
-            output.println("<a href=\"javascript:gotoPrevDiff()\"><img src=\"/webfilesys/images/previous.gif\"></a>");
+            output.println("<a href=\"javascript:gotoPrevDiff()\"><img src=\""+ req.getContextPath() +"/images/previous.gif\"></a>");
             output.println("&nbsp;");
-            output.println("<a href=\"javascript:gotoNextDiff()\"><img src=\"/webfilesys/images/next.gif\"></a>");
+            output.println("<a href=\"javascript:gotoNextDiff()\"><img src=\""+ req.getContextPath() +"/images/next.gif\"></a>");
             output.println("&nbsp;");
-            output.println("<a href=\"javascript:gotoLastDiff()\"><img src=\"/webfilesys/images/last.gif\"></a>");
+            output.println("<a href=\"javascript:gotoLastDiff()\"><img src=\""+ req.getContextPath() +"/images/last.gif\"></a>");
         }
         
         output.println("<div id=\"diffCont\" class=\"diff\">");

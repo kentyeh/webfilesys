@@ -172,7 +172,7 @@ public class DeleteFileRequestHandler extends UserRequestHandler
         output.println("<head>");
 
         output.println("<script language=\"javascript\">");
-        output.println("window.opener.location.href = '/webfilesys/servlet?command=listFiles&keepListStatus=true';");
+        output.println("window.opener.location.href = '"+ req.getContextPath() + "/servlet?command=listFiles&keepListStatus=true';");
         output.println("setTimeout(\"self.close()\", 500);"); 
         output.println("</script>");
 
@@ -207,7 +207,7 @@ public class DeleteFileRequestHandler extends UserRequestHandler
         
         output.println("<script language=\"javascript\">");
         output.println("alert('" + errorMsg.toString() + "');");
-        output.println("window.location=\"/webfilesys/servlet?command=listFiles&keepListStatus=true\";");
+        output.println("window.location=\""+ req.getContextPath() + "/servlet?command=listFiles&keepListStatus=true\";");
         output.println("</script>");
 
         output.println("</head>");

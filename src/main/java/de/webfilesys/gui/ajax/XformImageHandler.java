@@ -185,7 +185,7 @@ public class XformImageHandler extends XmlRequestHandlerBase {
 			logger.error("failed to get image data", ioex);
 		}
 		
-		String imgSrcPath = "/webfilesys/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(resultImageName);
+		String imgSrcPath = req.getContextPath() + "/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(resultImageName);
 
 		XmlUtil.setChildText(fileElement, "imgSrcPath", imgSrcPath);
 

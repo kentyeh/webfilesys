@@ -55,7 +55,7 @@ public class TextOnVideoParamHandler extends XslRequestHandlerBase {
 			
 		doc.appendChild(editParamsElem);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/textOnVideoParams.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/textOnVideoParams.xsl\"");
 
 		doc.insertBefore(xslRef, editParamsElem);
 		
@@ -85,7 +85,7 @@ public class TextOnVideoParamHandler extends XslRequestHandlerBase {
 			
 			XmlUtil.setChildText(editParamsElem, "videoFileName", videoFileName, false);
 			
-			XmlUtil.setChildText(editParamsElem, "thumbnailSource", "/webfilesys/servlet?command=videoThumb&videoFile=" + UTF8URLEncoder.encode(videoFileName), false);                    
+			XmlUtil.setChildText(editParamsElem, "thumbnailSource", req.getContextPath() + "/servlet?command=videoThumb&videoFile=" + UTF8URLEncoder.encode(videoFileName), false);                    
 			
 			try {
 				String videoThumbnailPath = VideoThumbnailCreator.getThumbnailPath(videoFilePath);

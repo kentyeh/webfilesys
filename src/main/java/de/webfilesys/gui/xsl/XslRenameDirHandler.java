@@ -20,7 +20,6 @@ import de.webfilesys.WebFileSys;
 import de.webfilesys.decoration.Decoration;
 import de.webfilesys.decoration.DecorationManager;
 import de.webfilesys.gui.xsl.mobile.MobileFolderFileListHandler;
-import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
 import de.webfilesys.util.XmlUtil;
 
@@ -70,7 +69,7 @@ public class XslRenameDirHandler extends XslRequestHandlerBase
 			
 			doc.appendChild(errorElement);
 			
-			ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/errorMsgFolder.xsl\"");
+			ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/errorMsgFolder.xsl\"");
 
 			doc.insertBefore(xslRef, errorElement);
 			
@@ -202,7 +201,7 @@ public class XslRenameDirHandler extends XslRequestHandlerBase
 		
 		doc.appendChild(errorElement);
 		
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/errorMsgFolder.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/errorMsgFolder.xsl\"");
 
 		doc.insertBefore(xslRef, errorElement);
 		

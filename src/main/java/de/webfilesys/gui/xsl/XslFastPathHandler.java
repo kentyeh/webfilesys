@@ -20,7 +20,6 @@ import de.webfilesys.decoration.Decoration;
 import de.webfilesys.decoration.DecorationManager;
 import de.webfilesys.util.CommonUtils;
 import de.webfilesys.util.UTF8URLEncoder;
-import de.webfilesys.util.XmlUtil;
 
 /**
  * @author Frank Hoehnel
@@ -47,7 +46,7 @@ public class XslFastPathHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(fastPathElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/fastPath.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/fastPath.xsl\"");
 
 		doc.insertBefore(xslRef, fastPathElement);
 

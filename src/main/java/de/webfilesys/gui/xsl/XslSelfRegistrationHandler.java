@@ -272,7 +272,7 @@ public class XslSelfRegistrationHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(rootElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/registerUser.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/registerUser.xsl\"");
 
 		doc.insertBefore(xslRef, rootElement);
 

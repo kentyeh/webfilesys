@@ -88,7 +88,7 @@ public class RenameImageRequestHandler extends UserRequestHandler
 							  + "\\n" + insertDoubleBackslash(dest.getAbsolutePath());
 
 			output.println("alert('" + errorMsg + "');");
-			output.println("window.location.href='/webfilesys/servlet?command=thumbnail';");
+			output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=thumbnail';");
 			output.println("</script>");
 			output.println("</head>");
 			output.println("</html>");

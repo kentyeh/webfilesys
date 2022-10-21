@@ -74,7 +74,7 @@ public class XslCoBrowsingMasterHandler extends XslRequestHandlerBase
 		
 		doc.appendChild(slideShowElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/coBrowsingMaster.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/coBrowsingMaster.xsl\"");
 
 		doc.insertBefore(xslRef, slideShowElement);
 

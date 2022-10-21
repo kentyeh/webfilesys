@@ -79,7 +79,7 @@ public class AnyVideoConcatParamHandler extends XslRequestHandlerBase {
 		
 		doc.appendChild(paramsElem);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/concatVideoParams.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/concatVideoParams.xsl\"");
 
 		doc.insertBefore(xslRef, paramsElem);
 		

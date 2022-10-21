@@ -49,7 +49,7 @@ public class XslSlideshowParmsHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(slideShowParmsElement);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/slideShowParms.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/slideShowParms.xsl\"");
 
 		doc.insertBefore(xslRef, slideShowParmsElement);
 

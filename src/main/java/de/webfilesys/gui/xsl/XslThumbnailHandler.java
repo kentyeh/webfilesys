@@ -332,7 +332,7 @@ public class XslThumbnailHandler extends XslFileListHandlerBase {
 					}
 				}
 
-				String imgSrcPath = "/webfilesys/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(fileCont.getName());
+				String imgSrcPath = req.getContextPath() + "/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(fileCont.getName());
 
 				if (fileCont.isLink()) {
 					imgSrcPath += "&link=true";

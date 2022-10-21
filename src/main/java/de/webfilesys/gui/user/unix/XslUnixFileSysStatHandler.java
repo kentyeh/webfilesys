@@ -54,7 +54,7 @@ public class XslUnixFileSysStatHandler extends XslRequestHandlerBase
             
             doc.appendChild(fileSysStatElement);
                 
-            ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/unixFileSysStat.xsl\"");
+            ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/unixFileSysStat.xsl\"");
 
             doc.insertBefore(xslRef, fileSysStatElement);
 

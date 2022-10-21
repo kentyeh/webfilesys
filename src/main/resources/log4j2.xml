@@ -5,7 +5,7 @@
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%-5level} - %highlight{%msg}%n%ex{full}%n" />
         </Console>
         <RollingRandomAccessFile name="WebFileSysLogAppender" fileName="${sys:catalina.home}/logs/${project.artifactId}.log"
-                                 filePattern="${sys:catalina.home}/logs/${project.artifactId}-%d{MM-dd-yyyy}-%i.log.gz">
+                                 filePattern="${sys:catalina.home}/logs/${project.artifactId}-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout>
                 <pattern>%d %p [%t] %C{1.}.%M(%L) %m%n%ex{full}%n</pattern>
             </PatternLayout>

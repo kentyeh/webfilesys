@@ -42,7 +42,7 @@ public class XslUserSettingsHandler extends XslRequestHandlerBase {
 		doc.appendChild(userSettingsElem);
 
 		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet",
-				"type=\"text/xsl\" href=\"/webfilesys/xsl/userSettings.xsl\"");
+				"type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/userSettings.xsl\"");
 
 		doc.insertBefore(xslRef, userSettingsElem);
 

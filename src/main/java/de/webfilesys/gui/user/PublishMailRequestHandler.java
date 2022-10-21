@@ -254,14 +254,14 @@ public class PublishMailRequestHandler extends UserRequestHandler
 		{
 			if ((publishType != null) && publishType.equals("album"))
 			{
-				secretURL.append("/webfilesys/visitor/");
+				secretURL.append(""+ req.getContextPath() +"/visitor/");
 				secretURL.append(virtualUser);
 				secretURL.append('/');
 				secretURL.append(accessCode);
 			} 
 			else 
 			{
-				secretURL.append("/webfilesys/servlet?command=silentLogin&");
+				secretURL.append(req.getContextPath() + "/servlet?command=silentLogin&");
 				secretURL.append(virtualUser);
 				secretURL.append('=');
 				secretURL.append(accessCode);
@@ -276,7 +276,7 @@ public class PublishMailRequestHandler extends UserRequestHandler
 		}
 		else
 		{
-			secretURL.append("/webfilesys/servlet?command=public&accessCode=");
+			secretURL.append(req.getContextPath() + "/servlet?command=public&accessCode=");
 
 			secretURL.append(accessCode);
 		}
@@ -330,10 +330,10 @@ public class PublishMailRequestHandler extends UserRequestHandler
 
 		output.println("<title>" + getResource("label.publishhead","Publish folder content") + "</title>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
-		output.println("<script src=\"/webfilesys/javascript/publish.js\" type=\"text/javascript\"></script>");
+		output.println("<script src=\""+ req.getContextPath() +"/javascript/publish.js\" type=\"text/javascript\"></script>");
 		
 		output.println("</head>"); 
 		output.println("<body class=\"publish\">");
@@ -419,8 +419,8 @@ public class PublishMailRequestHandler extends UserRequestHandler
 		output.println("<html>");
 		output.println("<head>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 
         output.println("<title>" + getResource("label.publishhead","Publish folder content")+ "</title>");
 
@@ -429,8 +429,8 @@ public class PublishMailRequestHandler extends UserRequestHandler
 			javascriptAlert(errorMsg);
 		}
 
-		output.println("<script src=\"/webfilesys/javascript/fmweb.js\" type=\"text/javascript\"></script>"); 
-		output.println("<script src=\"/webfilesys/javascript/publish.js\" type=\"text/javascript\"></script>"); 
+		output.println("<script src=\""+ req.getContextPath() +"/javascript/fmweb.js\" type=\"text/javascript\"></script>"); 
+		output.println("<script src=\""+ req.getContextPath() +"/javascript/publish.js\" type=\"text/javascript\"></script>"); 
 
 		String initialPageSize = Integer.toString(userMgr.getPageSize(uid));
 		output.println("<script type=\"text/javascript\">"); 
@@ -445,7 +445,7 @@ public class PublishMailRequestHandler extends UserRequestHandler
         
         output.println("<br/>");
 
-		output.println("<form accept-charset=\"utf-8\" name=\"form1\" method=\"post\" action=\"/webfilesys/servlet\">");
+		output.println("<form accept-charset=\"utf-8\" name=\"form1\" method=\"post\" action=\""+ req.getContextPath() + "/servlet\">");
 
 		output.println("<input type=\"hidden\" name=\"command\" value=\"publish\">");
 

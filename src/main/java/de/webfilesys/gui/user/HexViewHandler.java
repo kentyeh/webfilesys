@@ -67,8 +67,8 @@ public class HexViewHandler extends UserRequestHandler
 		output.println("<html>");
 		output.println("<head>");
 
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/common.css\">");
-		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"/webfilesys/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/common.css\">");
+		output.println("<link rel=\"stylesheet\" type=\"text/css\" href=\""+ req.getContextPath() +"/styles/skins/" + userMgr.getCSS(uid) + ".css\">");
 		
 		File hexFile = new File(currentPath, fileName);
 
@@ -90,7 +90,7 @@ public class HexViewHandler extends UserRequestHandler
         output.println("<script type=\"text/javascript\">");
         output.println("function paging(startIdx)");
         output.println("{");
-        output.println("window.location.href = '/webfilesys/servlet?command=hexView&fileName=" + UTF8URLEncoder.encode(fileName) + "&startIdx=' + startIdx;");
+        output.println("window.location.href = '"+ req.getContextPath() + "/servlet?command=hexView&fileName=" + UTF8URLEncoder.encode(fileName) + "&startIdx=' + startIdx;");
         output.println("}");
         output.println("</script>");
         

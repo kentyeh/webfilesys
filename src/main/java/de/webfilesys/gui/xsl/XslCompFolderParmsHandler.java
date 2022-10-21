@@ -35,7 +35,7 @@ public class XslCompFolderParmsHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(compFolderElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/compFolderParms.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/compFolderParms.xsl\"");
 
 		doc.insertBefore(xslRef, compFolderElement);
 		

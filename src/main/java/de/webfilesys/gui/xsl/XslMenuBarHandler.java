@@ -34,7 +34,7 @@ public class XslMenuBarHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(menuBarElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/menuBar.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +" /xsl/menuBar.xsl\"");
 
 		doc.insertBefore(xslRef, menuBarElement);
 

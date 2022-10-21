@@ -133,7 +133,7 @@ public class MobileFolderPictureHandler extends XslRequestHandlerBase {
 		
 		int startIdx = 0;
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/mobile/folderPictures.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/mobile/folderPictures.xsl\"");
 
 		Element fileListElem = doc.createElement("fileList");
 			
@@ -373,7 +373,7 @@ public class MobileFolderPictureHandler extends XslRequestHandlerBase {
 					}
 				}
 
-				String imgSrcPath = "/webfilesys/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(fileCont.getName());
+				String imgSrcPath = req.getContextPath() + "/servlet?command=picThumb&imgFile=" + UTF8URLEncoder.encode(fileCont.getName());
 
 				if (fileCont.isLink()) {
 					imgSrcPath += "&link=true";

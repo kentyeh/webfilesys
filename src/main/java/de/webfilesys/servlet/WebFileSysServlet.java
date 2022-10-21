@@ -324,8 +324,8 @@ public class WebFileSysServlet extends ServletBase
 	
 	static boolean initialized = false;
 	
-	private static final int REQUEST_PATH_LENGTH = "/webfilesys/servlet".length();
-	
+	private static int REQUEST_PATH_LENGTH = "/webfilesys/servlet".length();
+
     @Override
     public void init(ServletConfig config)
     throws ServletException
@@ -334,7 +334,8 @@ public class WebFileSysServlet extends ServletBase
     	{
     		return;
     	}
-    	
+    	super.init(config);
+        WebFileSysServlet.REQUEST_PATH_LENGTH = (cp()+"/servlet").length();
         ServletContext context = config.getServletContext();
     	
         String realLogDirPath = context.getRealPath("/WEB-INF/log");
@@ -643,7 +644,7 @@ public class WebFileSysServlet extends ServletBase
         
         if (command.equals("versionInfo"))
     	{
-		    (new VersionInfoRequestHandler(output)).handleRequest(); 
+		    (new VersionInfoRequestHandler(output, cp(req))).handleRequest(); 
     		
     		return(true);
     	}
@@ -2560,7 +2561,7 @@ public class WebFileSysServlet extends ServletBase
 
     	session.invalidate();
 
-        String logoutPage = "/webfilesys/servlet";
+        String logoutPage = cp()+"/servlet";
 
         if (WebFileSys.getInstance().getLogoutURL() != null)
         {
@@ -3000,7 +3001,7 @@ public class WebFileSysServlet extends ServletBase
 
 		output.println("<script language=\"javascript\">");
 
-		output.println("  top.location.href='/webfilesys/servlet?command=loginForm';"); 
+		output.println("  top.location.href='" + cp() + "/servlet?command=loginForm';");
 
 		output.println("</script>");
 

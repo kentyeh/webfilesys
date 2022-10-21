@@ -92,7 +92,7 @@ public class XslFileListStatsHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(fileListElem);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/fileListStats.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/fileListStats.xsl\"");
 
 		doc.insertBefore(xslRef, fileListElem);
 

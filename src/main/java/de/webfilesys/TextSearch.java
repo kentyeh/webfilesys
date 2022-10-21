@@ -47,19 +47,22 @@ public class TextSearch
     String[] searchArgs;
     
     int dirCounter = 0;
+    private String contextPath = "/webfilesys";
+    private final String servletPath = "/servlet";
     
     public TextSearch(String root_dir, String file_mask, String[] searchArguments, Date fromDate, Date toDate,
                PrintWriter output, boolean includeSubdirs, boolean includeMetaInf, boolean metaInfOnly,
                Category category, String searchResultDir,
                HttpSession session, boolean readonly,
                String relativePath,
-               String uid)
+               String uid, String contextPath)
     {
         this.output=output;
         this.searchResultDir = searchResultDir;
         this.session=session;
         this.readonly = readonly;
         this.uid = uid;
+        this.contextPath = contextPath;
 
         hitNum = 0;
 
@@ -163,7 +166,7 @@ public class TextSearch
     							if (allWordsFound) {
                                 	String folderViewLink = "javascript:gotoSearchResultFolder('" + CommonUtils.escapeForJavascript(fullPath) + "')";
 
-    								output.println("<a class=\"fn\" href=\"" + folderViewLink + "\"><img border=\"0\" src=\"/webfilesys/images/folder.gif\" style=\"margin-top:8px;\"> " + relativeFile + "</a>");
+    								output.println("<a class=\"fn\" href=\"" + folderViewLink + "\"><img border=\"0\" src=\"" + contextPath + "/images/folder.gif\" style=\"margin-top:8px;\"> " + relativeFile + "</a>");
     								output.println("<br/>");
     								output.flush();
     								hitNum++;
@@ -234,7 +237,7 @@ public class TextSearch
 								if (allWordsFound) {
                                     String viewLink = null;
                                     try {
-                                        viewLink = "/webfilesys/servlet?command=getFile&filePath=" + URLEncoder.encode(fullPath, "UTF-8");
+                                        viewLink = contextPath + servletPath+"?command=getFile&filePath=" + URLEncoder.encode(fullPath, "UTF-8");
                                     } catch (UnsupportedEncodingException uex) {
                                         // should never happen
                                     }

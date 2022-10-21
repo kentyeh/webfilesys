@@ -37,7 +37,7 @@ public class XslDownloadPromptHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(downloadElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/download.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/download.xsl\"");
 
 		doc.insertBefore(xslRef, downloadElement);
 

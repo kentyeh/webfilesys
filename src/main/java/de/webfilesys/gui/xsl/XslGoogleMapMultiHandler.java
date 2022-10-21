@@ -60,7 +60,7 @@ public class XslGoogleMapMultiHandler extends XslRequestHandlerBase {
 			
 		doc.appendChild(geoDataElement);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/googleMapMulti.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/googleMapMulti.xsl\"");
 
 		doc.insertBefore(xslRef, geoDataElement);
 

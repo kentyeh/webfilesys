@@ -58,7 +58,7 @@ public class XslOpenStreetMapFilesHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(geoTagElement);
 
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/openStreetMapFiles.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/openStreetMapFiles.xsl\"");
 
 		doc.insertBefore(xslRef, geoTagElement);
 

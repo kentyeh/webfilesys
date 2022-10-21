@@ -56,7 +56,7 @@ public class MultiGPXTrackHandler extends XslRequestHandlerBase {
 		doc.appendChild(gpxTrackElem);
 
 		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet",
-				"type=\"text/xsl\" href=\"/webfilesys/xsl/multiGPXTracks.xsl\"");
+				"type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/multiGPXTracks.xsl\"");
 
 		doc.insertBefore(xslRef, gpxTrackElem);
 

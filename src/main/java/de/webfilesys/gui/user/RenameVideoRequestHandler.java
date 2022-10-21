@@ -82,7 +82,7 @@ public class RenameVideoRequestHandler extends UserRequestHandler {
 
 			output.println("alert('" + errorMsg + "');");
 
-			output.println("window.location.href='/webfilesys/servlet?command=listVideos';");
+			output.println("window.location.href='"+ req.getContextPath() + "/servlet?command=listVideos';");
 
 			output.println("</script>");
 			output.println("</head>");

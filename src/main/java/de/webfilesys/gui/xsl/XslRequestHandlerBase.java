@@ -229,8 +229,9 @@ public class XslRequestHandlerBase extends UserRequestHandler
 		addCommonSessionData();
 		
 		if ((session != null) && (!xsltAlwaysOnServer) && isBrowserXslEnabled()) {
-			ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/" + xslFile + "\"");
+			ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/" + xslFile + "\"");
 			doc.insertBefore(xslRef, doc.getDocumentElement());
+                        doc.getDocumentElement().setAttribute("cp", req.getContextPath());
 			
 			resp.setContentType("text/xml");
 

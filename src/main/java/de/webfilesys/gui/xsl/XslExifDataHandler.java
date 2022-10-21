@@ -46,7 +46,7 @@ public class XslExifDataHandler extends XslRequestHandlerBase
 			
 		doc.appendChild(cameraDataElement);
 			
-		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"/webfilesys/xsl/cameraData.xsl\"");
+		ProcessingInstruction xslRef = doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\""+ req.getContextPath() +"/xsl/cameraData.xsl\"");
 
 		doc.insertBefore(xslRef, cameraDataElement);
         
@@ -149,7 +149,7 @@ public class XslExifDataHandler extends XslRequestHandlerBase
 
             if (thumbLength > 0)
             {
-                String srcFileName = "/webfilesys/servlet?command=exifThumb&imgFile=" + UTF8URLEncoder.encode(imgFileName);
+                String srcFileName = req.getContextPath() + "/servlet?command=exifThumb&imgFile=" + UTF8URLEncoder.encode(imgFileName);
 
                 XmlUtil.setChildText(exifDataElement, "thumbnailPath", srcFileName);
             }
